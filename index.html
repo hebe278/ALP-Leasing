@@ -177,6 +177,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .pill-vacant{background:var(--status-vacant-bg); color:var(--status-vacant);}
 
   .zone-input{width:110px;}
+  .locked-field{background:var(--bg); color:var(--text-soft); cursor:not-allowed;}
   .rate-bar-wrap{display:flex; align-items:center; gap:8px; min-width:170px;}
   .rate-bar-track{flex:1; height:8px; border-radius:99px; background:#EEEEEF; overflow:hidden;}
   .rate-bar-fill{height:100%; border-radius:99px; background:var(--series-1);}
@@ -327,13 +328,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <section class="panel" id="panel-area">
     <div class="toolbar">
       <div class="spacer"></div>
+      <button type="button" class="btn btn-secondary" id="zoneAdminToggle">🔒 解鎖編輯（需管理員密碼）</button>
       <button class="btn btn-secondary" id="addZoneRow">＋ 新增園區</button>
     </div>
     <div class="card">
       <div class="card-head">
         <div>
           <h2>園區坪數基準</h2>
-          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。可直接點選數字修改。</p>
+          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -559,6 +561,12 @@ const SHAREPOINT_URL = "";
 
 // 存取密碼：留空字串 "" 代表不啟用密碼保護，任何人拿到連結都能直接開啟編輯。
 const ACCESS_PASSWORD = "ALP000";
+
+// 管理員密碼：跟上面的「進站密碼」是不同的兩組密碼。進站密碼讓同事可以打開系統「查看」資料；
+// 管理員密碼則是用來保護「園區坪數基準」頁面的編輯權限（新增/刪除園區、修改坪數與棟別），
+// 避免一般同事不小心改到會影響所有人出租率計算的基準數字。輸入一次正確密碼後，
+// 這個瀏覽器分頁當次開啟期間都會保持解鎖，重新整理頁面後會自動恢復鎖定。
+const ADMIN_PASSWORD = "je03xu3m06";
 
 // Supabase 專案設定：到 https://supabase.com 用 email 或 GitHub 帳號免費註冊（不需要信用卡）、
 // 建立一個新專案，再到專案的「SQL Editor」貼上下面這段建表指令執行一次：
@@ -1043,6 +1051,38 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
 function notify(message, title="提示"){ return showDialog({title, message, alertOnly:true}); }
 function askConfirm(message, title="請確認"){ return showDialog({title, message}); }
 function askPrompt(message, defaultValue="", title="請輸入"){ return showDialog({title, message, withInput:true, defaultValue}); }
+function askPassword(message, title="請輸入密碼"){
+  const input = document.getElementById("dialogInput");
+  input.type = "password";
+  return showDialog({title, message, withInput:true}).then(val=>{
+    input.type = "text";
+    return val;
+  });
+}
+
+/* ---------------- 「園區坪數基準」編輯鎖：預設鎖定，需輸入 ADMIN_PASSWORD 才能解鎖 ----------------
+   跟 accessGate（進站密碼）是兩個獨立的門檻：accessGate 檔的是「誰能打開系統」，
+   這裡擋的是「打開系統之後，誰能改動會影響所有人出租率計算的園區坪數基準」。
+   zoneAdminUnlocked 只存在記憶體裡（沒有存進 localStorage），重新整理頁面就會恢復鎖定。 ---------------- */
+let zoneAdminUnlocked = false;
+function updateZoneAdminToggle(){
+  const btn = document.getElementById("zoneAdminToggle");
+  if (!btn) return;
+  btn.textContent = zoneAdminUnlocked ? "🔓 編輯已解鎖（點此重新鎖定）" : "🔒 解鎖編輯（需管理員密碼）";
+}
+async function ensureZoneAdmin(){
+  if (zoneAdminUnlocked) return true;
+  const pw = await askPassword("這項操作需要管理員密碼才能繼續（跟進站密碼是不同的兩組）：", "需要管理員密碼");
+  if (pw === null) return false;
+  if (pw !== ADMIN_PASSWORD){
+    await notify("管理員密碼錯誤，請再試一次。");
+    return false;
+  }
+  zoneAdminUnlocked = true;
+  updateZoneAdminToggle();
+  renderArea();
+  return true;
+}
 
 /* ---------------- tab switching ---------------- */
 document.querySelectorAll(".tab-btn").forEach(btn=>{
@@ -1472,9 +1512,11 @@ function renderArea(){
     const buildings = zoneBuildings(z);
     const hasBuildings = buildings.length > 0;
     const expanded = expandedZoneKeys.has(zoneKey(z));
+    const lockedAttr = zoneAdminUnlocked ? "" : "readonly";
+    const lockedCls = zoneAdminUnlocked ? "" : " locked-field";
     const totalCell = hasBuildings
       ? `<span title="由下方 ${buildings.length} 棟坪數加總計算，如需調整請直接修改各棟坪數">${fmt2(z.area)}</span> <small style="color:var(--text-soft);">(${buildings.length}棟加總)</small>`
-      : `<input type="number" class="zone-input" data-idx="${idx}" data-field="area" value="${z.area}" step="0.01" min="0">`;
+      : `<input type="number" class="zone-input${lockedCls}" data-idx="${idx}" data-field="area" value="${z.area}" step="0.01" min="0" ${lockedAttr}>`;
     html += `
     <tr data-zonerow="${idx}">
       <td>
@@ -1482,16 +1524,16 @@ function renderArea(){
         ${z.zone}
       </td>
       <td class="num">${totalCell}</td>
-      <td><input type="text" style="width:220px;" data-idx="${idx}" data-field="note" value="${z.note||""}" placeholder="選填"></td>
+      <td><input type="text" class="${lockedCls.trim()}" style="width:220px;" data-idx="${idx}" data-field="note" value="${z.note||""}" placeholder="選填" ${lockedAttr}></td>
       <td><button class="btn-danger-ghost" title="刪除" data-delzone="${idx}">×</button></td>
     </tr>`;
     if (expanded){
       buildings.forEach((b, bidx)=>{
         html += `
         <tr class="subrow">
-          <td style="padding-left:34px;">└ <input type="text" style="width:140px;" data-bidx="${idx}:${bidx}" data-bfield="name" value="${b.name||""}" placeholder="棟別名稱"></td>
-          <td class="num"><input type="number" class="zone-input" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0"></td>
-          <td><input type="text" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填"></td>
+          <td style="padding-left:34px;">└ <input type="text" class="${lockedCls.trim()}" style="width:140px;" data-bidx="${idx}:${bidx}" data-bfield="name" value="${b.name||""}" placeholder="棟別名稱" ${lockedAttr}></td>
+          <td class="num"><input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0" ${lockedAttr}></td>
+          <td><input type="text" class="${lockedCls.trim()}" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填" ${lockedAttr}></td>
           <td><button class="btn-danger-ghost" title="刪除這一棟" data-delbuilding="${idx}:${bidx}">×</button></td>
         </tr>`;
       });
@@ -1503,6 +1545,15 @@ function renderArea(){
     }
   });
   tbody.innerHTML = html || `<tr class="empty-row"><td colspan="4">尚未設定任何園區</td></tr>`;
+
+  // 欄位鎖定時，點一下會先跳出管理員密碼輸入框；輸入正確後整張表會重新變成可編輯，
+  // 再點一次該欄位即可輸入（避免直接讓使用者在唯讀欄位裡打字卻沒有反應，造成困惑）。
+  tbody.querySelectorAll("input[readonly]").forEach(inp=>{
+    inp.addEventListener("mousedown", (e)=>{
+      e.preventDefault();
+      ensureZoneAdmin();
+    });
+  });
 
   tbody.querySelectorAll("input[data-field]").forEach(inp=>{
     inp.addEventListener("change", async ()=>{
@@ -1545,6 +1596,7 @@ function renderArea(){
 
   tbody.querySelectorAll("[data-addbuilding]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
       const idx = Number(btn.dataset.addbuilding);
       const z = ZONE_AREA[idx];
       const buildings = zoneBuildings(z).map(b=>({...b}));
@@ -1561,6 +1613,7 @@ function renderArea(){
 
   tbody.querySelectorAll("[data-delbuilding]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
       const [idx, bidx] = btn.dataset.delbuilding.split(":").map(Number);
       const z = ZONE_AREA[idx];
       const bname = zoneBuildings(z)[bidx]?.name || "";
@@ -1573,6 +1626,7 @@ function renderArea(){
 
   tbody.querySelectorAll("[data-clearbuildings]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
       const idx = Number(btn.dataset.clearbuildings);
       const z = ZONE_AREA[idx];
       if (!(await askConfirm(`確定要清空「${z.zone}」的棟別明細嗎？總坪數會保留目前加總的數字，但會改回可直接手動輸入；已經標記棟別的租約，棟別欄位會變成沒有作用的文字紀錄。`))) return;
@@ -1591,6 +1645,7 @@ function renderArea(){
 
   tbody.querySelectorAll("[data-delzone]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
       const idx = Number(btn.dataset.delzone);
       const z = ZONE_AREA[idx];
       if (await askConfirm(`確定要刪除「${z.zone}」這一列嗎？（若該園區仍有租約，資料庫中的紀錄不會被刪除，但出租率總覽將找不到對應的坪數基準）`)){
@@ -1610,7 +1665,19 @@ function renderArea(){
     });
   });
 }
+document.getElementById("zoneAdminToggle").addEventListener("click", async ()=>{
+  if (zoneAdminUnlocked){
+    if (await askConfirm("確定要重新鎖定「園區坪數基準」的編輯嗎？鎖定後要再修改需要重新輸入一次管理員密碼。")){
+      zoneAdminUnlocked = false;
+      updateZoneAdminToggle();
+      renderArea();
+    }
+    return;
+  }
+  await ensureZoneAdmin();
+});
 document.getElementById("addZoneRow").addEventListener("click", async ()=>{
+  if (!(await ensureZoneAdmin())) return;
   const name = await askPrompt("請輸入新園區名稱：");
   if (!name) return;
   if (zoneNames().includes(name.trim())){
