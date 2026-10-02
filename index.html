@@ -2220,7 +2220,9 @@ function renderOcc(){
         const bLeases = leases.filter(r => r.building === b.name);
         const bLeased = bLeases.reduce((s,r)=> s + Number(r.area||0), 0);
         attributedLeased += bLeased;
-        const bArea = Number(b.area)||0;
+        // 這一棟如果已經拆了樓層，坪數一律以樓層／單元加總為準（跟「園區坪數基準」頁面顯示的數字一致），
+        // 不能直接讀棟別自己的 .area 欄位——拆了樓層之後那個欄位就不會再更新，會變成過期的 0 或舊數字。
+        const bArea = computeBuildingArea(b);
         const bVacant = Math.max(0, bArea - bLeased);
         const bRate = bArea > 0 ? bLeased / bArea : 0;
         const bRent = bLeases.reduce((s,r)=> s + computeTotalRent(r, TODAY), 0);
@@ -2591,7 +2593,8 @@ function buildExportSheets(){
         const bLeases = leases.filter(r => r.building === b.name);
         const bLeased = bLeases.reduce((s,r)=> s + Number(r.area||0), 0);
         attributedLeased += bLeased;
-        const bArea = Number(b.area)||0;
+        // 同畫面上「出租率總覽」的邏輯：拆了樓層的棟別，坪數一律用樓層／單元加總，不要讀過期的 .area 欄位。
+        const bArea = computeBuildingArea(b);
         const bVacant = Math.max(0, bArea - bLeased);
         const bRate = bArea > 0 ? (bLeased / bArea * 100) : 0;
         const bRent = bLeases.reduce((s,r)=> s + computeTotalRent(r, TODAY), 0);
@@ -2615,7 +2618,7 @@ function buildExportSheets(){
   // 只有真的有人拆過棟別，才多匯出這個分頁，避免大家都還沒用到這個功能時憑空多一個空白分頁。
   const buildingHeader = ["園區","棟別","坪數","備註"];
   const buildingRows = [];
-  ZONE_AREA.forEach(z => zoneBuildings(z).forEach(b => buildingRows.push([z.zone, b.name, b.area, b.note || ""])));
+  ZONE_AREA.forEach(z => zoneBuildings(z).forEach(b => buildingRows.push([z.zone, b.name, computeBuildingArea(b), b.note || ""])));
   if (buildingRows.length){
     sheets.push({ name: "棟別明細", header: buildingHeader, rows: buildingRows });
   }
