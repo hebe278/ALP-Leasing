@@ -1950,7 +1950,48 @@ async function persistZoneBuildings(idx, buildings){
   }
 }
 
+// 每次編輯一個坪數欄位（change 事件，通常發生在按 Tab 換到下一欄、或點別的欄位的那一刻）都會
+// 整張表重新畫過一次（因為坪數加總、展開狀態都要重算），但「重新畫過」代表把舊的 <input> 整組
+// 砍掉換新的 DOM 節點——如果使用者剛好是按 Tab／點下一個欄位要換過去，瀏覽器原本已經要把
+// focus 移到「下一個欄位」了，結果那個欄位的 DOM 節點卻在同一瞬間被整個換掉，focus 就會憑空消失
+// （使用者會覺得「明明點進去打字，打一打焦點就跳走」）。這兩個函式負責在重新畫表格的前後，
+// 記住／還原「目前真正該有 focus 的是哪一欄」，讓這個情況下 focus 能跟著正確接到新畫出來的那個
+// 欄位上，不會憑空消失。
+function captureAreaFocusState(){
+  const el = document.activeElement;
+  if (!el || el.tagName !== "INPUT") return null;
+  const tbody = document.getElementById("areaTbody");
+  if (!tbody || !tbody.contains(el)) return null;
+  let selector = null;
+  if (el.dataset.ufield) selector = `input[data-uidx="${el.dataset.uidx}"][data-ufield="${el.dataset.ufield}"]`;
+  else if (el.dataset.ffield) selector = `input[data-fidx="${el.dataset.fidx}"][data-ffield="${el.dataset.ffield}"]`;
+  else if (el.dataset.bfield) selector = `input[data-bidx="${el.dataset.bidx}"][data-bfield="${el.dataset.bfield}"]`;
+  else if (el.dataset.field) selector = `input[data-idx="${el.dataset.idx}"][data-field="${el.dataset.field}"]`;
+  if (!selector) return null;
+  let selStart = null, selEnd = null;
+  try{ selStart = el.selectionStart; selEnd = el.selectionEnd; }catch(err){ /* type="number" 欄位不支援選取範圍，忽略即可 */ }
+  // 連同「這一刻畫面上還沒送出儲存的值」一起記住——如果這次重畫是因為別人（多人共用）在
+  // 別的地方改了資料、連動觸發 onSnapshot，而使用者自己這個欄位根本還沒打完、還沒按 Tab／
+  // 點掉（還沒觸發 change 存檔），重畫表格一律是照「資料庫目前存的值」畫出新的輸入框，
+  // 使用者正在打、還沒存檔的這幾個字就會憑空被蓋掉、打到一半的內容整個消失。
+  // 把這一刻的 value 記下來、重畫完再塞回去，使用者打到一半的內容才不會無緣無故不見。
+  return { selector, selStart, selEnd, value: el.value };
+}
+function restoreAreaFocusState(state){
+  if (!state) return;
+  const tbody = document.getElementById("areaTbody");
+  if (!tbody) return;
+  const el = tbody.querySelector(state.selector);
+  if (!el) return;
+  el.focus();
+  if (state.value !== undefined && el.value !== state.value) el.value = state.value;
+  if (state.selStart !== null && state.selEnd !== null){
+    try{ el.setSelectionRange(state.selStart, state.selEnd); }catch(err){ /* 同上，忽略不支援選取範圍的欄位類型 */ }
+  }
+}
+
 function renderArea(){
+  const focusState = captureAreaFocusState();
   const tbody = document.getElementById("areaTbody");
   let html = "";
   ZONE_AREA.forEach((z, idx)=>{
@@ -2042,6 +2083,7 @@ function renderArea(){
     }
   });
   tbody.innerHTML = html || `<tr class="empty-row"><td colspan="4">尚未設定任何園區</td></tr>`;
+  restoreAreaFocusState(focusState);
 
   // 欄位鎖定時，點一下會先跳出管理員密碼輸入框；輸入正確後整張表會重新變成可編輯，
   // 再點一次該欄位即可輸入（避免直接讓使用者在唯讀欄位裡打字卻沒有反應，造成困惑）。
