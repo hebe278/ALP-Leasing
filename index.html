@@ -265,10 +265,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <span class="badge">資料維護版</span>
   </div>
   <div class="header-right">
-    <div class="subtitle">對應 Excel「資料庫 / 園區坪數基準 / 出租率總覽」三個分頁　·　可切換檢視、手動新增租約</div>
+    <div class="subtitle">對應 Excel「資料庫 / 園區坪數基準 / 出租率總覽 / 月別總表」四組分頁　·　可切換檢視、手動新增租約</div>
     <span id="syncBadge" class="sync-badge sync-local" title="正在連線…">● 連線中…</span>
     <div class="header-actions">
-      <button class="icon-btn" id="exportExcelBtn" title="匯出目前資料為 Excel（.xlsx，含三個分頁）">
+      <button class="icon-btn" id="exportExcelBtn" title="匯出目前資料為 Excel（.xlsx，含多個分頁）">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
       </button>
       <a class="icon-btn" id="sharepointLink" href="#" target="_blank" rel="noopener" title="開啟 SharePoint 資料庫活頁簿">
@@ -380,8 +380,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
               <th class="num">已租坪數</th>
               <th class="num">空置坪數</th>
               <th>出租率</th>
-              <th class="num">在租約數</th>
-              <th class="num">當期總月租金合計</th>
             </tr>
           </thead>
           <tbody id="occTbody"></tbody>
@@ -806,8 +804,8 @@ function updateExportBtnTooltip(){
   const btn = document.getElementById("exportExcelBtn");
   if (!btn) return;
   btn.title = USING_DOWNLOADS
-    ? "匯出目前資料（多個 CSV 檔案：資料庫／園區坪數基準／出租率總覽，若有拆棟別會多一個棟別明細）"
-    : "匯出目前資料為 Excel（.xlsx，含資料庫／園區坪數基準／出租率總覽等分頁）";
+    ? "匯出目前資料（多個 CSV 檔案：資料庫／園區坪數基準／出租率總覽／月別總表(租金·管理費·設備·總覽，依畫面目前選的年度)，若有拆棟別會多一個棟別明細）"
+    : "匯出目前資料為 Excel（.xlsx，含資料庫／園區坪數基準／出租率總覽／月別總表(租金·管理費·設備·總覽，依畫面目前選的年度)等分頁）";
 }
 
 /* ---------------- Supabase 轉接層（外部部署版本、且有填 SUPABASE_CONFIG 時才會用到）----------------
@@ -1744,6 +1742,15 @@ async function persistZoneBuildings(idx, buildings){
   const newArea = computeZoneAreaFromBuildings(buildings);
   if (USING_DB){
     const z = ZONE_AREA[idx];
+    // 先在本機樂觀更新，畫面立刻反映這次異動，後續任何操作（例如馬上接著點「新增棟別」）
+    // 讀到的都已經是這次修改後的內容，不會因為共用資料庫的伺服器還沒回傳最新資料、
+    // 讀到舊的棟別陣列而把剛剛的修改蓋掉（這是真正多人共用、有網路延遲時會發生的競爭問題）。
+    // 真正從伺服器回來的 onSnapshot 之後還是會再覆蓋一次，確保最終大家看到的資料一致。
+    z.buildings = buildings;
+    z.area = newArea;
+    renderArea();
+    renderOcc();
+    renderMonthly();
     try{ await DB.collection("zones").doc(z._id).update({ buildings, area: newArea }); }
     catch(err){ await notify("更新棟別失敗，請稍後再試一次。"); console.warn(err); }
   } else {
@@ -1865,6 +1872,10 @@ function renderArea(){
       const value = field === "area" ? Number(inp.value)||0 : inp.value;
       if (USING_DB){
         const z = ZONE_AREA[idx];
+        // 同樣先樂觀更新本機資料，避免接下來的操作讀到還沒同步回來的舊資料（見 persistZoneBuildings 的說明）。
+        z[field] = value;
+        renderOcc();
+        renderMonthly();
         try{ await DB.collection("zones").doc(z._id).update({ [field]: value }); }
         catch(err){ await notify("更新失敗，請稍後再試一次。"); console.warn(err); }
       } else {
@@ -2093,6 +2104,10 @@ function renderArea(){
       const z = ZONE_AREA[idx];
       if (!(await askConfirm(`確定要清空「${z.zone}」的棟別明細嗎？總坪數會保留目前加總的數字，但會改回可直接手動輸入；已經標記棟別的租約，棟別欄位會變成沒有作用的文字紀錄。`))) return;
       if (USING_DB){
+        z.buildings = [];
+        renderArea();
+        renderOcc();
+        renderMonthly();
         try{ await DB.collection("zones").doc(z._id).update({ buildings: [] }); }
         catch(err){ await notify("更新失敗，請稍後再試一次。"); console.warn(err); }
       } else {
@@ -2178,8 +2193,6 @@ function occRowHtml({label, total, leased, vacant, rate, count, rent, isZone, wa
     <td class="num">${fmt2(leased)}</td>
     <td class="num">${vacantCell}</td>
     <td>${rateCell}</td>
-    <td class="num">${count}</td>
-    <td class="num">${fmtInt(rent)}</td>
   </tr>`;
 }
 
@@ -2231,7 +2244,6 @@ function renderOcc(){
     <div class="stat-card"><div class="label">全園區總坪數</div><div class="value">${fmtInt(totalArea)} <small>坪</small></div></div>
     <div class="stat-card"><div class="label">已租坪數</div><div class="value">${fmtInt(totalLeased)} <small>坪</small></div></div>
     <div class="stat-card"><div class="label">整體出租率</div><div class="value">${(overallRate*100).toFixed(1)} <small>%</small></div></div>
-    <div class="stat-card"><div class="label">在租約數 / 當期租金合計</div><div class="value">${totalCount} <small>件・${fmtInt(totalRent)} 元</small></div></div>
   `;
 }
 
@@ -2592,6 +2604,79 @@ function buildExportSheets(){
   if (buildingRows.length){
     sheets.push({ name: "棟別明細", header: buildingHeader, rows: buildingRows });
   }
+
+  // 月別總表：採用畫面上「月別總表」頁目前選的年度，租金／管理費／設備各自獨立一個分頁，
+  // 另外再多一個「總覽」分頁把三者（倉儲/停車位的租金＋管理費、再加上設備的租金）加總成
+  // 每個客戶、每個月單一一個合計金額，方便一眼看完全部現金流，不用三個分頁自己加總。
+  // 結構跟畫面「全部展開」時一致（園區小計列＋底下每個客戶的逐月明細列＋最後總計列）。
+  // 這裡不借用 computeMonthlyGroups()／monthlyMetric 這個全域狀態，改用自己的分組函式＋
+  // 傳入的金額計算方式（valueFn），避免匯出時去動到使用者畫面上原本選的切換狀態。
+  const monthlyYearSel = document.getElementById("monthlyYear");
+  const monthlyYear = Number((monthlyYearSel && monthlyYearSel.value) || TODAY.getFullYear());
+  const monthlyHeader = ["園區","客戶","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月","全年合計"];
+  function computeMonthlyGroupsCustom(records, year, valueFn){
+    const groups = new Map();
+    records.forEach(r=>{
+      const key = r.zone + "␟" + r.client;
+      if (!groups.has(key)) groups.set(key, { zone:r.zone, client:r.client, leases:[] });
+      groups.get(key).leases.push(r);
+    });
+    const clientRows = [...groups.values()].map(g=>{
+      const cells = new Array(12).fill(0);
+      let rowTotal = 0;
+      for (let m=0; m<12; m++){
+        let val = 0;
+        g.leases.forEach(r=>{
+          if (leaseOverlapsMonth(r, year, m)) val += valueFn(r, year, m);
+        });
+        cells[m] = val;
+        rowTotal += val;
+      }
+      return { zone:g.zone, client:g.client, cells, rowTotal };
+    });
+    const zoneOrder = zoneNames();
+    const zoneMap = new Map();
+    clientRows.forEach(cr=>{
+      if (!zoneMap.has(cr.zone)) zoneMap.set(cr.zone, { clients:[], cells:new Array(12).fill(0), total:0 });
+      const z = zoneMap.get(cr.zone);
+      z.clients.push(cr);
+      for (let m=0; m<12; m++) z.cells[m] += cr.cells[m];
+      z.total += cr.rowTotal;
+    });
+    const zonesInOrder = [...zoneMap.keys()].sort((a,b)=>{
+      const oa = zoneOrder.indexOf(a), ob = zoneOrder.indexOf(b);
+      return (oa===-1 ? 999 : oa) - (ob===-1 ? 999 : ob);
+    });
+    return { zoneMap, zonesInOrder };
+  }
+  function buildMonthlyExportRows(records, valueFn){
+    const { zoneMap, zonesInOrder } = computeMonthlyGroupsCustom(records, monthlyYear, valueFn);
+    const rows = [];
+    const monthGrandTotals = new Array(12).fill(0);
+    let grandTotal = 0;
+    zonesInOrder.forEach(zoneName=>{
+      const z = zoneMap.get(zoneName);
+      z.clients.sort((a,b)=> String(a.client).localeCompare(String(b.client), "zh-Hant"));
+      for (let m=0; m<12; m++) monthGrandTotals[m] += z.cells[m];
+      grandTotal += z.total;
+      rows.push([zoneName, `（小計，共${z.clients.length}筆）`, ...z.cells, z.total]);
+      z.clients.forEach(cr=> rows.push([zoneName, cr.client, ...cr.cells, cr.rowTotal]));
+    });
+    rows.push(["合計", "", ...monthGrandTotals, grandTotal]);
+    return rows;
+  }
+  const rentEquipSplit = {
+    main: LEASE_DB.filter(r => r.category !== "設備"),
+    equip: LEASE_DB.filter(r => r.category === "設備"),
+  };
+  const rentValueFn = (r, y, m) => computeTotalRent(r, new Date(y, m, 1));
+  const mgmtValueFn = (r) => computeMgmtTotal(r);
+  // 總覽＝倉儲／停車位的「租金＋管理費」，加上設備的「租金」（設備沒有管理費概念，固定記 0）。
+  const combinedValueFn = (r, y, m) => computeTotalRent(r, new Date(y, m, 1)) + (r.category === "設備" ? 0 : computeMgmtTotal(r));
+  sheets.push({ name: `月別總表-租金(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.main, rentValueFn) });
+  sheets.push({ name: `月別總表-管理費(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.main, mgmtValueFn) });
+  sheets.push({ name: `月別總表-設備(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.equip, rentValueFn) });
+  sheets.push({ name: `月別總表-總覽(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(LEASE_DB, combinedValueFn) });
 
   return sheets;
 }
