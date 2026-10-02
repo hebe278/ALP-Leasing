@@ -153,6 +153,18 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .card-head h2{font-size:14.5px; margin:0;}
   .card-head p{margin:2px 0 0; font-size:12px; color:var(--text-soft);}
 
+  .bulk-bar{
+    display:flex; align-items:center; gap:10px; padding:10px 18px;
+    border-bottom:1px solid var(--border); background:var(--bulk-bg, #f7f7f5);
+  }
+  .bulk-bar .bulk-count{font-size:12.5px; font-weight:700; color:var(--text);}
+  .bulk-bar .btn-link{
+    background:none; border:none; color:var(--text-soft); font-size:12.5px;
+    cursor:pointer; text-decoration:underline; padding:4px 2px;
+  }
+  .btn:disabled{opacity:.42; cursor:not-allowed;}
+  .btn:disabled:hover{background:inherit;}
+
   table{width:100%; border-collapse:collapse; font-size:12.8px;}
   thead th{
     position:sticky; top:0; background:#fafafa; border-bottom:1px solid var(--border);
@@ -304,10 +316,17 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         </div>
         <div id="dbCount" style="font-size:12px; color:var(--text-soft);"></div>
       </div>
+      <div class="bulk-bar" id="dbBulkBar" style="display:none;">
+        <span class="bulk-count" id="dbSelCount"></span>
+        <button type="button" class="btn btn-secondary" id="dbMergeBtn" title="把選取的這幾筆記錄合併成同一份契約，契約名稱會合併顯示（例如「神雲-C3+C4」）">合併為同一份契約</button>
+        <button type="button" class="btn btn-secondary" id="dbUnmergeBtn" title="讓選取的這幾筆記錄各自獨立顯示契約名稱，取消目前的契約合併關係">取消契約合併</button>
+        <button type="button" class="btn-link" id="dbClearSelBtn">清除選取</button>
+      </div>
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
+              <th style="width:30px;"><input type="checkbox" id="dbSelectAll" title="全選／取消全選"></th>
               <th>園區</th>
               <th>類型</th>
               <th>棟別</th>
@@ -727,6 +746,8 @@ let DOWNLOADS = null;
 
 let ZONE_AREA = [];
 let LEASE_DB = [];
+// 資料庫頁面「勾選幾筆租約→合併／取消合併成同一份契約」用的勾選狀態（記錄 id 的字串形式）。
+let dbSelectedIds = new Set();
 let nextId = DEFAULT_NEXT_ID;
 const TODAY = new Date();
 
@@ -1263,6 +1284,99 @@ function refreshZoneDropdowns(){
 dbZoneFilter.addEventListener("change", renderDb);
 document.getElementById("dbSearch").addEventListener("input", renderDb);
 
+/* ---------------- 資料庫：勾選幾筆租約→合併／取消合併成同一份契約 ----------------
+   情境：同一份契約如果是用「新增下一個單元」陸續建立，會自動共用 contractId、契約名稱
+   自動合併顯示；但舊資料（這個功能上線前就建好的）彼此之間的園區／棟別／客戶／租期
+   不一定完全相同（例如同一份契約的不同單元，租期起始日各自不同），自動判斷會抓不到，
+   這時候就用這裡手動勾選、手動合併。 */
+function updateDbSelectAllState(rows){
+  const selectAll = document.getElementById("dbSelectAll");
+  if (!selectAll) return;
+  if (rows.length === 0){ selectAll.checked = false; selectAll.indeterminate = false; return; }
+  const selectedCount = rows.filter(r => dbSelectedIds.has(String(r.id))).length;
+  selectAll.checked = selectedCount === rows.length;
+  selectAll.indeterminate = selectedCount > 0 && selectedCount < rows.length;
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById("dbBulkBar");
+  const countEl = document.getElementById("dbSelCount");
+  const mergeBtn = document.getElementById("dbMergeBtn");
+  const unmergeBtn = document.getElementById("dbUnmergeBtn");
+  const n = dbSelectedIds.size;
+  if (!bar) return;
+  bar.style.display = n > 0 ? "flex" : "none";
+  if (n === 0) return;
+  countEl.textContent = `已選取 ${n} 筆`;
+  mergeBtn.disabled = n < 2;
+  unmergeBtn.disabled = n < 1;
+}
+
+document.getElementById("dbSelectAll").addEventListener("change", (e)=>{
+  const zoneVal = dbZoneFilter.value;
+  const q = document.getElementById("dbSearch").value.trim().toLowerCase();
+  const contractNameMap = buildContractNameMap(LEASE_DB);
+  const visibleRows = LEASE_DB
+    .filter(r => !zoneVal || r.zone === zoneVal)
+    .filter(r => {
+      if (!q) return true;
+      const contractName = (contractNameMap.get(contractGroupKey(r)) || "").toLowerCase();
+      return r.client.toLowerCase().includes(q)
+        || r.unit.toLowerCase().includes(q)
+        || (r.building||"").toLowerCase().includes(q)
+        || (r.floor||"").toLowerCase().includes(q)
+        || contractName.includes(q);
+    });
+  if (e.target.checked) visibleRows.forEach(r => dbSelectedIds.add(String(r.id)));
+  else visibleRows.forEach(r => dbSelectedIds.delete(String(r.id)));
+  renderDb();
+});
+
+document.getElementById("dbClearSelBtn").addEventListener("click", ()=>{
+  dbSelectedIds.clear();
+  renderDb();
+});
+
+document.getElementById("dbMergeBtn").addEventListener("click", async ()=>{
+  const ids = [...dbSelectedIds];
+  const recs = ids.map(id => LEASE_DB.find(r => String(r.id) === id)).filter(Boolean);
+  if (recs.length < 2) return;
+  const existingCid = recs.find(r => r.contractId)?.contractId;
+  const cid = existingCid || genNodeId();
+  const units = [...new Set(recs.map(r => r.unit).filter(Boolean))];
+  const previewName = `${recs[0].client}-${units.join("+")}`;
+  if (!(await askConfirm(`確定要把選取的 ${recs.length} 筆記錄合併成同一份契約嗎？\n合併後契約名稱會顯示為「${previewName}」。\n（只會合併契約名稱的顯示，不會更動租金、面積等其他資料。）`))) return;
+  if (USING_DB){
+    try{
+      await Promise.all(recs.map(r => DB.collection("leases").doc(String(r.id)).update({ contractId: cid })));
+    }catch(err){ await notify("合併失敗，請稍後再試一次。"); console.warn(err); return; }
+  } else {
+    recs.forEach(r => { r.contractId = cid; });
+    persistState();
+  }
+  dbSelectedIds.clear();
+  renderDb();
+  await notify("已合併這幾筆記錄的契約名稱。");
+});
+
+document.getElementById("dbUnmergeBtn").addEventListener("click", async ()=>{
+  const ids = [...dbSelectedIds];
+  const recs = ids.map(id => LEASE_DB.find(r => String(r.id) === id)).filter(Boolean);
+  if (recs.length < 1) return;
+  if (!(await askConfirm(`確定要讓選取的 ${recs.length} 筆記錄各自獨立顯示契約名稱嗎？（取消它們目前的契約合併關係）`))) return;
+  if (USING_DB){
+    try{
+      await Promise.all(recs.map(r => DB.collection("leases").doc(String(r.id)).update({ contractId: genNodeId() })));
+    }catch(err){ await notify("取消合併失敗，請稍後再試一次。"); console.warn(err); return; }
+  } else {
+    recs.forEach(r => { r.contractId = genNodeId(); });
+    persistState();
+  }
+  dbSelectedIds.clear();
+  renderDb();
+  await notify("已取消這幾筆記錄的契約合併關係。");
+});
+
 // 同一份契約如果分成好幾筆記錄填寫（例如「新增下一個單元」各自存一筆），契約名稱要把
 // 這幾筆的單元合併顯示（例如「神雲-C3+C4」），不是各自只顯示自己那一個單元。
 // 用 contractId 分組（新資料都會有）；contractId 缺漏的舊資料，退回用「園區／類型／棟別／
@@ -1306,8 +1420,14 @@ function renderDb(){
 
   document.getElementById("dbCount").textContent = `共 ${rows.length} 筆（總計 ${LEASE_DB.length} 筆）`;
 
+  // 清掉已經被刪除、畫面上不會再出現的那些勾選（避免「已選取」計數包含早就不存在的記錄）。
+  const liveIds = new Set(LEASE_DB.map(r => String(r.id)));
+  [...dbSelectedIds].forEach(id => { if (!liveIds.has(id)) dbSelectedIds.delete(id); });
+
   if (rows.length === 0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="20">沒有符合條件的租約</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="21">沒有符合條件的租約</td></tr>`;
+    updateDbSelectAllState([]);
+    updateBulkBar();
     return;
   }
 
@@ -1323,7 +1443,9 @@ function renderDb(){
       : isEquip
         ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數；月租金另外列在「月別總表」的「設備」報表">設備</span>`
         : "倉儲";
+    const checked = dbSelectedIds.has(String(r.id)) ? "checked" : "";
     return `<tr data-id="${r.id}" title="雙擊可編輯這筆租約">
+      <td><input type="checkbox" data-rowcheck="${r.id}" ${checked}></td>
       <td>${r.zone}</td>
       <td>${categoryCell}</td>
       <td>${r.building||""}</td>
@@ -1346,6 +1468,18 @@ function renderDb(){
       <td><button class="btn-danger-ghost" title="刪除" data-del="${r.id}">×</button></td>
     </tr>`;
   }).join("");
+
+  tbody.querySelectorAll("[data-rowcheck]").forEach(cb=>{
+    cb.addEventListener("click", e => e.stopPropagation());
+    cb.addEventListener("change", ()=>{
+      const id = String(cb.dataset.rowcheck);
+      if (cb.checked) dbSelectedIds.add(id); else dbSelectedIds.delete(id);
+      updateDbSelectAllState(rows);
+      updateBulkBar();
+    });
+  });
+  updateDbSelectAllState(rows);
+  updateBulkBar();
 
   tbody.querySelectorAll("[data-del]").forEach(btn=>{
     btn.addEventListener("click", async (e)=>{
