@@ -396,6 +396,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button type="button" class="seg-btn active" data-view="rent">租金</button>
         <button type="button" class="seg-btn" data-view="mgmt">管理費</button>
         <button type="button" class="seg-btn" data-view="equip">設備</button>
+        <button type="button" class="seg-btn" data-view="combined">收入總覽</button>
       </div>
       <div class="spacer"></div>
       <div id="monthlyCount" style="font-size:12px; color:var(--text-soft);"></div>
@@ -2310,14 +2311,15 @@ document.getElementById("unitStatusFilterToggle").querySelectorAll("[data-filter
   });
 });
 
-/* ---------------- 月別總表 tab（園區、客戶 × 月，用單一切換鈕在「租金／管理費／設備」三種畫面之間切換） ---------------- */
-let monthlyView = "rent"; // "rent"（倉儲／停車位＋租金） | "mgmt"（倉儲／停車位＋管理費） | "equip"（設備）
-let monthlyMetric = "rent"; // "rent" | "mgmt" —— 由 monthlyView 換算出來，"equip" 畫面固定看租金
+/* ---------------- 月別總表 tab（園區、客戶 × 月，用單一切換鈕在「租金／管理費／設備／收入總覽」四種畫面之間切換） ---------------- */
+let monthlyView = "rent"; // "rent"（倉儲／停車位＋租金） | "mgmt"（倉儲／停車位＋管理費） | "equip"（設備） | "combined"（收入總覽：全部合併）
+let monthlyMetric = "rent"; // "rent" | "mgmt" | "combined" —— 由 monthlyView 換算出來，"equip" 畫面固定看租金
 // 預設只顯示「園區」這一層的小計列，點了才展開看每個客戶的月別明細，跟出租率總覽／園區坪數基準的收合邏輯一致。
 // 展開狀態只存在瀏覽器當下，不寫回共用資料庫，避免每個人的頁面收合狀態互相干擾。
-// 「倉儲／停車位」跟「設備」各自保留自己的展開狀態（即使切換鈕切到另一邊，回來時原本展開的園區還是展開的）。
+// 「倉儲／停車位」「設備」「收入總覽」各自保留自己的展開狀態（即使切換鈕切到另一邊，回來時原本展開的園區還是展開的）。
 const expandedMonthlyZones = new Set();
 const expandedMonthlyEquipZones = new Set();
+const expandedMonthlyCombinedZones = new Set();
 
 function monthlyYearRange(){
   const years = new Set([TODAY.getFullYear()]);
@@ -2352,6 +2354,10 @@ function leaseOverlapsMonth(rec, year, monthIndex){
 
 function monthlyValueFor(rec, year, monthIndex){
   if (monthlyMetric === "mgmt") return computeMgmtTotal(rec);
+  if (monthlyMetric === "combined"){
+    // 收入總覽：倉儲／停車位＝租金＋管理費；設備沒有管理費概念，只算租金。
+    return computeTotalRent(rec, new Date(year, monthIndex, 1)) + (rec.category === "設備" ? 0 : computeMgmtTotal(rec));
+  }
   return computeTotalRent(rec, new Date(year, monthIndex, 1));
 }
 
@@ -2462,15 +2468,18 @@ function refreshExpandAllBtn(btnEl, records, expandedSet){
   btnEl.textContent = allExpanded ? "全部收合" : "全部展開";
 }
 
-// monthlyView 是唯一的切換鈕狀態："rent"／"mgmt" 兩種看倉儲／停車位的租金或管理費，"equip" 則換成設備報表。
+// monthlyView 是唯一的切換鈕狀態："rent"／"mgmt" 兩種看倉儲／停車位的租金或管理費，"equip" 換成設備報表，
+// "combined" 則是收入總覽：不分類別，把全部租約（倉儲／停車位／設備）合併計算。
 // 同一時間只顯示一張表，不是兩張表疊在一起；各自的資料範圍、展開狀態、標題、說明文字都跟著切換。
 function currentMonthlyRecords(){
-  return monthlyView === "equip"
-    ? LEASE_DB.filter(r=>r.category === "設備")
-    : LEASE_DB.filter(r=>r.category !== "設備");
+  if (monthlyView === "equip") return LEASE_DB.filter(r=>r.category === "設備");
+  if (monthlyView === "combined") return LEASE_DB;
+  return LEASE_DB.filter(r=>r.category !== "設備");
 }
 function currentMonthlyExpandedSet(){
-  return monthlyView === "equip" ? expandedMonthlyEquipZones : expandedMonthlyZones;
+  if (monthlyView === "equip") return expandedMonthlyEquipZones;
+  if (monthlyView === "combined") return expandedMonthlyCombinedZones;
+  return expandedMonthlyZones;
 }
 
 function renderMonthly(){
@@ -2483,18 +2492,24 @@ function renderMonthly(){
   refreshMonthlyYearOptions();
   const year = Number(yearSel.value || TODAY.getFullYear());
   const isEquip = monthlyView === "equip";
-  // 「設備」畫面固定看租金（示範資料的設備管理費多半是 0，暫不提供切換）；倉儲／停車位畫面則照切換鈕看租金或管理費。
-  monthlyMetric = monthlyView === "mgmt" ? "mgmt" : "rent";
+  const isCombined = monthlyView === "combined";
+  // 「設備」畫面固定看租金（示範資料的設備管理費多半是 0，暫不提供切換）；
+  // 「收入總覽」固定用合併算法（租金＋管理費，設備只算租金）；倉儲／停車位畫面則照切換鈕看租金或管理費。
+  monthlyMetric = isCombined ? "combined" : (monthlyView === "mgmt" ? "mgmt" : "rent");
   const metricLabel = monthlyMetric === "mgmt" ? "管理費" : "租金";
   const records = currentMonthlyRecords();
   const expandedSet = currentMonthlyExpandedSet();
 
   document.getElementById("monthlyTitle").textContent = isEquip
     ? `設備 — ${year} 年各月租金（元/月）`
-    : `月別總表 — ${year} 年各月${metricLabel}（元/月）`;
+    : isCombined
+      ? `收入總覽 — ${year} 年各月合計（租金＋管理費＋設備，元/月）`
+      : `月別總表 — ${year} 年各月${metricLabel}（元/月）`;
   document.getElementById("monthlyDesc").textContent = isEquip
     ? "自動倉儲設備（ASRM）等設備類租約的月租金，獨立於「倉儲／停車位」之外，不會併入其合計。用上方切換鈕可以隨時切回「租金」或「管理費」。"
-    : "依租約起訖判斷該月是否在租期內；租金會反映當年度的調整結果，管理費為固定單價，不受年度調整影響。預設只顯示各園區小計，點擊園區列可展開個別客戶的月租金明細。「設備」類租約不算在此處合計，可用上方切換鈕查看「設備」報表。";
+    : isCombined
+      ? "不分類別，把倉儲／停車位的租金＋管理費、加上設備的租金，合併成每個客戶每個月單一一個總金額，一次看完全部現金流入，不用再自己把「租金」「管理費」「設備」三張表加總。"
+      : "依租約起訖判斷該月是否在租期內；租金會反映當年度的調整結果，管理費為固定單價，不受年度調整影響。預設只顯示各園區小計，點擊園區列可展開個別客戶的月租金明細。「設備」類租約不算在此處合計，可用上方切換鈕查看「設備」報表。";
 
   renderMonthlyTable(
     document.getElementById("monthlyTbody"),
