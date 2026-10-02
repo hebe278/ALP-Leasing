@@ -1263,15 +1263,40 @@ function refreshZoneDropdowns(){
 dbZoneFilter.addEventListener("change", renderDb);
 document.getElementById("dbSearch").addEventListener("input", renderDb);
 
+// 同一份契約如果分成好幾筆記錄填寫（例如「新增下一個單元」各自存一筆），契約名稱要把
+// 這幾筆的單元合併顯示（例如「神雲-C3+C4」），不是各自只顯示自己那一個單元。
+// 用 contractId 分組（新資料都會有）；contractId 缺漏的舊資料，退回用「園區／類型／棟別／
+// 客戶／租期起迄都相同」這組條件判斷是不是同一份契約——剛好就是「新增下一個單元」流程
+// 會自動帶入、保持一致的那些欄位，所以舊資料不用補資料就能正確合併。
+function contractGroupKey(rec){
+  if (rec.contractId) return "cid:" + rec.contractId;
+  return ["legacy", rec.zone, rec.category, rec.building||"", rec.client, rec.start, rec.end].join("␟");
+}
+function buildContractNameMap(records){
+  const groups = new Map();
+  records.forEach(r=>{
+    const key = contractGroupKey(r);
+    if (!groups.has(key)) groups.set(key, { client: r.client, units: [] });
+    const g = groups.get(key);
+    if (r.unit && !g.units.includes(r.unit)) g.units.push(r.unit);
+  });
+  const nameMap = new Map();
+  groups.forEach((g, key)=>{
+    nameMap.set(key, (g.client || g.units.length) ? `${g.client}-${g.units.join("+")}` : "");
+  });
+  return nameMap;
+}
+
 function renderDb(){
   const zoneVal = dbZoneFilter.value;
   const q = document.getElementById("dbSearch").value.trim().toLowerCase();
   const tbody = document.getElementById("dbTbody");
+  const contractNameMap = buildContractNameMap(LEASE_DB);
   const rows = LEASE_DB
     .filter(r => !zoneVal || r.zone === zoneVal)
     .filter(r => {
       if (!q) return true;
-      const contractName = `${r.client}-${r.unit}`.toLowerCase();
+      const contractName = (contractNameMap.get(contractGroupKey(r)) || "").toLowerCase();
       return r.client.toLowerCase().includes(q)
         || r.unit.toLowerCase().includes(q)
         || (r.building||"").toLowerCase().includes(q)
@@ -1287,7 +1312,7 @@ function renderDb(){
   }
 
   tbody.innerHTML = rows.map(r=>{
-    const contractName = (r.client || r.unit) ? `${r.client}-${r.unit}` : "";
+    const contractName = contractNameMap.get(contractGroupKey(r)) || ((r.client || r.unit) ? `${r.client}-${r.unit}` : "");
     const unitRent = computeUnitRentDisplay(r, TODAY);
     const totalRent = computeTotalRent(r, TODAY);
     const status = computeStatus(r, TODAY);
@@ -1357,6 +1382,12 @@ const addForm = document.getElementById("addForm");
 const fZone = document.getElementById("f_zone");
 const fCategory = document.getElementById("f_category");
 let editingId = null;
+// 「同一份契約、分好幾筆記錄填寫」時（例如同一份契約底下 C3、C4 兩個單元各自存一筆），
+// 用這兩個變數把「正在編輯的這筆原始資料」「透過『新增下一個單元』帶過來的 contractId」
+// 一路傳到送出登錄那一刻，讓這幾筆記錄能共用同一個 contractId（見 contractGroupKey()），
+// 契約名稱才能把同一份契約底下的所有單元合併顯示（例如「神雲-C3+C4」），而不是各自獨立一筆。
+let editingRecRef = null;
+let prefillContractId = null;
 
 function openLeaseModal(existingRec, prefill){
   addForm.reset();
@@ -1365,6 +1396,8 @@ function openLeaseModal(existingRec, prefill){
 
   if (existingRec){
     editingId = existingRec.id;
+    editingRecRef = existingRec;
+    prefillContractId = null;
     document.getElementById("leaseModalTitle").textContent = "編輯租約";
     document.getElementById("leaseModalSub").textContent = "修改後系統會自動重新試算單位租金、總月租金與狀態。";
     document.getElementById("submitLeaseBtn").textContent = "儲存修改";
@@ -1391,6 +1424,8 @@ function openLeaseModal(existingRec, prefill){
   } else if (prefill){
     // 同一份契約、新增下一個租賃單元：帶入共用欄位，只留單元本身的資料（單元、坪數、租金…）給使用者填。
     editingId = null;
+    editingRecRef = null;
+    prefillContractId = prefill.contractId || null;
     document.getElementById("leaseModalTitle").textContent = "新增租約（同契約的下一個單元）";
     document.getElementById("leaseModalSub").textContent = "已自動帶入客戶、租期、調整方式等共用資料，請填寫這個單元本身的資訊。";
     document.getElementById("submitLeaseBtn").textContent = "送出登錄";
@@ -1410,6 +1445,8 @@ function openLeaseModal(existingRec, prefill){
     document.getElementById("f_sap").value = prefill.sap || "";
   } else {
     editingId = null;
+    editingRecRef = null;
+    prefillContractId = null;
     document.getElementById("leaseModalTitle").textContent = "新增租約";
     document.getElementById("leaseModalSub").textContent = "填寫業務簽約後的基本資訊，系統會自動試算單位租金、總月租金與狀態。";
     document.getElementById("submitLeaseBtn").textContent = "送出登錄";
@@ -1662,6 +1699,12 @@ document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
     sap: document.getElementById("f_sap").value.trim(),
     remark: document.getElementById("f_remark").value.trim(),
   };
+  // 編輯既有記錄：延用原本的 contractId（舊資料沒有的話，藉這次儲存順便補一個，之後編輯內容
+  // 導致跟其他筆兜不起來時——例如改了租期——還是能靠這個 id 正確分組，不必再依賴比對欄位）。
+  // 透過「新增下一個單元」流程進來：延用上一筆傳過來的 contractId，確保同一份契約底下的
+  // 每一筆都共用同一個 id。真正全新、獨立的一筆：產生一個新的 contractId。
+  recBody.contractId = editingRecRef ? (editingRecRef.contractId || genNodeId())
+    : (prefillContractId || genNodeId());
   if (recBody.adjustType === "逐年手動填寫" && recBody.override === null){
     document.getElementById("f_override").classList.add("field-error");
     await notify("調整方式選擇「逐年手動填寫」時，請務必填寫「手動覆蓋總月租金」。");
@@ -1716,6 +1759,7 @@ document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
         amt: recBody.amt,
         inputBy: recBody.inputBy,
         sap: recBody.sap,
+        contractId: recBody.contractId,
       });
       return;
     }
@@ -2552,8 +2596,9 @@ function buildExportSheets(){
   const dbHeader = ["園區","類型","棟別","樓層","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
     "調整方式","調整頻率(年)","調整百分比","調整金額","手動覆蓋總月租金","單位租金",
     "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註"];
+  const exportContractNameMap = buildContractNameMap(LEASE_DB);
   const dbRows = LEASE_DB.map(r=>{
-    const contractName = (r.client || r.unit) ? `${r.client}-${r.unit}` : "";
+    const contractName = exportContractNameMap.get(contractGroupKey(r)) || ((r.client || r.unit) ? `${r.client}-${r.unit}` : "");
     return [
       r.zone, r.category === "停車位" ? "停車位" : (r.category === "設備" ? "設備" : "倉儲"), r.building || "", r.floor || "", r.unit, r.client, contractName, r.start, r.end, r.area, r.baseUnit,
       r.adjustType, r.freq ?? 1,
