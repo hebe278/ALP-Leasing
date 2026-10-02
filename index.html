@@ -292,7 +292,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <section class="panel active" id="panel-db">
     <div class="toolbar">
       <select id="dbZoneFilter"></select>
-      <input type="text" id="dbSearch" placeholder="搜尋客戶、單元、契約名稱…" style="width:220px;">
+      <input type="text" id="dbSearch" placeholder="搜尋客戶、棟別、樓層、單元、契約名稱…" style="width:220px;">
       <div class="spacer"></div>
       <button class="btn btn-primary" id="openAddModal">＋ 新增租約</button>
     </div>
@@ -311,6 +311,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
               <th>園區</th>
               <th>類型</th>
               <th>棟別</th>
+              <th>樓層</th>
               <th>單元</th>
               <th>客戶</th>
               <th class="computed">契約名稱</th>
@@ -346,7 +347,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>園區坪數基準</h2>
-          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。棟別可以再往下展開成樓層、樓層可以再往下展開成單元，逐層逐單元登記坪數（都是選填，不拆的話維持原本整棟/整層輸入即可）。坪數、名稱欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
+          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。棟別可以選擇性地往下展開成「棟別」明細；但只要有棟別，底下就一定要有「樓層」（每一棟至少會自動保留一層，不能清空），樓層底下要不要再細分成「單元」則仍然是選填，不拆的話整層就是最底層的可租空間。坪數、名稱欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -443,7 +444,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>單元房態 — 空置查詢</h2>
-          <p>只會列出「園區坪數基準」裡已經拆到樓層／單元的棟別；還沒拆的棟別維持整棟計算坪數，不會出現在這裡。狀態依今天日期判斷：承租中＝今天落在某張倉儲租約的租期內、且那張租約有勾選這個單元。</p>
+          <p>列出「園區坪數基準」裡所有已拆棟別的棟別（樓層是必填結構，每一棟至少會有一層）；還沒拆棟別的園區維持整區計算坪數，不會出現在這裡。狀態依今天日期判斷：承租中＝今天落在某張倉儲租約的租期內、且那張租約有勾選這個單元／整層。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -505,7 +506,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <div class="form-field full hidden" id="wrap_unitpicker">
           <label>對應單元（可複選） <span class="req">*</span></label>
           <div id="unitPickerList" style="display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px 10px;"></div>
-          <div class="hint">這個棟別已經在「園區坪數基準」拆到樓層／單元，請直接勾選這張租約實際承租的範圍（可以勾多個），系統會自動加總坪數、並在「單元房態」頁面標示這些單元為承租中。</div>
+          <div class="hint">請直接勾選這張租約實際承租的範圍（可以勾多個樓層／單元），系統會自動加總坪數、帶出對應的「樓層」欄位，並在「單元房態」頁面標示這些單元為承租中。</div>
+          <div class="hint" id="pickerFloorHint" style="font-weight:600;"></div>
         </div>
         <div class="form-field">
           <label>客戶 <span class="req">*</span></label>
@@ -745,6 +747,18 @@ async function seedSharedStoreIfEmpty(db){
   }
 }
 
+// 樓層必填的補值只需要做一次：補完之後下一次 onSnapshot 收到的資料就已經有樓層了，
+// 用這個集合記住「這個園區已經檢查過」，避免同一個園區因為收到好幾次 snapshot 而重複寫入。
+const floorMigrationCheckedZones = new Set();
+function runFloorMigrationIfNeeded(idx){
+  const z = ZONE_AREA[idx];
+  const key = z._id || z.zone;
+  if (floorMigrationCheckedZones.has(key)) return;
+  floorMigrationCheckedZones.add(key);
+  const migrated = migrateZoneFloorsIfNeeded(z);
+  if (migrated) persistZoneBuildings(idx, migrated);
+}
+
 function subscribeSharedStore(db){
   db.collection("zones").orderBy("order", "asc").onSnapshot(snap => {
     ZONE_AREA = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
@@ -753,6 +767,7 @@ function subscribeSharedStore(db){
     renderOcc();
     renderDb();
     renderMonthly();
+    ZONE_AREA.forEach((z, idx)=> runFloorMigrationIfNeeded(idx));
   }, err => console.warn("zones onSnapshot 錯誤：", err));
 
   db.collection("leases").onSnapshot(snap => {
@@ -974,6 +989,14 @@ async function initStorage(){
     ZONE_AREA = s.zoneArea;
     LEASE_DB = s.leaseDb;
     nextId = s.nextId;
+    ZONE_AREA.forEach(z=>{
+      const migrated = migrateZoneFloorsIfNeeded(z);
+      if (migrated){
+        z.buildings = migrated;
+        z.area = computeZoneAreaFromBuildings(migrated);
+      }
+    });
+    persistState();
     refreshZoneDropdowns();
     renderDb();
     renderArea();
@@ -1037,6 +1060,19 @@ function collectBuildingLeaves(building){
     }
   });
   return leaves;
+}
+// 樓層已經改成「必填結構」：每一棟底下一定至少要有一層樓層資料，不再是可選的細分。
+// 既有（或剛新增、還沒手動拆過樓層）的棟別，自動補一個預設樓層承接原本的棟別坪數，
+// 使用者之後仍然可以把這個預設樓層改名、調整坪數，或再往下拆成多個樓層／單元。
+// 只在「這一棟完全沒有樓層資料」時才會補，已經手動拆過的棟別不會被覆蓋。
+function migrateZoneFloorsIfNeeded(zone){
+  let changed = false;
+  const buildings = zoneBuildings(zone).map(b=>{
+    if (buildingFloors(b).length > 0) return b;
+    changed = true;
+    return { ...b, floors: [{ id: genNodeId(), name:"1樓", area:Number(b.area)||0, note:"", units:[] }] };
+  });
+  return changed ? buildings : null;
 }
 function computeUnitRent(rec, asOf){
   const start = parseLocalDate(rec.start);
@@ -1237,13 +1273,17 @@ function renderDb(){
     .filter(r => {
       if (!q) return true;
       const contractName = `${r.client}-${r.unit}`.toLowerCase();
-      return r.client.toLowerCase().includes(q) || r.unit.toLowerCase().includes(q) || contractName.includes(q);
+      return r.client.toLowerCase().includes(q)
+        || r.unit.toLowerCase().includes(q)
+        || (r.building||"").toLowerCase().includes(q)
+        || (r.floor||"").toLowerCase().includes(q)
+        || contractName.includes(q);
     });
 
   document.getElementById("dbCount").textContent = `共 ${rows.length} 筆（總計 ${LEASE_DB.length} 筆）`;
 
   if (rows.length === 0){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="19">沒有符合條件的租約</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="20">沒有符合條件的租約</td></tr>`;
     return;
   }
 
@@ -1263,6 +1303,7 @@ function renderDb(){
       <td>${r.zone}</td>
       <td>${categoryCell}</td>
       <td>${r.building||""}</td>
+      <td>${r.floor||""}</td>
       <td>${r.unit}</td>
       <td>${r.client}</td>
       <td class="computed">${contractName}</td>
@@ -1333,7 +1374,7 @@ function openLeaseModal(existingRec, prefill){
     fCategory.value = normalizeCategory(existingRec.category);
     updateCategoryFields();
     document.getElementById("f_unit").value = existingRec.unit;
-    updateUnitPicker(existingRec.unitIds || []); // 如果這個棟別有拆單元，這裡會依勾選狀態覆蓋掉上面那行的 f_unit 顯示文字
+    updateUnitPicker(existingRec.unitIds || [], existingRec.unit); // 如果這個棟別有拆單元、且勾得到對應項目，這裡會依勾選狀態覆蓋掉上面那行的 f_unit 顯示文字；勾不到的舊資料則維持原文字（見 updateUnitPicker 內的說明）
     document.getElementById("f_client").value = existingRec.client;
     document.getElementById("f_area").value = existingRec.area;
     document.getElementById("f_start").value = existingRec.start;
@@ -1428,13 +1469,26 @@ function currentBuildingLeaves(){
   const b = buildings.find(bb => bb.name === bName);
   return (b && buildingFloors(b).length) ? collectBuildingLeaves(b) : [];
 }
-function syncUnitFieldFromPicker(){
+// 回傳目前勾選中的葉節點（樓層或單元）物件清單，棟別／樓層／單元三個欄位
+// 最終送出的文字都是從同一份清單算出來，確保畫面預覽跟實際送出的資料一致。
+function checkedPickerLeaves(){
   const checkedIds = Array.from(document.querySelectorAll("#unitPickerList [data-unitpick]:checked")).map(cb=>cb.value);
-  const chosen = CURRENT_PICKER_LEAVES.filter(l => checkedIds.includes(l.id));
-  document.getElementById("f_unit").value = chosen.map(l=>l.label).join("、");
+  return CURRENT_PICKER_LEAVES.filter(l => checkedIds.includes(l.id));
+}
+// 單元欄位只放「單元本身」的名稱（沒有拆單元的樓層，用「（整層）」表示），
+// 不再把樓層名稱一起拼進去——樓層名稱改成在下面單獨顯示、並存成租約自己的「樓層」欄位，
+// 這樣「棟別／樓層／租賃單元」在租約列表才會是三個各自獨立的欄位，契約名稱也不會混到樓層字樣。
+function syncUnitFieldFromPicker(){
+  const chosen = checkedPickerLeaves();
+  document.getElementById("f_unit").value = chosen.map(l=> l.unitName || "（整層）").join("+");
+  const floorHint = document.getElementById("pickerFloorHint");
+  if (floorHint){
+    const floorNames = [...new Set(chosen.map(l=> l.floorName))];
+    floorHint.textContent = floorNames.length ? `對應樓層：${floorNames.join("+")}` : "";
+  }
   if (chosen.length) document.getElementById("f_area").value = chosen.reduce((s,l)=> s + l.area, 0);
 }
-function updateUnitPicker(keepIds){
+function updateUnitPicker(keepIds, legacyUnitText){
   const leaves = (fCategory.value === "倉儲") ? currentBuildingLeaves() : [];
   CURRENT_PICKER_LEAVES = leaves;
   const wrapPicker = document.getElementById("wrap_unitpicker");
@@ -1443,6 +1497,7 @@ function updateUnitPicker(keepIds){
   const fUnit = document.getElementById("f_unit");
   if (leaves.length > 0){
     const keep = keepIds || [];
+    const anyChecked = leaves.some(l=> keep.includes(l.id));
     listEl.innerHTML = leaves.map(leaf=>{
       // 排除「正在編輯的這一筆租約自己」，不然編輯舊租約時會把自己已經勾選的單元誤判成「被佔用」。
       const occ = LEASE_DB.find(r =>
@@ -1465,7 +1520,16 @@ function updateUnitPicker(keepIds){
     wrapUnit.classList.add("hidden");
     fUnit.required = false;
     listEl.querySelectorAll("[data-unitpick]").forEach(cb=> cb.addEventListener("change", syncUnitFieldFromPicker));
-    syncUnitFieldFromPicker();
+    if (!anyChecked && legacyUnitText){
+      // 舊資料：這筆租約是在這一棟還沒有樓層／單元資料時建立的，勾選清單裡沒有任何一項
+      // 對應得到它，這裡刻意保留原本的自由文字顯示，不要因為棟別後來被拆了樓層就把它清空；
+      // 管理者如果想補登正確的樓層／單元，重新勾選即可（一勾選就會改用勾選結果覆蓋）。
+      fUnit.value = legacyUnitText;
+      const floorHint = document.getElementById("pickerFloorHint");
+      if (floorHint) floorHint.textContent = "⚠ 這筆租約建立時這一棟還沒有樓層資料，暫時維持原始單元文字；如需要請重新勾選對應的樓層／單元。";
+    } else {
+      syncUnitFieldFromPicker();
+    }
   } else {
     listEl.innerHTML = "";
     wrapPicker.classList.add("hidden");
@@ -1576,12 +1640,15 @@ document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
     return;
   }
   const unitPickerVisible = !document.getElementById("wrap_unitpicker").classList.contains("hidden");
+  const pickedLeaves = unitPickerVisible ? checkedPickerLeaves() : [];
   const recBody = {
     zone: fZone.value,
     category: fCategory.value,
     building: buildingVisible ? document.getElementById("f_building").value : "",
+    // 樓層是獨立欄位（只記錄這張租約橫跨哪些樓層，給之後算「每層出租率」用），不會出現在單元或契約名稱裡。
+    floor: unitPickerVisible ? [...new Set(pickedLeaves.map(l=> l.floorName))].join("+") : "",
     unit: document.getElementById("f_unit").value.trim(),
-    unitIds: unitPickerVisible ? Array.from(document.querySelectorAll("#unitPickerList [data-unitpick]:checked")).map(cb=>cb.value) : [],
+    unitIds: unitPickerVisible ? pickedLeaves.map(l=>l.id) : [],
     client: document.getElementById("f_client").value.trim(),
     start, end,
     area: Number(document.getElementById("f_area").value),
@@ -1769,7 +1836,7 @@ function renderArea(){
           html += `
         <tr class="subrow">
           <td style="padding-left:58px;"><button type="button" class="btn btn-secondary" style="padding:4px 9px; font-size:11.5px;" data-addfloor="${idx}:${bidx}">＋ 新增樓層</button></td>
-          <td colspan="3">${hasFloors ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearfloors="${idx}:${bidx}">清空樓層，改回單一坪數輸入</button>` : ""}</td>
+          <td colspan="3">${floors.length > 1 ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearfloors="${idx}:${bidx}">合併樓層為單一樓層</button>` : ""}</td>
         </tr>`;
         }
       });
@@ -1892,11 +1959,13 @@ function renderArea(){
       const idx = Number(btn.dataset.addbuilding);
       const z = ZONE_AREA[idx];
       const buildings = zoneBuildings(z).map(b=>({...b}));
+      // 樓層是必填結構，新增棟別時就順便帶一層預設樓層承接坪數，不用再額外補一次migration。
       if (buildings.length === 0){
         // 第一次拆分：用現有的總坪數當作第一棟的起始值，避免總坪數憑空變成 0。
-        buildings.push({ name:"棟1", area:Number(z.area)||0, note:"" });
+        const area = Number(z.area)||0;
+        buildings.push({ name:"棟1", area, note:"", floors:[{ id:genNodeId(), name:"1樓", area, note:"", units:[] }] });
       } else {
-        buildings.push({ name:`棟${buildings.length+1}`, area:0, note:"" });
+        buildings.push({ name:`棟${buildings.length+1}`, area:0, note:"", floors:[{ id:genNodeId(), name:"1樓", area:0, note:"", units:[] }] });
       }
       expandedZoneKeys.add(zoneKey(z));
       await persistZoneBuildings(idx, buildings);
@@ -1942,6 +2011,10 @@ function renderArea(){
       const z = ZONE_AREA[idx];
       const b = zoneBuildings(z)[bidx];
       const fname = buildingFloors(b)[fidx]?.name || "";
+      if (buildingFloors(b).length <= 1){
+        await notify("每一棟至少需要保留一層樓層，無法刪除最後一層。如果這一棟不需要再細分，請直接調整這一層的坪數，或改用上方「刪除這一棟」整棟移除。");
+        return;
+      }
       if (!(await askConfirm(`確定要刪除「${z.zone} / ${b.name} / ${fname}」這一層嗎？這一層底下如果有拆單元，單元資料也會一併刪除；已經標記這一層（或其中單元）的租約不會被刪除，但會找不到對應資料，請記得之後手動修改那些租約。`))) return;
       const buildings = cloneBuildings(idx);
       buildings[bidx].floors.splice(fidx,1);
@@ -1955,10 +2028,10 @@ function renderArea(){
       const [idx, bidx] = btn.dataset.clearfloors.split(":").map(Number);
       const z = ZONE_AREA[idx];
       const b = zoneBuildings(z)[bidx];
-      if (!(await askConfirm(`確定要清空「${z.zone} / ${b.name}」的樓層明細嗎？坪數會保留目前加總的數字，但會改回可直接手動輸入；已經標記樓層／單元的租約，欄位會變成沒有作用的文字紀錄。`))) return;
+      if (!(await askConfirm(`確定要把「${z.zone} / ${b.name}」底下的樓層合併回一層嗎？坪數會保留目前加總的數字；已經標記個別樓層／單元的租約，欄位會變成沒有作用的文字紀錄（樓層是必填結構，無法完全清空，至少會保留一層）。`))) return;
       const buildings = cloneBuildings(idx);
-      buildings[bidx].area = computeBuildingArea(buildings[bidx]);
-      buildings[bidx].floors = [];
+      const mergedArea = computeBuildingArea(buildings[bidx]);
+      buildings[bidx].floors = [{ id: genNodeId(), name:"1樓", area:mergedArea, note:"", units:[] }];
       await persistZoneBuildings(idx, buildings);
     });
   });
@@ -2447,13 +2520,13 @@ document.getElementById("monthlyExpandAllBtn").addEventListener("click", ()=>{
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 function buildExportSheets(){
-  const dbHeader = ["園區","類型","棟別","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
+  const dbHeader = ["園區","類型","棟別","樓層","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
     "調整方式","調整頻率(年)","調整百分比","調整金額","手動覆蓋總月租金","單位租金",
     "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註"];
   const dbRows = LEASE_DB.map(r=>{
     const contractName = (r.client || r.unit) ? `${r.client}-${r.unit}` : "";
     return [
-      r.zone, r.category === "停車位" ? "停車位" : (r.category === "設備" ? "設備" : "倉儲"), r.building || "", r.unit, r.client, contractName, r.start, r.end, r.area, r.baseUnit,
+      r.zone, r.category === "停車位" ? "停車位" : (r.category === "設備" ? "設備" : "倉儲"), r.building || "", r.floor || "", r.unit, r.client, contractName, r.start, r.end, r.area, r.baseUnit,
       r.adjustType, r.freq ?? 1,
       r.adjustType === "固定百分比遞增" ? Number((r.pct/100).toFixed(4)) : "",
       r.adjustType === "固定金額遞增" ? r.amt : "",
