@@ -228,11 +228,13 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .dialog-input-wrap{position:relative;}
   .dialog-input-wrap .dialog-input{padding-right:40px;}
   .dialog-toggle-pw{
-    position:absolute; right:4px; top:50%; transform:translateY(-50%);
-    background:none; border:none; cursor:pointer; font-size:15px; line-height:1;
-    padding:6px; color:var(--text-soft);
+    position:absolute; right:2px; top:50%; transform:translateY(-50%);
+    display:flex; align-items:center; justify-content:center;
+    width:28px; height:28px; background:none; border:none; border-radius:6px;
+    cursor:pointer; padding:0; color:var(--text-soft);
   }
-  .dialog-toggle-pw:hover{color:var(--text);}
+  .dialog-toggle-pw:hover{color:var(--text); background:var(--bg);}
+  .dialog-toggle-pw svg{width:17px; height:17px; display:block;}
 </style>
 </head>
 <body>
@@ -546,7 +548,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="form-field full" id="dialogInputWrap" style="display:none;">
       <div class="dialog-input-wrap">
         <input type="text" id="dialogInput" class="dialog-input">
-        <button type="button" class="dialog-toggle-pw" id="dialogTogglePw" style="display:none;" title="顯示/隱藏密碼">👁</button>
+        <button type="button" class="dialog-toggle-pw" id="dialogTogglePw" style="display:none;" title="顯示/隱藏密碼"></button>
       </div>
     </div>
     <div class="modal-actions">
@@ -1025,6 +1027,8 @@ function fmt2(n){ return Number(n).toLocaleString("en-US",{minimumFractionDigits
 function fmtPct1(n){ return (Number(n)*100).toFixed(1) + "%"; }
 
 /* ---------------- 自訂對話框（取代 alert/confirm/prompt，確保在各種內嵌預覽環境都能正常顯示） ---------------- */
+const ICON_EYE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const ICON_EYE_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.57 18.57 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.57 18.57 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 function showDialog({title="提示", message="", withInput=false, defaultValue="", alertOnly=false}){
   return new Promise(resolve=>{
     const overlay = document.getElementById("dialogOverlay");
@@ -1045,18 +1049,18 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
     // 密碼框（input.type === "password"）才顯示「顯示/隱藏密碼」眼睛圖示；
     // 一般文字輸入（askPrompt）則不需要。每次開啟對話框都重設成預設隱藏密碼的狀態。
     const isPasswordField = input.type === "password";
-    toggleBtn.style.display = isPasswordField ? "inline-block" : "none";
-    toggleBtn.textContent = "👁";
+    toggleBtn.style.display = isPasswordField ? "flex" : "none";
+    toggleBtn.innerHTML = ICON_EYE;
     overlay.classList.add("open");
     if (withInput) setTimeout(()=> input.focus(), 50);
 
     function onTogglePw(){
       if (input.type === "password"){
         input.type = "text";
-        toggleBtn.textContent = "🙈";
+        toggleBtn.innerHTML = ICON_EYE_OFF;
       } else {
         input.type = "password";
-        toggleBtn.textContent = "👁";
+        toggleBtn.innerHTML = ICON_EYE;
       }
       input.focus();
     }
@@ -1106,7 +1110,7 @@ function updateZoneAdminToggle(){
 }
 async function ensureZoneAdmin(){
   if (zoneAdminUnlocked) return true;
-  const pw = await askPassword("", "解鎖編輯請輸入管理員密碼");
+  const pw = await askPassword("", "解鎖編輯 - 請輸入管理員密碼");
   if (pw === null) return false;
   if (pw !== ADMIN_PASSWORD){
     await notify("管理員密碼錯誤，請再試一次。");
