@@ -225,6 +225,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .empty-row td{text-align:center; color:var(--text-faint); padding:26px 10px;}
   .field-error{border-color:#d03b3b !important; box-shadow:0 0 0 2px rgba(208,59,59,.15);}
   .dialog-input{width:100%; margin-top:2px;}
+  .dialog-input-wrap{position:relative;}
+  .dialog-input-wrap .dialog-input{padding-right:40px;}
+  .dialog-toggle-pw{
+    position:absolute; right:4px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; font-size:15px; line-height:1;
+    padding:6px; color:var(--text-soft);
+  }
+  .dialog-toggle-pw:hover{color:var(--text);}
 </style>
 </head>
 <body>
@@ -335,7 +343,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>園區坪數基準</h2>
-          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）。</p>
+          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。坪數、棟別欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -536,7 +544,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <h3 id="dialogTitle">提示</h3>
     <p class="sub" id="dialogMessage" style="white-space:pre-line;"></p>
     <div class="form-field full" id="dialogInputWrap" style="display:none;">
-      <input type="text" id="dialogInput" class="dialog-input">
+      <div class="dialog-input-wrap">
+        <input type="text" id="dialogInput" class="dialog-input">
+        <button type="button" class="dialog-toggle-pw" id="dialogTogglePw" style="display:none;" title="顯示/隱藏密碼">👁</button>
+      </div>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" id="dialogCancel">取消</button>
@@ -566,7 +577,7 @@ const ACCESS_PASSWORD = "ALP000";
 // 管理員密碼則是用來保護「園區坪數基準」頁面的編輯權限（新增/刪除園區、修改坪數與棟別），
 // 避免一般同事不小心改到會影響所有人出租率計算的基準數字。輸入一次正確密碼後，
 // 這個瀏覽器分頁當次開啟期間都會保持解鎖，重新整理頁面後會自動恢復鎖定。
-const ADMIN_PASSWORD = "je03xu3m06";
+const ADMIN_PASSWORD = "ej03xu3m06";
 
 // Supabase 專案設定：到 https://supabase.com 用 email 或 GitHub 帳號免費註冊（不需要信用卡）、
 // 建立一個新專案，再到專案的「SQL Editor」貼上下面這段建表指令執行一次：
@@ -1022,20 +1033,43 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
     const inputWrap = document.getElementById("dialogInputWrap");
     const input = document.getElementById("dialogInput");
 
+    const msgEl = document.getElementById("dialogMessage");
+    const toggleBtn = document.getElementById("dialogTogglePw");
+
     document.getElementById("dialogTitle").textContent = title;
-    document.getElementById("dialogMessage").textContent = message;
+    msgEl.textContent = message;
+    msgEl.style.display = message ? "block" : "none";
     inputWrap.style.display = withInput ? "flex" : "none";
     input.value = defaultValue;
     cancelBtn.style.display = alertOnly ? "none" : "inline-block";
+    // 密碼框（input.type === "password"）才顯示「顯示/隱藏密碼」眼睛圖示；
+    // 一般文字輸入（askPrompt）則不需要。每次開啟對話框都重設成預設隱藏密碼的狀態。
+    const isPasswordField = input.type === "password";
+    toggleBtn.style.display = isPasswordField ? "inline-block" : "none";
+    toggleBtn.textContent = "👁";
     overlay.classList.add("open");
     if (withInput) setTimeout(()=> input.focus(), 50);
 
+    function onTogglePw(){
+      if (input.type === "password"){
+        input.type = "text";
+        toggleBtn.textContent = "🙈";
+      } else {
+        input.type = "password";
+        toggleBtn.textContent = "👁";
+      }
+      input.focus();
+    }
     function cleanup(result){
       overlay.classList.remove("open");
       okBtn.removeEventListener("click", onOk);
       cancelBtn.removeEventListener("click", onCancel);
       overlay.removeEventListener("click", onOverlay);
       input.removeEventListener("keydown", onKeydown);
+      toggleBtn.removeEventListener("click", onTogglePw);
+      // 不管這次是不是密碼框，關閉後都還原成一般文字輸入，避免影響下一次 askPrompt/askConfirm
+      // 誤判成密碼框（看到的 input.type 殘留上一次的狀態）。
+      input.type = "text";
       resolve(result);
     }
     function onOk(){ cleanup(withInput ? (input.value.trim() || null) : true); }
@@ -1046,6 +1080,7 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
     cancelBtn.addEventListener("click", onCancel);
     overlay.addEventListener("click", onOverlay);
     input.addEventListener("keydown", onKeydown);
+    toggleBtn.addEventListener("click", onTogglePw);
   });
 }
 function notify(message, title="提示"){ return showDialog({title, message, alertOnly:true}); }
@@ -1055,7 +1090,6 @@ function askPassword(message, title="請輸入密碼"){
   const input = document.getElementById("dialogInput");
   input.type = "password";
   return showDialog({title, message, withInput:true}).then(val=>{
-    input.type = "text";
     return val;
   });
 }
@@ -1072,7 +1106,7 @@ function updateZoneAdminToggle(){
 }
 async function ensureZoneAdmin(){
   if (zoneAdminUnlocked) return true;
-  const pw = await askPassword("這項操作需要管理員密碼才能繼續（跟進站密碼是不同的兩組）：", "需要管理員密碼");
+  const pw = await askPassword("", "解鎖編輯請輸入管理員密碼");
   if (pw === null) return false;
   if (pw !== ADMIN_PASSWORD){
     await notify("管理員密碼錯誤，請再試一次。");
@@ -1524,7 +1558,7 @@ function renderArea(){
         ${z.zone}
       </td>
       <td class="num">${totalCell}</td>
-      <td><input type="text" class="${lockedCls.trim()}" style="width:220px;" data-idx="${idx}" data-field="note" value="${z.note||""}" placeholder="選填" ${lockedAttr}></td>
+      <td><input type="text" style="width:220px;" data-idx="${idx}" data-field="note" value="${z.note||""}" placeholder="選填"></td>
       <td><button class="btn-danger-ghost" title="刪除" data-delzone="${idx}">×</button></td>
     </tr>`;
     if (expanded){
@@ -1533,7 +1567,7 @@ function renderArea(){
         <tr class="subrow">
           <td style="padding-left:34px;">└ <input type="text" class="${lockedCls.trim()}" style="width:140px;" data-bidx="${idx}:${bidx}" data-bfield="name" value="${b.name||""}" placeholder="棟別名稱" ${lockedAttr}></td>
           <td class="num"><input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0" ${lockedAttr}></td>
-          <td><input type="text" class="${lockedCls.trim()}" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填" ${lockedAttr}></td>
+          <td><input type="text" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填"></td>
           <td><button class="btn-danger-ghost" title="刪除這一棟" data-delbuilding="${idx}:${bidx}">×</button></td>
         </tr>`;
       });
