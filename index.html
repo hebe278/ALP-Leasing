@@ -283,6 +283,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <button class="tab-btn" data-tab="area">園區坪數基準</button>
   <button class="tab-btn" data-tab="occ">出租率總覽</button>
   <button class="tab-btn" data-tab="monthly">月別總表</button>
+  <button class="tab-btn" data-tab="unitstatus">單元房態</button>
 </nav>
 
 <main>
@@ -345,7 +346,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>園區坪數基準</h2>
-          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。坪數、棟別欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
+          <p>此表為各園區的可租總坪數基準，將作為「出租率總覽」計算出租率的分母。棟別可以再往下展開成樓層、樓層可以再往下展開成單元，逐層逐單元登記坪數（都是選填，不拆的話維持原本整棟/整層輸入即可）。坪數、名稱欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -426,6 +427,39 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
   </section>
 
+  <!-- ============ 單元房態 ============ -->
+  <section class="panel" id="panel-unitstatus">
+    <div class="toolbar">
+      <select id="unitStatusZoneFilter"></select>
+      <div class="seg-toggle" id="unitStatusFilterToggle">
+        <button type="button" class="seg-btn active" data-filter="all">全部</button>
+        <button type="button" class="seg-btn" data-filter="vacant">只看空置</button>
+      </div>
+      <div class="spacer"></div>
+      <div id="unitStatusCount" style="font-size:12px; color:var(--text-soft);"></div>
+    </div>
+    <div class="stat-row" id="unitStatusStats"></div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <h2>單元房態 — 空置查詢</h2>
+          <p>只會列出「園區坪數基準」裡已經拆到樓層／單元的棟別；還沒拆的棟別維持整棟計算坪數，不會出現在這裡。狀態依今天日期判斷：承租中＝今天落在某張倉儲租約的租期內、且那張租約有勾選這個單元。</p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>園區</th><th>棟別</th><th>樓層</th><th>單元</th>
+              <th class="num">坪數</th><th>狀態</th><th>備註</th>
+            </tr>
+          </thead>
+          <tbody id="unitStatusTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -464,9 +498,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <select id="f_building"></select>
           <div class="hint">此園區的總坪數是由多棟建築物加總而成，請選擇這個租賃單元實際所在的棟別。</div>
         </div>
-        <div class="form-field">
+        <div class="form-field" id="wrap_unit">
           <label>單元 <span class="req">*</span></label>
           <input type="text" id="f_unit" placeholder="例如 B3-2F" required>
+        </div>
+        <div class="form-field full hidden" id="wrap_unitpicker">
+          <label>對應單元（可複選） <span class="req">*</span></label>
+          <div id="unitPickerList" style="display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px 10px;"></div>
+          <div class="hint">這個棟別已經在「園區坪數基準」拆到樓層／單元，請直接勾選這張租約實際承租的範圍（可以勾多個），系統會自動加總坪數、並在「單元房態」頁面標示這些單元為承租中。</div>
         </div>
         <div class="form-field">
           <label>客戶 <span class="req">*</span></label>
@@ -962,8 +1001,42 @@ function startOfLocalDay(d){
 // 其他地方一律照舊讀 z.area 即可，不用另外處理。
 function zoneBuildings(z){ return (z && Array.isArray(z.buildings)) ? z.buildings : []; }
 function zoneKey(z){ return z.zone; }
+
+// 棟別可以再往下拆成「樓層」，樓層可以再往下拆成「單元」——跟棟別同一套邏輯：
+// 只要某一層有子項目，這一層的坪數就一律等於子項目加總，不用（也不能）手動輸入；
+// 沒有子項目的那一層，才是真正手動輸入坪數的地方（也就是「葉節點」）。
+// 這一層拆分完全是選擇性的：棟別不拆樓層的話，維持原本（棟別本身是葉節點）的行為完全不變。
+function buildingFloors(b){ return (b && Array.isArray(b.floors)) ? b.floors : []; }
+function floorUnits(f){ return (f && Array.isArray(f.units)) ? f.units : []; }
+function genNodeId(){
+  return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + "-" + Math.random().toString(36).slice(2));
+}
+function computeFloorArea(floor){
+  const units = floorUnits(floor);
+  return units.length ? units.reduce((s,u)=> s + (Number(u.area)||0), 0) : (Number(floor.area)||0);
+}
+function computeBuildingArea(building){
+  const floors = buildingFloors(building);
+  return floors.length ? floors.reduce((s,f)=> s + computeFloorArea(f), 0) : (Number(building.area)||0);
+}
 function computeZoneAreaFromBuildings(buildings){
-  return buildings.reduce((s,b)=> s + (Number(b.area)||0), 0);
+  return buildings.reduce((s,b)=> s + computeBuildingArea(b), 0);
+}
+// 收集一棟建築物底下所有「葉節點」（真正代表實際可租空間的最底層）：
+// 如果樓層有拆單元，葉節點就是單元；樓層沒拆單元的話，這一整層本身就是葉節點。
+// 用在「新增租約」的單元勾選清單、以及「單元房態」頁面——兩邊都只關心最底層的實際空間，
+// 不用管中間到底拆了幾層。
+function collectBuildingLeaves(building){
+  const leaves = [];
+  buildingFloors(building).forEach(floor=>{
+    const units = floorUnits(floor);
+    if (units.length){
+      units.forEach(u=> leaves.push({ id:u.id, label:`${floor.name}－${u.name}`, floorName:floor.name, unitName:u.name, area:Number(u.area)||0, note:u.note||"" }));
+    } else {
+      leaves.push({ id:floor.id, label:`${floor.name}（整層）`, floorName:floor.name, unitName:"", area:Number(floor.area)||0, note:floor.note||"" });
+    }
+  });
+  return leaves;
 }
 function computeUnitRent(rec, asOf){
   const start = parseLocalDate(rec.start);
@@ -1131,6 +1204,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
     document.getElementById("panel-"+btn.dataset.tab).classList.add("active");
     if (btn.dataset.tab === "occ") renderOcc();
     if (btn.dataset.tab === "monthly") renderMonthly();
+    if (btn.dataset.tab === "unitstatus") renderUnitStatus();
   });
 });
 
@@ -1141,6 +1215,11 @@ function refreshZoneDropdowns(){
   const keepFilter = dbZoneFilter.value;
   dbZoneFilter.innerHTML = '<option value="">全部園區</option>' + names.map(z=>`<option value="${z}">${z}</option>`).join("");
   dbZoneFilter.value = names.includes(keepFilter) ? keepFilter : "";
+
+  const unitZoneFilter = document.getElementById("unitStatusZoneFilter");
+  const keepUnitFilter = unitZoneFilter.value;
+  unitZoneFilter.innerHTML = '<option value="">全部園區</option>' + names.map(z=>`<option value="${z}">${z}</option>`).join("");
+  unitZoneFilter.value = names.includes(keepUnitFilter) ? keepUnitFilter : "";
 
   const keepModal = fZone.value;
   fZone.innerHTML = names.map(z=>`<option value="${z}">${z}</option>`).join("");
@@ -1254,6 +1333,7 @@ function openLeaseModal(existingRec, prefill){
     fCategory.value = normalizeCategory(existingRec.category);
     updateCategoryFields();
     document.getElementById("f_unit").value = existingRec.unit;
+    updateUnitPicker(existingRec.unitIds || []); // 如果這個棟別有拆單元，這裡會依勾選狀態覆蓋掉上面那行的 f_unit 顯示文字
     document.getElementById("f_client").value = existingRec.client;
     document.getElementById("f_area").value = existingRec.area;
     document.getElementById("f_start").value = existingRec.start;
@@ -1278,6 +1358,7 @@ function openLeaseModal(existingRec, prefill){
     updateBuildingField(prefill.building);
     fCategory.value = normalizeCategory(prefill.category);
     updateCategoryFields();
+    updateUnitPicker(); // 同契約新增下一個單元：單元本身要留白讓使用者自己選，不帶入上一筆的勾選
     document.getElementById("f_client").value = prefill.client;
     document.getElementById("f_start").value = prefill.start;
     document.getElementById("f_end").value = prefill.end;
@@ -1296,6 +1377,7 @@ function openLeaseModal(existingRec, prefill){
     updateBuildingField();
     fCategory.value = "倉儲";
     updateCategoryFields();
+    updateUnitPicker();
     document.getElementById("f_freq").value = 1;
   }
   updateAdjustFields();
@@ -1332,7 +1414,65 @@ function updateBuildingField(keepValue){
     wrap.classList.add("hidden");
   }
 }
-fZone.addEventListener("change", ()=> updateBuildingField());
+fZone.addEventListener("change", ()=>{ updateBuildingField(); updateUnitPicker(); });
+document.getElementById("f_building").addEventListener("change", ()=> updateUnitPicker());
+
+// 單元勾選清單：只有在「類型＝倉儲」而且目前選到的棟別已經在「園區坪數基準」拆到
+// 樓層／單元時才會出現，否則維持原本「單元」自由輸入文字框的行為（完全不受影響）。
+// CURRENT_PICKER_LEAVES 記住目前畫面上列出的是哪些葉節點，送出登錄時要用同一份清單
+// 把勾選的 id 換成坪數／顯示文字，避免跟畫面顯示的內容兜不起來。
+let CURRENT_PICKER_LEAVES = [];
+function currentBuildingLeaves(){
+  const buildings = currentZoneBuildings();
+  const bName = document.getElementById("f_building").value;
+  const b = buildings.find(bb => bb.name === bName);
+  return (b && buildingFloors(b).length) ? collectBuildingLeaves(b) : [];
+}
+function syncUnitFieldFromPicker(){
+  const checkedIds = Array.from(document.querySelectorAll("#unitPickerList [data-unitpick]:checked")).map(cb=>cb.value);
+  const chosen = CURRENT_PICKER_LEAVES.filter(l => checkedIds.includes(l.id));
+  document.getElementById("f_unit").value = chosen.map(l=>l.label).join("、");
+  if (chosen.length) document.getElementById("f_area").value = chosen.reduce((s,l)=> s + l.area, 0);
+}
+function updateUnitPicker(keepIds){
+  const leaves = (fCategory.value === "倉儲") ? currentBuildingLeaves() : [];
+  CURRENT_PICKER_LEAVES = leaves;
+  const wrapPicker = document.getElementById("wrap_unitpicker");
+  const wrapUnit = document.getElementById("wrap_unit");
+  const listEl = document.getElementById("unitPickerList");
+  const fUnit = document.getElementById("f_unit");
+  if (leaves.length > 0){
+    const keep = keepIds || [];
+    listEl.innerHTML = leaves.map(leaf=>{
+      // 排除「正在編輯的這一筆租約自己」，不然編輯舊租約時會把自己已經勾選的單元誤判成「被佔用」。
+      const occ = LEASE_DB.find(r =>
+        String(r.id) !== String(editingId) &&
+        isOccupancyLease(r) &&
+        Array.isArray(r.unitIds) && r.unitIds.includes(leaf.id) &&
+        isCurrentlyActive(r, TODAY)
+      ) || null;
+      const checked = keep.includes(leaf.id) ? "checked" : "";
+      const statusHtml = occ
+        ? `<span style="color:#c14343;">目前由「${occ.client}」承租中</span>`
+        : `<span style="color:#2f8f4e;">空置</span>`;
+      return `<label style="display:flex; align-items:center; gap:8px; font-size:13px; padding:3px 0;">
+        <input type="checkbox" value="${leaf.id}" data-unitpick ${checked}>
+        <span>${leaf.label}（${fmt2(leaf.area)}坪）</span>
+        ${statusHtml}
+      </label>`;
+    }).join("");
+    wrapPicker.classList.remove("hidden");
+    wrapUnit.classList.add("hidden");
+    fUnit.required = false;
+    listEl.querySelectorAll("[data-unitpick]").forEach(cb=> cb.addEventListener("change", syncUnitFieldFromPicker));
+    syncUnitFieldFromPicker();
+  } else {
+    listEl.innerHTML = "";
+    wrapPicker.classList.add("hidden");
+    wrapUnit.classList.remove("hidden");
+    fUnit.required = true;
+  }
+}
 
 // 類型（倉儲／停車位／設備）：停車位、設備都是單純記帳用，共用同一組欄位，只是換個說法——
 // 「租賃面積」變成「車位數」或「數量」、「元/坪」變成「元/車位/月」或「元/台/月」，
@@ -1365,7 +1505,7 @@ function updateCategoryFields(){
       ? "單純記帳用，不計入出租率總覽的坪數；月租金會獨立列在「月別總表」的「設備」報表，不跟倉儲/停車位的合計混在一起。"
       : "";
 }
-fCategory.addEventListener("change", updateCategoryFields);
+fCategory.addEventListener("change", ()=>{ updateCategoryFields(); updateUnitPicker(); });
 
 const adjustHints = {
   "無調整": "每年維持首年單位租金，不會自動調整。",
@@ -1435,11 +1575,13 @@ document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
     await notify("租期迄需晚於租期起，請確認日期。");
     return;
   }
+  const unitPickerVisible = !document.getElementById("wrap_unitpicker").classList.contains("hidden");
   const recBody = {
     zone: fZone.value,
     category: fCategory.value,
     building: buildingVisible ? document.getElementById("f_building").value : "",
     unit: document.getElementById("f_unit").value.trim(),
+    unitIds: unitPickerVisible ? Array.from(document.querySelectorAll("#unitPickerList [data-unitpick]:checked")).map(cb=>cb.value) : [],
     client: document.getElementById("f_client").value.trim(),
     start, end,
     area: Number(document.getElementById("f_area").value),
@@ -1526,6 +1668,10 @@ function showToast(msg){
 // 記住目前有哪些園區被展開成「棟別明細」檢視，重新 render（例如共用資料庫同步）
 // 時不會又自動收合。用園區名稱當 key，因為目前沒有改園區名稱的功能，名稱是穩定的。
 const expandedZoneKeys = new Set();
+// 同樣道理，棟別展開成「樓層」、樓層展開成「單元」時，也要記住目前展開了哪些，
+// key 用「園區—棟別」「園區—棟別—樓層」組合字串，因為棟別/樓層名稱在不同園區、不同棟別下可能重複。
+const expandedBuildingKeys = new Set();
+const expandedFloorKeys = new Set();
 
 async function persistZoneBuildings(idx, buildings){
   const newArea = computeZoneAreaFromBuildings(buildings);
@@ -1567,13 +1713,65 @@ function renderArea(){
     </tr>`;
     if (expanded){
       buildings.forEach((b, bidx)=>{
+        const floors = buildingFloors(b);
+        const hasFloors = floors.length > 0;
+        const buildingKey = `${z.zone}::${b.name}`;
+        const buildingExpanded = expandedBuildingKeys.has(buildingKey);
+        const buildingAreaCell = hasFloors
+          ? `<span title="由下方 ${floors.length} 層坪數加總計算，如需調整請直接修改各樓層坪數">${fmt2(computeBuildingArea(b))}</span> <small style="color:var(--text-soft);">(${floors.length}層加總)</small>`
+          : `<input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0" ${lockedAttr}>`;
         html += `
         <tr class="subrow">
-          <td style="padding-left:34px;">└ <input type="text" class="${lockedCls.trim()}" style="width:140px;" data-bidx="${idx}:${bidx}" data-bfield="name" value="${b.name||""}" placeholder="棟別名稱" ${lockedAttr}></td>
-          <td class="num"><input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0" ${lockedAttr}></td>
+          <td style="padding-left:34px;">
+            <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:11px; margin-right:6px;" data-toggle-building="${idx}:${bidx}" title="展開／收合樓層明細">${buildingExpanded ? "▾" : "▸"} 樓層${hasFloors ? `(${floors.length})` : ""}</button>
+            <input type="text" class="${lockedCls.trim()}" style="width:120px;" data-bidx="${idx}:${bidx}" data-bfield="name" value="${b.name||""}" placeholder="棟別名稱" ${lockedAttr}>
+          </td>
+          <td class="num">${buildingAreaCell}</td>
           <td><input type="text" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填"></td>
           <td><button class="btn-danger-ghost" title="刪除這一棟" data-delbuilding="${idx}:${bidx}">×</button></td>
         </tr>`;
+        if (buildingExpanded){
+          floors.forEach((f, fidx)=>{
+            const units = floorUnits(f);
+            const hasUnits = units.length > 0;
+            const floorKey = `${buildingKey}::${f.name}`;
+            const floorExpanded = expandedFloorKeys.has(floorKey);
+            const floorAreaCell = hasUnits
+              ? `<span title="由下方 ${units.length} 個單元坪數加總計算，如需調整請直接修改各單元坪數">${fmt2(computeFloorArea(f))}</span> <small style="color:var(--text-soft);">(${units.length}單元加總)</small>`
+              : `<input type="number" class="zone-input${lockedCls}" data-fidx="${idx}:${bidx}:${fidx}" data-ffield="area" value="${f.area||0}" step="0.01" min="0" ${lockedAttr}>`;
+            html += `
+        <tr class="subrow">
+          <td style="padding-left:58px;">
+            <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:11px; margin-right:6px;" data-toggle-floor="${idx}:${bidx}:${fidx}" title="展開／收合單元明細">${floorExpanded ? "▾" : "▸"} 單元${hasUnits ? `(${units.length})` : ""}</button>
+            <input type="text" class="${lockedCls.trim()}" style="width:100px;" data-fidx="${idx}:${bidx}:${fidx}" data-ffield="name" value="${f.name||""}" placeholder="樓層名稱" ${lockedAttr}>
+          </td>
+          <td class="num">${floorAreaCell}</td>
+          <td><input type="text" style="width:180px;" data-fidx="${idx}:${bidx}:${fidx}" data-ffield="note" value="${f.note||""}" placeholder="選填"></td>
+          <td><button class="btn-danger-ghost" title="刪除這一層" data-delfloor="${idx}:${bidx}:${fidx}">×</button></td>
+        </tr>`;
+            if (floorExpanded){
+              units.forEach((u, uidx)=>{
+                html += `
+        <tr class="subrow">
+          <td style="padding-left:82px;">└ <input type="text" class="${lockedCls.trim()}" style="width:120px;" data-uidx="${idx}:${bidx}:${fidx}:${uidx}" data-ufield="name" value="${u.name||""}" placeholder="單元名稱" ${lockedAttr}></td>
+          <td class="num"><input type="number" class="zone-input${lockedCls}" data-uidx="${idx}:${bidx}:${fidx}:${uidx}" data-ufield="area" value="${u.area||0}" step="0.01" min="0" ${lockedAttr}></td>
+          <td><input type="text" style="width:160px;" data-uidx="${idx}:${bidx}:${fidx}:${uidx}" data-ufield="note" value="${u.note||""}" placeholder="選填"></td>
+          <td><button class="btn-danger-ghost" title="刪除這個單元" data-delunit="${idx}:${bidx}:${fidx}:${uidx}">×</button></td>
+        </tr>`;
+              });
+              html += `
+        <tr class="subrow">
+          <td style="padding-left:82px;"><button type="button" class="btn btn-secondary" style="padding:4px 9px; font-size:11.5px;" data-addunit="${idx}:${bidx}:${fidx}">＋ 新增單元</button></td>
+          <td colspan="3">${hasUnits ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearunits="${idx}:${bidx}:${fidx}">清空單元，改回單一坪數輸入</button>` : ""}</td>
+        </tr>`;
+            }
+          });
+          html += `
+        <tr class="subrow">
+          <td style="padding-left:58px;"><button type="button" class="btn btn-secondary" style="padding:4px 9px; font-size:11.5px;" data-addfloor="${idx}:${bidx}">＋ 新增樓層</button></td>
+          <td colspan="3">${hasFloors ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearfloors="${idx}:${bidx}">清空樓層，改回單一坪數輸入</button>` : ""}</td>
+        </tr>`;
+        }
       });
       html += `
         <tr class="subrow">
@@ -1622,12 +1820,68 @@ function renderArea(){
     });
   });
 
+  // 深拷貝整個棟別陣列（包含底下的樓層／單元），修改其中一處之後整包送回 persistZoneBuildings，
+  // 讓它重新算出正確的棟別／園區總坪數——跟 data-bfield 的做法完全一樣，只是改到更深一層。
+  function cloneBuildings(idx){
+    return zoneBuildings(ZONE_AREA[idx]).map(b=>({
+      ...b,
+      floors: buildingFloors(b).map(f=>({ ...f, units: floorUnits(f).map(u=>({...u})) })),
+    }));
+  }
+
+  tbody.querySelectorAll("input[data-ffield]").forEach(inp=>{
+    inp.addEventListener("change", async ()=>{
+      const [idx, bidx, fidx] = inp.dataset.fidx.split(":").map(Number);
+      const field = inp.dataset.ffield;
+      const value = field === "area" ? Number(inp.value)||0 : inp.value;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].floors[fidx][field] = value;
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("input[data-ufield]").forEach(inp=>{
+    inp.addEventListener("change", async ()=>{
+      const [idx, bidx, fidx, uidx] = inp.dataset.uidx.split(":").map(Number);
+      const field = inp.dataset.ufield;
+      const value = field === "area" ? Number(inp.value)||0 : inp.value;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].floors[fidx].units[uidx][field] = value;
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
   tbody.querySelectorAll("[data-toggle-zone]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const idx = Number(btn.dataset.toggleZone);
       const key = zoneKey(ZONE_AREA[idx]);
       if (expandedZoneKeys.has(key)) expandedZoneKeys.delete(key);
       else expandedZoneKeys.add(key);
+      renderArea();
+    });
+  });
+
+  tbody.querySelectorAll("[data-toggle-building]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const [idx, bidx] = btn.dataset.toggleBuilding.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const key = `${z.zone}::${b.name}`;
+      if (expandedBuildingKeys.has(key)) expandedBuildingKeys.delete(key);
+      else expandedBuildingKeys.add(key);
+      renderArea();
+    });
+  });
+
+  tbody.querySelectorAll("[data-toggle-floor]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const [idx, bidx, fidx] = btn.dataset.toggleFloor.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const f = buildingFloors(b)[fidx];
+      const key = `${z.zone}::${b.name}::${f.name}`;
+      if (expandedFloorKeys.has(key)) expandedFloorKeys.delete(key);
+      else expandedFloorKeys.add(key);
       renderArea();
     });
   });
@@ -1658,6 +1912,103 @@ function renderArea(){
       if (!(await askConfirm(`確定要刪除「${z.zone} / ${bname}」這一棟嗎？已經標記這一棟的租約不會被刪除，但棟別欄位會找不到對應資料，請記得之後手動修改那些租約的棟別。`))) return;
       const buildings = zoneBuildings(z).map(b=>({...b}));
       buildings.splice(bidx,1);
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-addfloor]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx] = btn.dataset.addfloor.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const buildings = cloneBuildings(idx);
+      const floors = buildings[bidx].floors;
+      if (floors.length === 0){
+        // 第一次拆分：用現有的棟別坪數當作第一層的起始值，避免總坪數憑空變成 0。
+        floors.push({ id: genNodeId(), name:"1樓", area:Number(b.area)||0, note:"", units:[] });
+      } else {
+        floors.push({ id: genNodeId(), name:`${floors.length+1}樓`, area:0, note:"", units:[] });
+      }
+      expandedBuildingKeys.add(`${z.zone}::${b.name}`);
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-delfloor]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx, fidx] = btn.dataset.delfloor.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const fname = buildingFloors(b)[fidx]?.name || "";
+      if (!(await askConfirm(`確定要刪除「${z.zone} / ${b.name} / ${fname}」這一層嗎？這一層底下如果有拆單元，單元資料也會一併刪除；已經標記這一層（或其中單元）的租約不會被刪除，但會找不到對應資料，請記得之後手動修改那些租約。`))) return;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].floors.splice(fidx,1);
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-clearfloors]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx] = btn.dataset.clearfloors.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      if (!(await askConfirm(`確定要清空「${z.zone} / ${b.name}」的樓層明細嗎？坪數會保留目前加總的數字，但會改回可直接手動輸入；已經標記樓層／單元的租約，欄位會變成沒有作用的文字紀錄。`))) return;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].area = computeBuildingArea(buildings[bidx]);
+      buildings[bidx].floors = [];
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-addunit]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx, fidx] = btn.dataset.addunit.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const f = buildingFloors(b)[fidx];
+      const buildings = cloneBuildings(idx);
+      const units = buildings[bidx].floors[fidx].units;
+      if (units.length === 0){
+        // 第一次拆分：用現有的樓層坪數當作第一個單元的起始值，避免總坪數憑空變成 0。
+        units.push({ id: genNodeId(), name:"A", area:Number(f.area)||0, note:"" });
+      } else {
+        units.push({ id: genNodeId(), name:String.fromCharCode(65+units.length), area:0, note:"" });
+      }
+      expandedFloorKeys.add(`${z.zone}::${b.name}::${f.name}`);
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-delunit]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx, fidx, uidx] = btn.dataset.delunit.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const f = buildingFloors(b)[fidx];
+      const uname = floorUnits(f)[uidx]?.name || "";
+      if (!(await askConfirm(`確定要刪除「${z.zone} / ${b.name} / ${f.name} / ${uname}」這個單元嗎？已經標記這個單元的租約不會被刪除，但會找不到對應資料，請記得之後手動修改那些租約的單元連結。`))) return;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].floors[fidx].units.splice(uidx,1);
+      await persistZoneBuildings(idx, buildings);
+    });
+  });
+
+  tbody.querySelectorAll("[data-clearunits]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if (!(await ensureZoneAdmin())) return;
+      const [idx, bidx, fidx] = btn.dataset.clearunits.split(":").map(Number);
+      const z = ZONE_AREA[idx];
+      const b = zoneBuildings(z)[bidx];
+      const f = buildingFloors(b)[fidx];
+      if (!(await askConfirm(`確定要清空「${z.zone} / ${b.name} / ${f.name}」的單元明細嗎？坪數會保留目前加總的數字，但會改回可直接手動輸入；已經標記這些單元的租約，欄位會變成沒有作用的文字紀錄。`))) return;
+      const buildings = cloneBuildings(idx);
+      buildings[bidx].floors[fidx].area = computeFloorArea(buildings[bidx].floors[fidx]);
+      buildings[bidx].floors[fidx].units = [];
       await persistZoneBuildings(idx, buildings);
     });
   });
@@ -1810,6 +2161,69 @@ function renderOcc(){
     <div class="stat-card"><div class="label">在租約數 / 當期租金合計</div><div class="value">${totalCount} <small>件・${fmtInt(totalRent)} 元</small></div></div>
   `;
 }
+
+/* ---------------- 單元房態 tab（只看「已經拆到樓層／單元」的棟別，列出每個最底層空間現在是空置還是承租中） ---------------- */
+// 判斷某個單元／整層（leaf）現在有沒有被「生效中」的倉儲租約佔用——
+// 找出所有勾選了這個 leaf.id 的租約，裡面只要有一筆「今天落在租期內」就算承租中，
+// 回傳那筆租約（可以拿客戶名稱、租期等資訊顯示），找不到就是空置（回傳 null）。
+function findOccupyingLease(leafId){
+  return LEASE_DB.find(r =>
+    isOccupancyLease(r) &&
+    Array.isArray(r.unitIds) && r.unitIds.includes(leafId) &&
+    isCurrentlyActive(r, TODAY)
+  ) || null;
+}
+let unitStatusFilter = "all"; // "all" | "vacant"
+function renderUnitStatus(){
+  const zoneVal = document.getElementById("unitStatusZoneFilter").value;
+  const tbody = document.getElementById("unitStatusTbody");
+  let rowsHtml = "";
+  let totalLeaves = 0, vacantCount = 0, vacantArea = 0, leasedArea = 0;
+
+  ZONE_AREA.forEach(z=>{
+    if (zoneVal && z.zone !== zoneVal) return;
+    zoneBuildings(z).forEach(b=>{
+      if (!buildingFloors(b).length) return; // 這一棟還沒拆樓層，不屬於這張房態表的範圍
+      collectBuildingLeaves(b).forEach(leaf=>{
+        totalLeaves++;
+        const occ = findOccupyingLease(leaf.id);
+        if (occ){ leasedArea += leaf.area; } else { vacantCount++; vacantArea += leaf.area; }
+        if (unitStatusFilter === "vacant" && occ) return;
+        const statusCell = occ
+          ? `<span class="pill pill-good">承租中</span> <small style="color:var(--text-soft);">${occ.client}（至 ${occ.end}）</small>`
+          : `<span class="pill pill-vacant">空置</span>`;
+        rowsHtml += `
+        <tr>
+          <td>${z.zone}</td>
+          <td>${b.name}</td>
+          <td>${leaf.floorName}</td>
+          <td>${leaf.unitName || "（整層）"}</td>
+          <td class="num">${fmt2(leaf.area)}</td>
+          <td>${statusCell}</td>
+          <td>${leaf.note || ""}</td>
+        </tr>`;
+      });
+    });
+  });
+
+  tbody.innerHTML = rowsHtml || `<tr class="empty-row"><td colspan="7">${totalLeaves === 0 ? "目前還沒有任何棟別拆到樓層／單元，請先到「園區坪數基準」設定" : "沒有符合篩選條件的單元"}</td></tr>`;
+  document.getElementById("unitStatusCount").textContent = `共 ${totalLeaves} 個單元／整層（空置 ${vacantCount} 個）`;
+  document.getElementById("unitStatusStats").innerHTML = `
+    <div class="stat-card"><div class="label">已建置單元／整層總數</div><div class="value">${totalLeaves} <small>個</small></div></div>
+    <div class="stat-card"><div class="label">空置數量</div><div class="value">${vacantCount} <small>個</small></div></div>
+    <div class="stat-card"><div class="label">空置坪數</div><div class="value">${fmt2(vacantArea)} <small>坪</small></div></div>
+    <div class="stat-card"><div class="label">承租中坪數</div><div class="value">${fmt2(leasedArea)} <small>坪</small></div></div>
+  `;
+}
+document.getElementById("unitStatusZoneFilter").addEventListener("change", renderUnitStatus);
+document.getElementById("unitStatusFilterToggle").querySelectorAll("[data-filter]").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.getElementById("unitStatusFilterToggle").querySelectorAll("[data-filter]").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    unitStatusFilter = btn.dataset.filter;
+    renderUnitStatus();
+  });
+});
 
 /* ---------------- 月別總表 tab（園區、客戶 × 月，用單一切換鈕在「租金／管理費／設備」三種畫面之間切換） ---------------- */
 let monthlyView = "rent"; // "rent"（倉儲／停車位＋租金） | "mgmt"（倉儲／停車位＋管理費） | "equip"（設備）
