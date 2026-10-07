@@ -176,6 +176,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   td.computed, th.computed{background:var(--gray-fill);}
   td.num, th.num{text-align:right; font-variant-numeric:tabular-nums;}
   .table-scroll{overflow:auto; max-height:62vh;}
+  /* 可拉寬的表格（目前用在「租賃單元狀態」）：固定版面＋欄位寬度由程式計算，超出的字用 … 收起來 */
+  table.resizable{table-layout:fixed;}
+  table.resizable th, table.resizable td{overflow:hidden; text-overflow:ellipsis;}
+  table.resizable thead th{position:sticky; padding-right:14px;}
+  table.resizable th, table.resizable td{text-align:left;} /* 這張表的文字一律靠左（含坪數） */
+  .col-resizer{position:absolute; top:0; right:0; width:9px; height:100%; cursor:col-resize; user-select:none; touch-action:none;}
+  .col-resizer::after{content:""; position:absolute; top:22%; bottom:22%; right:4px; width:1px; background:#d4d4d8;}
+  .col-resizer:hover::after, .col-resizer.dragging::after{width:2px; right:3px; background:var(--series-1, #111);}
   tr.subrow td{background:#fbfbfc; color:var(--text-soft); font-size:12.2px;}
   tr.subrow-warn td{background:#fff8ea; color:var(--status-warning);}
 
@@ -459,7 +467,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="spacer"></div>
       <div id="unitStatusCount" style="font-size:12px; color:var(--text-soft);"></div>
     </div>
-    <div class="stat-row" id="unitStatusStats"></div>
+    <div class="stat-row" id="unitStatusStats" style="grid-template-columns:repeat(3,1fr);"></div>
     <div class="card">
       <div class="card-head">
         <div>
@@ -468,7 +476,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         </div>
       </div>
       <div class="table-scroll">
-        <table>
+        <table id="unitStatusTable" class="resizable">
           <thead>
             <tr>
               <th>園區</th><th>棟別</th><th>樓層</th><th>單元</th>
@@ -2547,11 +2555,95 @@ function renderUnitStatus(){
   document.getElementById("unitStatusCount").textContent = `共 ${totalLeaves} 個單元／整層（空置 ${vacantCount} 個）`;
   document.getElementById("unitStatusStats").innerHTML = `
     <div class="stat-card"><div class="label">已建置單元／整層總數</div><div class="value">${totalLeaves} <small>個</small></div></div>
-    <div class="stat-card"><div class="label">空置數量</div><div class="value">${vacantCount} <small>個</small></div></div>
     <div class="stat-card"><div class="label">空置坪數</div><div class="value">${fmt2(vacantArea)} <small>坪</small></div></div>
     <div class="stat-card"><div class="label">承租中坪數</div><div class="value">${fmt2(leasedArea)} <small>坪</small></div></div>
   `;
+  fitUnitStatusColumns();
 }
+
+/* 租賃單元狀態的欄寬：
+   - 預設「自動」：依固定比例切分畫面寬度（每欄不會小於內容需要的寬度）；
+     畫面太窄時就維持內容寬度，表格自己出現橫向捲軸。篩選、換園區、縮放視窗都會重新計算。
+   - 手動：拖曳欄位標題右邊緣可拉寬／縮窄該欄（欄寬記在這台瀏覽器，下次開還在）；
+     在邊緣雙擊＝把那一欄恢復成自動寬度。 */
+const UNITSTATUS_COLW_KEY = "alp_unitstatus_colwidths_v1";
+const UNITSTATUS_MIN_COLW = 44;
+// 預設欄寬比例（園區／棟別／樓層／單元／坪數／狀態／備註），依 1343px 寬的版面調出來，畫面變寬變窄時等比例縮放。
+const UNITSTATUS_DEFAULT_RATIO = [126, 106, 102, 122, 116, 244, 527];
+let unitStatusManualW = (function(){
+  try {
+    const a = JSON.parse(localStorage.getItem(UNITSTATUS_COLW_KEY) || "null");
+    if (Array.isArray(a) && a.length === 7) return a.map(v => (typeof v === "number" && v >= UNITSTATUS_MIN_COLW) ? v : null);
+  } catch(e){}
+  return new Array(7).fill(null);
+})();
+function saveUnitStatusColW(){
+  try {
+    if (unitStatusManualW.every(v => v === null)) localStorage.removeItem(UNITSTATUS_COLW_KEY);
+    else localStorage.setItem(UNITSTATUS_COLW_KEY, JSON.stringify(unitStatusManualW));
+  } catch(e){}
+}
+function fitUnitStatusColumns(){
+  const table = document.getElementById("unitStatusTable");
+  if (!table || table.offsetParent === null) return; // 分頁沒顯示時量不到寬度，切過去時會再算一次
+  const ths = [...table.querySelectorAll("thead th")];
+  let colgroup = table.querySelector("colgroup");
+  if (!colgroup){
+    colgroup = document.createElement("colgroup");
+    ths.forEach(()=> colgroup.appendChild(document.createElement("col")));
+    table.insertBefore(colgroup, table.firstChild);
+  }
+  const cols = [...colgroup.children];
+  // 1) 量「內容需要的寬度」：暫時改回自動版面、寬度跟著內容走
+  cols.forEach(c => c.style.width = "");
+  table.style.tableLayout = "auto";
+  table.style.width = "max-content";
+  const natural = ths.map(th => Math.ceil(th.getBoundingClientRect().width));
+  // 2) 手動拉過的欄位用手動寬度，其餘用內容寬度
+  //    自動欄寬＝依下面 UNITSTATUS_DEFAULT_RATIO 的比例切分畫面寬度；但不會小於內容需要的寬度（避免字被切掉）。
+  const avail = table.parentElement.clientWidth;
+  const ratioSum = UNITSTATUS_DEFAULT_RATIO.reduce((a, b) => a + b, 0);
+  const widths = natural.map((w, i) => {
+    if (unitStatusManualW[i] != null) return unitStatusManualW[i];
+    return Math.max(w, Math.floor(avail * UNITSTATUS_DEFAULT_RATIO[i] / ratioSum));
+  });
+  cols.forEach((c, i) => c.style.width = Math.floor(widths[i]) + "px");
+  table.style.tableLayout = "fixed";
+  table.style.width = Math.floor(widths.reduce((a, b) => a + b, 0)) + "px";
+  ths.forEach((th, i) => th.title = unitStatusManualW[i] != null ? "已手動調整寬度（雙擊右邊緣可重設這一欄）" : "");
+}
+(function initUnitStatusResizers(){
+  const table = document.getElementById("unitStatusTable");
+  if (!table) return;
+  table.querySelectorAll("thead th").forEach((th, i)=>{
+    const h = document.createElement("span");
+    h.className = "col-resizer";
+    th.appendChild(h);
+    h.addEventListener("pointerdown", ev=>{
+      ev.preventDefault();
+      const startX = ev.clientX, startW = th.getBoundingClientRect().width;
+      h.setPointerCapture(ev.pointerId);
+      h.classList.add("dragging");
+      const move = e => {
+        unitStatusManualW[i] = Math.max(UNITSTATUS_MIN_COLW, Math.round(startW + (e.clientX - startX)));
+        fitUnitStatusColumns();
+      };
+      const up = () => {
+        h.classList.remove("dragging");
+        h.removeEventListener("pointermove", move);
+        h.removeEventListener("pointerup", up);
+        h.removeEventListener("pointercancel", up);
+        saveUnitStatusColW();
+      };
+      h.addEventListener("pointermove", move);
+      h.addEventListener("pointerup", up);
+      h.addEventListener("pointercancel", up);
+    });
+    h.addEventListener("dblclick", ()=>{ unitStatusManualW[i] = null; saveUnitStatusColW(); fitUnitStatusColumns(); });
+  });
+  let resizeTimer = null;
+  window.addEventListener("resize", ()=>{ clearTimeout(resizeTimer); resizeTimer = setTimeout(fitUnitStatusColumns, 120); });
+})();
 document.getElementById("unitStatusZoneFilter").addEventListener("change", renderUnitStatus);
 document.getElementById("unitStatusFilterToggle").querySelectorAll("[data-filter]").forEach(btn=>{
   btn.addEventListener("click", ()=>{
