@@ -277,7 +277,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <span class="badge">資料維護版</span>
   </div>
   <div class="header-right">
-    <div class="subtitle">對應 Excel「資料庫 / 園區坪數基準 / 出租率總覽 / 月別總表」四組分頁　·　可切換檢視、手動新增租約</div>
+    <div class="subtitle">對應 Excel「資料庫 / 出租率總覽 / 租賃收入總覽 / 租賃單元狀態」分頁　·　可切換檢視、手動新增租約</div>
     <span id="syncBadge" class="sync-badge sync-local" title="正在連線…">● 連線中…</span>
     <div class="header-actions">
       <button class="icon-btn" id="exportExcelBtn" title="匯出目前資料為 Excel（.xlsx，含多個分頁）">
@@ -296,8 +296,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <nav class="tabs">
   <button class="tab-btn active" data-tab="db">資料庫</button>
   <button class="tab-btn" data-tab="occ">出租率總覽</button>
-  <button class="tab-btn" data-tab="monthly">月別總表</button>
-  <button class="tab-btn" data-tab="unitstatus">單元房態</button>
+  <button class="tab-btn" data-tab="monthly">租賃收入總覽</button>
+  <button class="tab-btn" data-tab="unitstatus">租賃單元狀態</button>
 </nav>
 
 <main>
@@ -409,7 +409,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
   </section>
 
-  <!-- ============ 月別總表 ============ -->
+  <!-- ============ 租賃收入總覽 ============ -->
   <section class="panel" id="panel-monthly">
     <div class="toolbar">
       <select id="monthlyYear"></select>
@@ -426,7 +426,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="card">
       <div class="card-head">
         <div>
-          <h2 id="monthlyTitle">月別總表</h2>
+          <h2 id="monthlyTitle">租賃收入總覽</h2>
           <p id="monthlyDesc">依租約起訖判斷該月是否在租期內；租金會反映當年度的調整結果，管理費為固定單價，不受年度調整影響。預設只顯示各園區小計，點擊園區列可展開個別客戶的月租金明細。「設備」類租約不算在此處合計，可用上方切換鈕查看「設備」報表。</p>
         </div>
       </div>
@@ -448,7 +448,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
   </section>
 
-  <!-- ============ 單元房態 ============ -->
+  <!-- ============ 租賃單元狀態 ============ -->
   <section class="panel" id="panel-unitstatus">
     <div class="toolbar">
       <select id="unitStatusZoneFilter"></select>
@@ -463,7 +463,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="card">
       <div class="card-head">
         <div>
-          <h2>單元房態 — 空置查詢</h2>
+          <h2>租賃單元狀態 — 空置查詢</h2>
           <p>列出「園區坪數基準」裡所有已拆棟別的棟別（樓層是必填結構，每一棟至少會有一層）；還沒拆棟別的園區維持整區計算坪數，不會出現在這裡。狀態依今天日期判斷：承租中＝今天落在某張倉儲租約的租期內、且那張租約有勾選這個單元／整層。</p>
         </div>
       </div>
@@ -526,7 +526,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <div class="form-field full hidden" id="wrap_unitpicker">
           <label>對應單元（可複選） <span class="req">*</span></label>
           <div id="unitPickerList" style="display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px 10px;"></div>
-          <div class="hint">請直接勾選這張租約實際承租的範圍（可以勾多個樓層／單元），系統會自動加總坪數、帶出對應的「樓層」欄位，並在「單元房態」頁面標示這些單元為承租中。</div>
+          <div class="hint">請直接勾選這張租約實際承租的範圍（可以勾多個樓層／單元），系統會自動加總坪數、帶出對應的「樓層」欄位，並在「租賃單元狀態」頁面標示這些單元為承租中。</div>
           <div class="hint" id="pickerFloorHint" style="font-weight:600;"></div>
         </div>
         <div class="form-field">
@@ -605,7 +605,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <div class="overlay" id="exportOverlay">
   <div class="modal" style="max-width:520px;">
     <h3>下載報表</h3>
-    <p class="sub">資料庫、出租率總覽為目前最新資料；月別總表（租金／管理費／設備／總覽）依下方選擇的年度或日期期間匯出，多個年度會依年度排序放在同一張分頁。月別總表以「月」為單位，自選期間的起訖日落在哪個月，就會把那個月整個月算進來。</p>
+    <p class="sub">資料庫、出租率總覽為目前最新資料；租賃收入總覽（租金／管理費／設備／總覽）與租賃單元狀態（目前房態）依下方選擇的年度或日期期間匯出，多個年度會依年度排序放在同一張分頁。租賃收入總覽以「月」為單位，自選期間的起訖日落在哪個月，就會把那個月整個月算進來。</p>
     <div class="form-field full" style="gap:10px;">
       <label style="display:flex; align-items:center; gap:8px; font-weight:400;"><input type="radio" name="exportMode" value="single" checked> 單一年度
         <select id="exportSingleYear" style="margin-left:auto;"></select></label>
@@ -723,7 +723,7 @@ const DEFAULT_LEASE_DB = [
    mgmt:0, inputBy:"Linda", remark:"車位月租示範資料，僅供記帳，不計入出租率坪數", sap:"", building:"", category:"停車位"},
   {id:7, zone:"瑞芳B區", unit:"ASRM-01", client:"H&M", start:"2024-01-01", end:"2029-12-31",
    area:3, baseUnit:15000, adjustType:"無調整", freq:1, pct:0, amt:0, override:null,
-   mgmt:0, inputBy:"Hebe", remark:"自動倉儲設備(ASRM)示範資料，依台數計租，僅供記帳，不計入出租率坪數；月租金獨立列在月別總表的「設備」報表", sap:"", building:"", category:"設備"},
+   mgmt:0, inputBy:"Hebe", remark:"自動倉儲設備(ASRM)示範資料，依台數計租，僅供記帳，不計入出租率坪數；月租金獨立列在租賃收入總覽的「設備」報表", sap:"", building:"", category:"設備"},
 ];
 const DEFAULT_NEXT_ID = 8;
 
@@ -849,8 +849,8 @@ function updateExportBtnTooltip(){
   const btn = document.getElementById("exportExcelBtn");
   if (!btn) return;
   btn.title = USING_DOWNLOADS
-    ? "匯出目前資料（多個 CSV 檔案：資料庫／園區坪數基準／出租率總覽／月別總表(租金·管理費·設備·總覽，依畫面目前選的年度)，若有拆棟別會多一個棟別明細）"
-    : "匯出目前資料為 Excel（.xlsx，含資料庫／園區坪數基準／出租率總覽／月別總表(租金·管理費·設備·總覽，依畫面目前選的年度)等分頁）";
+    ? "匯出目前資料（多個 CSV 檔案：資料庫／出租率總覽／租賃收入總覽(租金·管理費·設備·總覽，依畫面目前選的年度)／租賃單元狀態）"
+    : "匯出目前資料為 Excel（.xlsx，含資料庫／出租率總覽／租賃收入總覽(租金·管理費·設備·總覽，依畫面目前選的年度)／租賃單元狀態等分頁）";
 }
 
 /* ---------------- Supabase 轉接層（外部部署版本、且有填 SUPABASE_CONFIG 時才會用到）----------------
@@ -1090,7 +1090,7 @@ function computeZoneAreaFromBuildings(buildings){
 }
 // 收集一棟建築物底下所有「葉節點」（真正代表實際可租空間的最底層）：
 // 如果樓層有拆單元，葉節點就是單元；樓層沒拆單元的話，這一整層本身就是葉節點。
-// 用在「新增租約」的單元勾選清單、以及「單元房態」頁面——兩邊都只關心最底層的實際空間，
+// 用在「新增租約」的單元勾選清單、以及「租賃單元狀態」頁面——兩邊都只關心最底層的實際空間，
 // 不用管中間到底拆了幾層。
 function collectBuildingLeaves(building){
   const leaves = [];
@@ -1160,7 +1160,7 @@ function isCurrentlyActive(rec, asOf){
   const today = startOfLocalDay(asOf);
   return start <= today && end >= today;
 }
-// 停車位、設備租約只是單純記帳（月租金要算進月別總表／設備另有獨立報表），不是真正的倉儲坪數，
+// 停車位、設備租約只是單純記帳（月租金要算進租賃收入總覽／設備另有獨立報表），不是真正的倉儲坪數，
 // 所以「出租率總覽」的坪數統計（總坪數／已租坪數／出租率）要把這兩種租約排除，
 // 沒有 category 欄位的舊資料一律當作「倉儲」，維持既有行為。
 function isOccupancyLease(rec){
@@ -1470,7 +1470,7 @@ function renderDb(){
     const categoryCell = isParking
       ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數">停車位</span>`
       : isEquip
-        ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數；月租金另外列在「月別總表」的「設備」報表">設備</span>`
+        ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數；月租金另外列在「租賃收入總覽」的「設備」報表">設備</span>`
         : "倉儲";
     const checked = dbSelectedIds.has(String(r.id)) ? "checked" : "";
     return `<tr data-id="${r.id}" title="雙擊可編輯這筆租約">
@@ -1740,7 +1740,7 @@ function updateUnitPicker(keepIds, legacyUnitText){
 // 類型（倉儲／停車位／設備）：停車位、設備都是單純記帳用，共用同一組欄位，只是換個說法——
 // 「租賃面積」變成「車位數」或「數量」、「元/坪」變成「元/車位/月」或「元/台/月」，
 // 公式（單價×數量、逐年調整）完全不變，只有出租率總覽會把這兩種類型排除在坪數統計之外（見 isOccupancyLease()），
-// 月別總表則會把「設備」獨立成另一份報表，不跟「倉儲」「停車位」的租金合計混在一起。
+// 租賃收入總覽則會把「設備」獨立成另一份報表，不跟「倉儲」「停車位」的租金合計混在一起。
 // 「廠房」是舊版類型名稱的既有資料（改名前存進共用資料庫的租約），這裡統一轉成現在的「倉儲」，
 // 這樣舊資料在下拉選單裡才能正確對應到選項，而不是變成空白。
 function normalizeCategory(cat){
@@ -1763,9 +1763,9 @@ function updateCategoryFields(){
   document.getElementById("label_amt").textContent = countBased ? `調整金額（元/${countUnit}/月／每次）` : "調整金額（元/坪／每次）";
   document.getElementById("f_area").step = countBased ? "1" : "0.01";
   document.getElementById("categoryHint").textContent = isParking
-    ? "單純記帳用，不計入出租率總覽的坪數，但月租金仍會算進月別總表。"
+    ? "單純記帳用，不計入出租率總覽的坪數，但月租金仍會算進租賃收入總覽。"
     : isEquip
-      ? "單純記帳用，不計入出租率總覽的坪數；月租金會獨立列在「月別總表」的「設備」報表，不跟倉儲/停車位的合計混在一起。"
+      ? "單純記帳用，不計入出租率總覽的坪數；月租金會獨立列在「租賃收入總覽」的「設備」報表，不跟倉儲/停車位的合計混在一起。"
       : "";
 }
 fCategory.addEventListener("change", ()=>{ updateCategoryFields(); updateUnitPicker(); });
@@ -2499,7 +2499,7 @@ function renderOcc(){
   `;
 }
 
-/* ---------------- 單元房態 tab（只看「已經拆到樓層／單元」的棟別，列出每個最底層空間現在是空置還是承租中） ---------------- */
+/* ---------------- 租賃單元狀態 tab（只看「已經拆到樓層／單元」的棟別，列出每個最底層空間現在是空置還是承租中） ---------------- */
 // 判斷某個單元／整層（leaf）現在有沒有被「生效中」的倉儲租約佔用——
 // 找出所有勾選了這個 leaf.id 的租約，裡面只要有一筆「今天落在租期內」就算承租中，
 // 回傳那筆租約（可以拿客戶名稱、租期等資訊顯示），找不到就是空置（回傳 null）。
@@ -2562,7 +2562,7 @@ document.getElementById("unitStatusFilterToggle").querySelectorAll("[data-filter
   });
 });
 
-/* ---------------- 月別總表 tab（園區、客戶 × 月，用單一切換鈕在「租金／管理費／設備／收入總覽」四種畫面之間切換） ---------------- */
+/* ---------------- 租賃收入總覽 tab（園區、客戶 × 月，用單一切換鈕在「租金／管理費／設備／收入總覽」四種畫面之間切換） ---------------- */
 let monthlyView = "rent"; // "rent"（倉儲／停車位＋租金） | "mgmt"（倉儲／停車位＋管理費） | "equip"（設備） | "combined"（收入總覽：全部合併）
 let monthlyMetric = "rent"; // "rent" | "mgmt" | "combined" —— 由 monthlyView 換算出來，"equip" 畫面固定看租金
 // 預設只顯示「園區」這一層的小計列，點了才展開看每個客戶的月別明細，跟出租率總覽／園區坪數基準的收合邏輯一致。
@@ -2682,7 +2682,7 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
         <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:11px; margin-right:8px;" data-toggle-zone="${zoneName}" title="展開／收合客戶明細">${expanded ? "▾" : "▸"}</button>${zoneName}
       </td>
       ${monthCellsHtml(z.cells)}
-      <td class="num computed">${fmtInt(z.total)}</td>
+      <td class="num computed">${z.total ? fmtInt(z.total) : "—"}</td>
     </tr>`;
 
     if (expanded){
@@ -2691,14 +2691,14 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
           <td></td>
           <td>　└ ${cr.client}</td>
           ${monthCellsHtml(cr.cells)}
-          <td class="num computed">${fmtInt(cr.rowTotal)}</td>
+          <td class="num computed">${cr.rowTotal ? fmtInt(cr.rowTotal) : "—"}</td>
         </tr>`;
       });
     }
   });
 
-  const totalCells = monthGrandTotals.map(v=>`<td class="num">${fmtInt(v)}</td>`).join("");
-  const totalRow = `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td colspan="2">合計</td>${totalCells}<td class="num computed">${fmtInt(grandTotal)}</td></tr>`;
+  const totalCells = monthGrandTotals.map(v=>`<td class="num">${v ? fmtInt(v) : "—"}</td>`).join("");
+  const totalRow = `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td colspan="2">合計</td>${totalCells}<td class="num computed">${grandTotal ? fmtInt(grandTotal) : "—"}</td></tr>`;
 
   tbodyEl.innerHTML = html + totalRow;
 
@@ -2755,7 +2755,7 @@ function renderMonthly(){
     ? `設備 — ${year} 年各月租金（元/月）`
     : isCombined
       ? `收入總覽 — ${year} 年各月合計（租金＋管理費＋設備，元/月）`
-      : `月別總表 — ${year} 年各月${metricLabel}（元/月）`;
+      : `租賃收入總覽 — ${year} 年各月${metricLabel}（元/月）`;
   document.getElementById("monthlyDesc").textContent = isEquip
     ? "自動倉儲設備（ASRM）等設備類租約的月租金，獨立於「倉儲／停車位」之外，不會併入其合計。用上方切換鈕可以隨時切回「租金」或「管理費」。"
     : isCombined
@@ -2823,7 +2823,7 @@ function buildExportSheets(exportOpts){
 
   // 出租率總覽：園區有拆棟別的話，在該園區列底下多印出各棟、以及「尚未標示棟別」的加總，
   // 呈現方式跟畫面上的「出租率總覽」分頁一致，方便直接核對。
-  const occHeader = ["園區／棟別","總坪數","已租坪數","空置坪數","出租率(%)","在租約數","當期總月租金合計"];
+  const occHeader = ["園區／棟別","總坪數","已租坪數","空置坪數","出租率","在租約數","當期總月租金合計"];
   const occRows = [];
   ZONE_AREA.forEach(z=>{
     const leases = LEASE_DB.filter(r => r.zone === z.zone && isCurrentlyActive(r, TODAY) && isOccupancyLease(r));
@@ -2831,7 +2831,7 @@ function buildExportSheets(exportOpts){
     const vacantArea = Math.max(0, z.area - leasedArea);
     const rate = z.area > 0 ? (leasedArea / z.area * 100) : 0;
     const rentSum = leases.reduce((s,r)=> s + computeTotalRent(r, TODAY), 0);
-    occRows.push([z.zone, z.area, leasedArea, vacantArea, Number(rate.toFixed(1)), leases.length, rentSum]);
+    occRows.push([z.zone, z.area, leasedArea, vacantArea, Number((rate/100).toFixed(3)), leases.length, rentSum]);
 
     const buildings = zoneBuildings(z);
     if (buildings.length){
@@ -2845,7 +2845,7 @@ function buildExportSheets(exportOpts){
         const bVacant = Math.max(0, bArea - bLeased);
         const bRate = bArea > 0 ? (bLeased / bArea * 100) : 0;
         const bRent = bLeases.reduce((s,r)=> s + computeTotalRent(r, TODAY), 0);
-        occRows.push([`　└ ${b.name}`, bArea, bLeased, bVacant, Number(bRate.toFixed(1)), bLeases.length, bRent]);
+        occRows.push([`　└ ${b.name}`, bArea, bLeased, bVacant, Number((bRate/100).toFixed(3)), bLeases.length, bRent]);
       });
       const unassignedLeased = leasedArea - attributedLeased;
       if (unassignedLeased > 0.001){
@@ -2860,12 +2860,12 @@ function buildExportSheets(exportOpts){
   // 「園區坪數基準」「棟別明細」不匯出（那是很少異動的基準資料，不需要每次下載）。
   const sheets = [
     { name: "資料庫", header: dbHeader, rows: dbRows,
-      colFmt: { 7:"date", 8:"date", 9:"auto", 10:"auto", 14:"auto", 15:"auto", 16:"dec2", 17:"int", 18:"auto", 19:"int" } },
+      colFmt: { 7:"date", 8:"date", 9:"auto", 10:"auto", 13:"pct", 14:"auto", 15:"auto", 16:"dec2", 17:"int", 18:"auto", 19:"int" } },
     { name: "出租率總覽", header: occHeader, rows: occRows,
-      colFmt: { 1:"auto", 2:"auto", 3:"auto", 5:"int", 6:"int" } },
+      colFmt: { 1:"auto", 2:"auto", 3:"auto", 4:"pct", 5:"int", 6:"int" } },
   ];
 
-  // 月別總表：採用畫面上「月別總表」頁目前選的年度，租金／管理費／設備各自獨立一個分頁，
+  // 租賃收入總覽：採用畫面上「租賃收入總覽」頁目前選的年度，租金／管理費／設備各自獨立一個分頁，
   // 另外再多一個「總覽」分頁把三者（倉儲/停車位的租金＋管理費、再加上設備的租金）加總成
   // 每個客戶、每個月單一一個合計金額，方便一眼看完全部現金流，不用三個分頁自己加總。
   // 結構跟畫面「全部展開」時一致（園區小計列＋底下每個客戶的逐月明細列＋最後總計列）。
@@ -2875,7 +2875,7 @@ function buildExportSheets(exportOpts){
   const defaultYear = Number((monthlyYearSel && monthlyYearSel.value) || TODAY.getFullYear());
   // exportYears：要匯出哪幾個年度（由下載視窗選擇）；沒傳就沿用畫面上選的那一年。
   // exportOpts：{ years:[…], from:"YYYY-MM-DD"|null, to:"YYYY-MM-DD"|null }。有給 from/to（自選期間）時，
-  // 月別總表是「月」為最小單位，所以起訖日落在哪個月，就把那個月整個月算進來；範圍外的月份留空、不計入全年合計。
+  // 租賃收入總覽是「月」為最小單位，所以起訖日落在哪個月，就把那個月整個月算進來；範圍外的月份留空、不計入全年合計。
   const optYears = Array.isArray(exportOpts) ? exportOpts : (exportOpts && exportOpts.years);
   const rangeFrom = (!Array.isArray(exportOpts) && exportOpts && exportOpts.from) ? parseLocalDate(exportOpts.from) : null;
   const rangeTo = (!Array.isArray(exportOpts) && exportOpts && exportOpts.to) ? parseLocalDate(exportOpts.to) : null;
@@ -2965,6 +2965,21 @@ function buildExportSheets(exportOpts){
   sheets.push({ name: `月別總表-設備(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.equip, rentValueFn) });
   sheets.push({ name: `月別總表-總覽(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(LEASE_DB, combinedValueFn) });
 
+  // 租賃單元狀態：跟畫面上同一套判斷（只列已拆到樓層／單元的棟別，逐一列出每個最底層空間目前是空置還是承租中），
+  // 匯出時一律列出全部單元（不受畫面上「只看空置」切換影響），方便在 Excel 自行篩選。
+  const unitHeader = ["園區","棟別","樓層","單元","坪數","狀態","承租客戶","租期迄","備註"];
+  const unitRows = [];
+  ZONE_AREA.forEach(z=>{
+    zoneBuildings(z).forEach(b=>{
+      if (!buildingFloors(b).length) return;
+      collectBuildingLeaves(b).forEach(leaf=>{
+        const occ = findOccupyingLease(leaf.id);
+        unitRows.push([z.zone, b.name, leaf.floorName, leaf.unitName || "（整層）", leaf.area, occ ? "承租中" : "空置", occ ? occ.client : "", occ ? occ.end : "", leaf.note || ""]);
+      });
+    });
+  });
+  sheets.push({ name: "租賃單元狀態", header: unitHeader, rows: unitRows, colFmt: { 4:"auto", 7:"date" } });
+
   return sheets;
 }
 
@@ -2982,11 +2997,19 @@ function slashDate(s){
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s ?? ""));
   return m ? `${m[1]}/${m[2]}/${m[3]}` : String(s ?? "");
 }
+// 百分比：欄位存的是小數（0.5），顯示成 50%；剛好整數百分比顯示 50%，否則視需要顯示 1～2 位小數（6.4%、2.25%）。
+function pctDecimals(v){
+  const x = Number(v) * 100;
+  if (Math.abs(x - Math.round(x)) < 1e-7) return 0;
+  if (Math.abs(x * 10 - Math.round(x * 10)) < 1e-6) return 1;
+  return 2;
+}
 function formatExportCell(v, fmt){
   if (v === null || v === undefined || v === "") return "";
   if (!fmt) return String(v);
   if (fmt === "date") return slashDate(v);
   if (typeof v !== "number") return String(v);
+  if (fmt === "pct") return (v * 100).toFixed(pctDecimals(v)) + "%";
   const f = resolveExportFmt(fmt, v);
   const dec = f === "dec2" ? 2 : 0;
   return v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
@@ -3048,7 +3071,7 @@ const EXPORT_FONT_SIZE = 12;
 const XLSX_FMT_INT = '_(* #,##0_);[Red]_(* (#,##0);_(* "-"??_);_(@_)';
 const XLSX_FMT_DEC = '_(* #,##0.00_);[Red]_(* (#,##0.00);_(* "-"??_);_(@_)';
 // 儲存格樣式編號（對應下面 styles.xml 的 cellXfs 順序）
-const XS = { text:0, header:1, int:2, dec:3, date:4, headerC:5, headerR:6, subText:7, subInt:8, totText:9, totInt:10 };
+const XS = { text:0, header:1, int:2, dec:3, date:4, headerC:5, headerR:6, subText:7, subInt:8, totText:9, totInt:10, pct0:11, pct1:12, pct2:13 };
 
 function xmlEsc(v){
   return String(v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
@@ -3070,12 +3093,12 @@ function xlsxStylesXml(){
   const f = (white) => `<font>${white ? '<color rgb="FFFFFFFF"/>' : ""}<sz val="${EXPORT_FONT_SIZE}"/><name val="${EXPORT_FONT}"/><family val="2"/><charset val="136"/></font>`;
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<numFmts count="3"><numFmt numFmtId="164" formatCode="${xmlEsc(XLSX_FMT_INT)}"/><numFmt numFmtId="165" formatCode="${xmlEsc(XLSX_FMT_DEC)}"/><numFmt numFmtId="166" formatCode="yyyy/mm/dd"/></numFmts>
+<numFmts count="4"><numFmt numFmtId="164" formatCode="${xmlEsc(XLSX_FMT_INT)}"/><numFmt numFmtId="165" formatCode="${xmlEsc(XLSX_FMT_DEC)}"/><numFmt numFmtId="166" formatCode="yyyy/mm/dd"/><numFmt numFmtId="167" formatCode="0.0%"/></numFmts>
 <fonts count="3">${f(false)}${f(true)}<font><b/><sz val="${EXPORT_FONT_SIZE}"/><name val="${EXPORT_FONT}"/><family val="2"/><charset val="136"/></font></fonts>
 <fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF002060"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE2EFDA"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFA9D08E"/><bgColor indexed="64"/></patternFill></fill></fills>
 <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="11">
+<cellXfs count="14">
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1"/>
 <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
 <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
@@ -3087,6 +3110,9 @@ function xlsxStylesXml(){
 <xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyNumberFormat="1"/>
 <xf numFmtId="0" fontId="2" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
 <xf numFmtId="164" fontId="2" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyNumberFormat="1"/>
+<xf numFmtId="9" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
+<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
+<xf numFmtId="10" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
 </cellXfs>
 <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
@@ -3103,10 +3129,12 @@ function xlsxSheetXml(sheet){
     return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
   };
   const rowsXml = [];
+  // 第 1 列放分頁名稱（當作報表標題），第 2 列才是欄位標題，資料從第 3 列開始。
+  rowsXml.push(`<row r="1">${cell(0, 0, sheet.name, XS.text)}</row>`);
   // 標題列：深藍底白字；對齊方式跟著該欄資料（日期置中、數字靠右、文字靠左）。
-  rowsXml.push(`<row r="1">${sheet.header.map((h, c) => {
+  rowsXml.push(`<row r="2">${sheet.header.map((h, c) => {
     const fmt = fm[c];
-    return cell(0, c, h, fmt === "date" ? XS.headerC : (fmt ? XS.headerR : XS.header));
+    return cell(1, c, h, fmt === "date" ? XS.headerC : (fmt ? XS.headerR : XS.header));
   }).join("")}</row>`);
   sheet.rows.forEach((row, ri)=>{
     const cells = [];
@@ -3115,7 +3143,7 @@ function xlsxSheetXml(sheet){
       const fmt = fm[c];
       if (v === null || v === undefined || v === ""){
         // 合計列整列都要上底色，空白格也要補一個有樣式的空儲存格。
-        if (kind) cells.push(`<c r="${xlsxColLetter(c)}${ri + 2}" s="${kind === "sub" ? XS.subText : XS.totText}"/>`);
+        if (kind) cells.push(`<c r="${xlsxColLetter(c)}${ri + 3}" s="${kind === "sub" ? XS.subText : XS.totText}"/>`);
         return;
       }
       let style = XS.text, val = v;
@@ -3126,15 +3154,17 @@ function xlsxSheetXml(sheet){
           val = (Date.UTC(+m[1], +m[2]-1, +m[3]) - Date.UTC(1899, 11, 30)) / 86400000;
           style = XS.date;
         }
+      } else if (fmt === "pct" && typeof v === "number"){
+        style = [XS.pct0, XS.pct1, XS.pct2][pctDecimals(v)];
       } else if (fmt && typeof v === "number"){
         style = resolveExportFmt(fmt, v) === "dec2" ? XS.dec : XS.int;
       }
       if (kind === "sub") style = (style === XS.int) ? XS.subInt : XS.subText;
       else if (kind === "total") style = (style === XS.int) ? XS.totInt : XS.totText;
       widths[c] = Math.max(widths[c] || 0, visualLen(formatExportCell(v, fmt)));
-      cells.push(cell(ri + 1, c, val, style));
+      cells.push(cell(ri + 2, c, val, style));
     });
-    rowsXml.push(`<row r="${ri + 2}">${cells.join("")}</row>`);
+    rowsXml.push(`<row r="${ri + 3}">${cells.join("")}</row>`);
   });
   const cols = widths.map((w, i) => `<col min="${i+1}" max="${i+1}" width="${Math.min(Math.max(w * 1.15 + 3, 9), 48).toFixed(1)}" customWidth="1"/>`).join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
