@@ -467,7 +467,6 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="spacer"></div>
       <div id="unitStatusCount" style="font-size:12px; color:var(--text-soft);"></div>
     </div>
-    <div class="stat-row" id="unitStatusStats" style="grid-template-columns:repeat(3,1fr);"></div>
     <div class="card">
       <div class="card-head">
         <div>
@@ -2553,11 +2552,6 @@ function renderUnitStatus(){
 
   tbody.innerHTML = rowsHtml || `<tr class="empty-row"><td colspan="7">${totalLeaves === 0 ? "目前還沒有任何棟別拆到樓層／單元，請先到「園區坪數基準」設定" : "沒有符合篩選條件的單元"}</td></tr>`;
   document.getElementById("unitStatusCount").textContent = `共 ${totalLeaves} 個單元／整層（空置 ${vacantCount} 個）`;
-  document.getElementById("unitStatusStats").innerHTML = `
-    <div class="stat-card"><div class="label">已建置單元／整層總數</div><div class="value">${totalLeaves} <small>個</small></div></div>
-    <div class="stat-card"><div class="label">空置坪數</div><div class="value">${fmt2(vacantArea)} <small>坪</small></div></div>
-    <div class="stat-card"><div class="label">承租中坪數</div><div class="value">${fmt2(leasedArea)} <small>坪</small></div></div>
-  `;
   fitUnitStatusColumns();
 }
 
