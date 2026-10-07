@@ -602,6 +602,27 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
 <div class="toast" id="toast"></div>
 
+<div class="overlay" id="exportOverlay">
+  <div class="modal" style="max-width:520px;">
+    <h3>下載報表</h3>
+    <p class="sub">資料庫、出租率總覽為目前最新資料；月別總表（租金／管理費／設備／總覽）依下方選擇的年度或日期期間匯出，多個年度會依年度排序放在同一張分頁。月別總表以「月」為單位，自選期間的起訖日落在哪個月，就會把那個月整個月算進來。</p>
+    <div class="form-field full" style="gap:10px;">
+      <label style="display:flex; align-items:center; gap:8px; font-weight:400;"><input type="radio" name="exportMode" value="single" checked> 單一年度
+        <select id="exportSingleYear" style="margin-left:auto;"></select></label>
+      <label style="display:flex; align-items:center; gap:8px; font-weight:400;"><input type="radio" name="exportMode" value="all"> 全部年度
+        <span id="exportAllHint" style="margin-left:auto; color:var(--text-soft); font-size:12px;"></span></label>
+      <label style="display:flex; align-items:center; gap:8px; font-weight:400;"><input type="radio" name="exportMode" value="range"> 自選期間
+        <span style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+          <input type="date" id="exportFromDate"> 至 <input type="date" id="exportToDate">
+        </span></label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" id="exportCancel">取消</button>
+      <button type="button" class="btn btn-primary" id="exportConfirm">下載</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="dialogOverlay">
   <div class="modal" style="max-width:420px;">
     <h3 id="dialogTitle">提示</h3>
@@ -2658,7 +2679,7 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
     const expanded = expandedSet.has(zoneName);
     html += `<tr class="zone-row" style="font-weight:700; background:var(--gray-fill);">
       <td colspan="2">
-        <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:11px; margin-right:8px;" data-toggle-zone="${zoneName}" title="展開／收合客戶明細">${expanded ? "▾" : "▸"}</button>${zoneName}<span style="font-weight:400; color:var(--text-soft); margin-left:6px;">（${z.clients.length} 筆）</span>
+        <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:11px; margin-right:8px;" data-toggle-zone="${zoneName}" title="展開／收合客戶明細">${expanded ? "▾" : "▸"}</button>${zoneName}
       </td>
       ${monthCellsHtml(z.cells)}
       <td class="num computed">${fmtInt(z.total)}</td>
@@ -2776,7 +2797,7 @@ document.getElementById("monthlyExpandAllBtn").addEventListener("click", ()=>{
 /* ---------------- 匯出 Excel（頁面內資料 → .xlsx，含三個分頁） ---------------- */
 function pad2(n){ return String(n).padStart(2,"0"); }
 
-function buildExportSheets(){
+function buildExportSheets(exportOpts){
   const dbHeader = ["園區","類型","棟別","樓層","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
     "調整方式","調整頻率(年)","調整百分比","調整金額","手動覆蓋總月租金","單位租金",
     "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註"];
@@ -2799,9 +2820,6 @@ function buildExportSheets(){
       r.remark || "",
     ];
   });
-
-  const areaHeader = ["園區","總坪數(可租)","備註"];
-  const areaRows = ZONE_AREA.map(z => [z.zone, z.area, z.note || ""]);
 
   // 出租率總覽：園區有拆棟別的話，在該園區列底下多印出各棟、以及「尚未標示棟別」的加總，
   // 呈現方式跟畫面上的「出租率總覽」分頁一致，方便直接核對。
@@ -2838,19 +2856,14 @@ function buildExportSheets(){
     }
   });
 
+  // 匯出格式統一：日期一律 YYYY/MM/DD、金額一律千分位逗號（colFmt：欄位序號 → 格式）。
+  // 「園區坪數基準」「棟別明細」不匯出（那是很少異動的基準資料，不需要每次下載）。
   const sheets = [
-    { name: "資料庫", header: dbHeader, rows: dbRows },
-    { name: "園區坪數基準", header: areaHeader, rows: areaRows },
-    { name: "出租率總覽", header: occHeader, rows: occRows },
+    { name: "資料庫", header: dbHeader, rows: dbRows,
+      colFmt: { 7:"date", 8:"date", 9:"auto", 10:"auto", 14:"auto", 15:"auto", 16:"dec2", 17:"int", 18:"auto", 19:"int" } },
+    { name: "出租率總覽", header: occHeader, rows: occRows,
+      colFmt: { 1:"auto", 2:"auto", 3:"auto", 5:"int", 6:"int" } },
   ];
-
-  // 只有真的有人拆過棟別，才多匯出這個分頁，避免大家都還沒用到這個功能時憑空多一個空白分頁。
-  const buildingHeader = ["園區","棟別","坪數","備註"];
-  const buildingRows = [];
-  ZONE_AREA.forEach(z => zoneBuildings(z).forEach(b => buildingRows.push([z.zone, b.name, computeBuildingArea(b), b.note || ""])));
-  if (buildingRows.length){
-    sheets.push({ name: "棟別明細", header: buildingHeader, rows: buildingRows });
-  }
 
   // 月別總表：採用畫面上「月別總表」頁目前選的年度，租金／管理費／設備各自獨立一個分頁，
   // 另外再多一個「總覽」分頁把三者（倉儲/停車位的租金＋管理費、再加上設備的租金）加總成
@@ -2859,8 +2872,25 @@ function buildExportSheets(){
   // 這裡不借用 computeMonthlyGroups()／monthlyMetric 這個全域狀態，改用自己的分組函式＋
   // 傳入的金額計算方式（valueFn），避免匯出時去動到使用者畫面上原本選的切換狀態。
   const monthlyYearSel = document.getElementById("monthlyYear");
-  const monthlyYear = Number((monthlyYearSel && monthlyYearSel.value) || TODAY.getFullYear());
-  const monthlyHeader = ["園區","客戶","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月","全年合計"];
+  const defaultYear = Number((monthlyYearSel && monthlyYearSel.value) || TODAY.getFullYear());
+  // exportYears：要匯出哪幾個年度（由下載視窗選擇）；沒傳就沿用畫面上選的那一年。
+  // exportOpts：{ years:[…], from:"YYYY-MM-DD"|null, to:"YYYY-MM-DD"|null }。有給 from/to（自選期間）時，
+  // 月別總表是「月」為最小單位，所以起訖日落在哪個月，就把那個月整個月算進來；範圍外的月份留空、不計入全年合計。
+  const optYears = Array.isArray(exportOpts) ? exportOpts : (exportOpts && exportOpts.years);
+  const rangeFrom = (!Array.isArray(exportOpts) && exportOpts && exportOpts.from) ? parseLocalDate(exportOpts.from) : null;
+  const rangeTo = (!Array.isArray(exportOpts) && exportOpts && exportOpts.to) ? parseLocalDate(exportOpts.to) : null;
+  const years = (optYears && optYears.length) ? [...optYears].sort((a,b)=>a-b) : [defaultYear];
+  const monthInRange = (y, m) => {
+    if (rangeFrom && y*12+m < rangeFrom.getFullYear()*12+rangeFrom.getMonth()) return false;
+    if (rangeTo && y*12+m > rangeTo.getFullYear()*12+rangeTo.getMonth()) return false;
+    return true;
+  };
+  const ymd = d => `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}`;
+  const yearLabel = (rangeFrom && rangeTo) ? `${ymd(rangeFrom)}-${ymd(rangeTo)}`
+    : (years.length === 1 ? String(years[0]) : `${years[0]}-${years[years.length-1]}`);
+  const monthlyHeader = ["年度","園區","客戶","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月","全年合計"];
+  const monthlyColFmt = {};
+  for (let c = 3; c <= 15; c++) monthlyColFmt[c] = "int";
   function computeMonthlyGroupsCustom(records, year, valueFn){
     const groups = new Map();
     records.forEach(r=>{
@@ -2874,7 +2904,7 @@ function buildExportSheets(){
       for (let m=0; m<12; m++){
         let val = 0;
         g.leases.forEach(r=>{
-          if (leaseOverlapsMonth(r, year, m)) val += valueFn(r, year, m);
+          if (monthInRange(year, m) && leaseOverlapsMonth(r, year, m)) val += valueFn(r, year, m);
         });
         cells[m] = val;
         rowTotal += val;
@@ -2896,8 +2926,9 @@ function buildExportSheets(){
     });
     return { zoneMap, zonesInOrder };
   }
-  function buildMonthlyExportRows(records, valueFn){
-    const { zoneMap, zonesInOrder } = computeMonthlyGroupsCustom(records, monthlyYear, valueFn);
+  const blankOut = (cells, year) => cells.map((v, m) => monthInRange(year, m) ? v : "");
+  function buildMonthlyExportRowsForYear(records, valueFn, year){
+    const { zoneMap, zonesInOrder } = computeMonthlyGroupsCustom(records, year, valueFn);
     const rows = [];
     const monthGrandTotals = new Array(12).fill(0);
     let grandTotal = 0;
@@ -2906,11 +2937,20 @@ function buildExportSheets(){
       z.clients.sort((a,b)=> String(a.client).localeCompare(String(b.client), "zh-Hant"));
       for (let m=0; m<12; m++) monthGrandTotals[m] += z.cells[m];
       grandTotal += z.total;
-      rows.push([zoneName, `（小計，共${z.clients.length}筆）`, ...z.cells, z.total]);
-      z.clients.forEach(cr=> rows.push([zoneName, cr.client, ...cr.cells, cr.rowTotal]));
+      // 每個園區：先列各客戶的逐月明細，最後一列「園區合計」（淺綠底）。
+      z.clients.forEach(cr=> rows.push([year, zoneName, cr.client, ...blankOut(cr.cells, year), cr.rowTotal]));
+      const subRow = [year, `${zoneName}合計`, "", ...blankOut(z.cells, year), z.total];
+      subRow.kind = "sub";
+      rows.push(subRow);
     });
-    rows.push(["合計", "", ...monthGrandTotals, grandTotal]);
+    const totalRow = [year, "全園區合計", "", ...blankOut(monthGrandTotals, year), grandTotal];
+    totalRow.kind = "total";
+    rows.push(totalRow);
     return rows;
+  }
+  // 選了多個年度時，每一年各自一段（園區小計＋客戶明細＋該年合計），依年度由小到大接在同一張分頁裡。
+  function buildMonthlyExportRows(records, valueFn){
+    return years.flatMap(y => buildMonthlyExportRowsForYear(records, valueFn, y));
   }
   const rentEquipSplit = {
     main: LEASE_DB.filter(r => r.category !== "設備"),
@@ -2920,10 +2960,10 @@ function buildExportSheets(){
   const mgmtValueFn = (r) => computeMgmtTotal(r);
   // 總覽＝倉儲／停車位的「租金＋管理費」，加上設備的「租金」（設備沒有管理費概念，固定記 0）。
   const combinedValueFn = (r, y, m) => computeTotalRent(r, new Date(y, m, 1)) + (r.category === "設備" ? 0 : computeMgmtTotal(r));
-  sheets.push({ name: `月別總表-租金(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.main, rentValueFn) });
-  sheets.push({ name: `月別總表-管理費(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.main, mgmtValueFn) });
-  sheets.push({ name: `月別總表-設備(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(rentEquipSplit.equip, rentValueFn) });
-  sheets.push({ name: `月別總表-總覽(${monthlyYear})`, header: monthlyHeader, rows: buildMonthlyExportRows(LEASE_DB, combinedValueFn) });
+  sheets.push({ name: `月別總表-租金(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.main, rentValueFn) });
+  sheets.push({ name: `月別總表-管理費(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.main, mgmtValueFn) });
+  sheets.push({ name: `月別總表-設備(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.equip, rentValueFn) });
+  sheets.push({ name: `月別總表-總覽(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(LEASE_DB, combinedValueFn) });
 
   return sheets;
 }
@@ -2933,14 +2973,33 @@ function csvEscape(v){
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
   return s;
 }
-function toCsv(header, rows){
-  const lines = [header, ...rows].map(row => row.map(csvEscape).join(","));
+// 匯出格式：日期 YYYY/MM/DD、金額千分位。fmt：date／int（整數千分位）／dec2（小數兩位千分位）／auto（整數就當 int，否則 dec2）
+function resolveExportFmt(fmt, v){
+  if (fmt === "auto") return Number.isInteger(Number(v)) ? "int" : "dec2";
+  return fmt;
+}
+function slashDate(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s ?? ""));
+  return m ? `${m[1]}/${m[2]}/${m[3]}` : String(s ?? "");
+}
+function formatExportCell(v, fmt){
+  if (v === null || v === undefined || v === "") return "";
+  if (!fmt) return String(v);
+  if (fmt === "date") return slashDate(v);
+  if (typeof v !== "number") return String(v);
+  const f = resolveExportFmt(fmt, v);
+  const dec = f === "dec2" ? 2 : 0;
+  return v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function toCsv(header, rows, colFmt){
+  const fm = colFmt || {};
+  const lines = [header, ...rows.map(row => row.map((v, c) => formatExportCell(v, fm[c])))].map(row => row.map(csvEscape).join(","));
   return "﻿" + lines.join("\r\n");
 }
 
 async function exportViaDownloads(sheets, stamp){
   for (const sheet of sheets){
-    const csv = toCsv(sheet.header, sheet.rows);
+    const csv = toCsv(sheet.header, sheet.rows, sheet.colFmt);
     const filename = `ALP租賃資訊_${sheet.name}_${stamp}.csv`;
     try{
       await DOWNLOADS.save({ filename, data: csv });
@@ -2975,30 +3034,225 @@ function ensureXlsxLoaded(){
   }
 }
 
-function exportViaXlsx(sheets, stamp){
-  if (!ensureXlsxLoaded()){
-    notify("匯出功能載入失敗，請重新整理頁面後再試一次。");
-    return;
-  }
-  const wb = XLSX.utils.book_new();
-  for (const sheet of sheets){
-    const ws = XLSX.utils.aoa_to_sheet([sheet.header, ...sheet.rows]);
-    XLSX.utils.book_append_sheet(wb, ws, sheet.name);
-  }
-  XLSX.writeFile(wb, `ALP租賃資訊_匯出_${stamp}.xlsx`);
+// 估算欄寬用：中文字算兩格寬，避免金額被擠成 ####。
+function visualLen(t){
+  return Array.from(String(t ?? "")).reduce((n, ch) => n + (ch.charCodeAt(0) > 255 ? 2 : 1), 0);
 }
 
-async function exportToExcel(){
+/* ---------------- 自己組 .xlsx（不靠 SheetJS，因為免費版 SheetJS 無法設定字型／儲存格格式） ----------------
+   報表統一格式：字型 Microsoft JhengHei UI、12 pt；數字用會計格式
+   _(* #,##0_);[Red]_(* (#,##0);_(* "-"??_);_(@_)（千分位、負數紅字括號、0 顯示「-」）；
+   需要小數的欄位（單位租金、帶小數的坪數）用同樣格式但保留兩位小數；日期 yyyy/mm/dd。 */
+const EXPORT_FONT = "Microsoft JhengHei UI";
+const EXPORT_FONT_SIZE = 12;
+const XLSX_FMT_INT = '_(* #,##0_);[Red]_(* (#,##0);_(* "-"??_);_(@_)';
+const XLSX_FMT_DEC = '_(* #,##0.00_);[Red]_(* (#,##0.00);_(* "-"??_);_(@_)';
+// 儲存格樣式編號（對應下面 styles.xml 的 cellXfs 順序）
+const XS = { text:0, header:1, int:2, dec:3, date:4, headerC:5, headerR:6, subText:7, subInt:8, totText:9, totInt:10 };
+
+function xmlEsc(v){
+  return String(v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function xlsxColLetter(i){
+  let n = i + 1, out = "";
+  while (n > 0){ const m = (n - 1) % 26; out = String.fromCharCode(65 + m) + out; n = Math.floor((n - 1) / 26); }
+  return out;
+}
+function xlsxSheetName(name, used){
+  let n = String(name).replace(/[\[\]:*?\/\\]/g, "_").slice(0, 31) || "Sheet";
+  let base = n, i = 2;
+  while (used.has(n.toLowerCase())){ const suf = `_${i++}`; n = base.slice(0, 31 - suf.length) + suf; }
+  used.add(n.toLowerCase());
+  return n;
+}
+function xlsxStylesXml(){
+  const f = (white) => `<font>${white ? '<color rgb="FFFFFFFF"/>' : ""}<sz val="${EXPORT_FONT_SIZE}"/><name val="${EXPORT_FONT}"/><family val="2"/><charset val="136"/></font>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<numFmts count="3"><numFmt numFmtId="164" formatCode="${xmlEsc(XLSX_FMT_INT)}"/><numFmt numFmtId="165" formatCode="${xmlEsc(XLSX_FMT_DEC)}"/><numFmt numFmtId="166" formatCode="yyyy/mm/dd"/></numFmts>
+<fonts count="3">${f(false)}${f(true)}<font><b/><sz val="${EXPORT_FONT_SIZE}"/><name val="${EXPORT_FONT}"/><family val="2"/><charset val="136"/></font></fonts>
+<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF002060"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE2EFDA"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFA9D08E"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="11">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
+<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>
+<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf>
+<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyNumberFormat="1"/>
+<xf numFmtId="0" fontId="2" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="164" fontId="2" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyNumberFormat="1"/>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+}
+function xlsxSheetXml(sheet){
+  const fm = sheet.colFmt || {};
+  const widths = sheet.header.map(h => visualLen(h));
+  const cell = (r, c, v, style) => {
+    const ref = xlsxColLetter(c) + (r + 1);
+    if (typeof v === "number"){
+      if (!isFinite(v)) return "";
+      return `<c r="${ref}" s="${style}"><v>${v}</v></c>`;
+    }
+    return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  };
+  const rowsXml = [];
+  // 標題列：深藍底白字；對齊方式跟著該欄資料（日期置中、數字靠右、文字靠左）。
+  rowsXml.push(`<row r="1">${sheet.header.map((h, c) => {
+    const fmt = fm[c];
+    return cell(0, c, h, fmt === "date" ? XS.headerC : (fmt ? XS.headerR : XS.header));
+  }).join("")}</row>`);
+  sheet.rows.forEach((row, ri)=>{
+    const cells = [];
+    const kind = row.kind;  // "sub"＝園區合計列（淺綠底）、"total"＝全園區合計列（深綠底粗體）
+    row.forEach((v, c)=>{
+      const fmt = fm[c];
+      if (v === null || v === undefined || v === ""){
+        // 合計列整列都要上底色，空白格也要補一個有樣式的空儲存格。
+        if (kind) cells.push(`<c r="${xlsxColLetter(c)}${ri + 2}" s="${kind === "sub" ? XS.subText : XS.totText}"/>`);
+        return;
+      }
+      let style = XS.text, val = v;
+      if (fmt === "date"){
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v));
+        if (m){
+          // 存成真正的 Excel 日期（可排序／篩選）；用 UTC 計算序號避免時區差一天。
+          val = (Date.UTC(+m[1], +m[2]-1, +m[3]) - Date.UTC(1899, 11, 30)) / 86400000;
+          style = XS.date;
+        }
+      } else if (fmt && typeof v === "number"){
+        style = resolveExportFmt(fmt, v) === "dec2" ? XS.dec : XS.int;
+      }
+      if (kind === "sub") style = (style === XS.int) ? XS.subInt : XS.subText;
+      else if (kind === "total") style = (style === XS.int) ? XS.totInt : XS.totText;
+      widths[c] = Math.max(widths[c] || 0, visualLen(formatExportCell(v, fmt)));
+      cells.push(cell(ri + 1, c, val, style));
+    });
+    rowsXml.push(`<row r="${ri + 2}">${cells.join("")}</row>`);
+  });
+  const cols = widths.map((w, i) => `<col min="${i+1}" max="${i+1}" width="${Math.min(Math.max(w * 1.15 + 3, 9), 48).toFixed(1)}" customWidth="1"/>`).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${cols}</cols><sheetData>${rowsXml.join("")}</sheetData></worksheet>`;
+}
+
+const CRC32_TABLE = (()=>{
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+  return t;
+})();
+function crc32(buf){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) c = CRC32_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// 最簡單的 zip（只打包不壓縮），xlsx 本質就是 zip，Excel 可以正常開啟。
+function buildZipStore(files){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  files.forEach(f=>{
+    const name = enc.encode(f.name), data = enc.encode(f.text);
+    const crc = crc32(data), size = data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+    lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
+  });
+  const cdSize = central.reduce((n, b) => n + b.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+
+function exportViaXlsx(sheets, stamp){
+  const used = new Set();
+  const names = sheets.map(sh => xlsxSheetName(sh.name, used));
+  const files = [
+    { name: "[Content_Types].xml", text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>` },
+    { name: "_rels/.rels", text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>` },
+    { name: "xl/workbook.xml", text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${names.map((n, i) => `<sheet name="${xmlEsc(n)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>` },
+    { name: "xl/_rels/workbook.xml.rels", text: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_, i) => `<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
+    { name: "xl/styles.xml", text: xlsxStylesXml() },
+    ...sheets.map((sh, i) => ({ name: `xl/worksheets/sheet${i+1}.xml`, text: xlsxSheetXml(sh) })),
+  ];
+  const blob = buildZipStore(files);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ALP租賃資訊_匯出_${stamp}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 5000);
+}
+
+async function exportToExcel(opts){
   const now = new Date();
   const stamp = `${now.getFullYear()}${pad2(now.getMonth()+1)}${pad2(now.getDate())}`;
-  const sheets = buildExportSheets();
+  const sheets = buildExportSheets(opts);
   if (USING_DOWNLOADS){
     await exportViaDownloads(sheets, stamp);
   } else {
     exportViaXlsx(sheets, stamp);
   }
 }
-document.getElementById("exportExcelBtn").addEventListener("click", exportToExcel);
+// 按下載鈕先跳出視窗讓使用者選範圍：單一年度／全部年度（資料涵蓋的每一年）／自選起訖日期。
+const exportOverlay = document.getElementById("exportOverlay");
+function toDateInputValue(y, m, d){ return `${y}-${pad2(m)}-${pad2(d)}`; }
+document.getElementById("exportExcelBtn").addEventListener("click", ()=>{
+  const years = monthlyYearRange();
+  const opts = years.map(y => `<option value="${y}">${y} 年</option>`).join("");
+  const cur = Number(document.getElementById("monthlyYear").value) || TODAY.getFullYear();
+  const single = document.getElementById("exportSingleYear");
+  single.innerHTML = opts;
+  single.value = String(years.includes(cur) ? cur : TODAY.getFullYear());
+  document.getElementById("exportFromDate").value = toDateInputValue(years[0], 1, 1);
+  document.getElementById("exportToDate").value = toDateInputValue(years[years.length - 1], 12, 31);
+  document.getElementById("exportAllHint").textContent = `${years[0]}–${years[years.length-1]} 年`;
+  exportOverlay.querySelector('input[name="exportMode"][value="single"]').checked = true;
+  exportOverlay.classList.add("open");
+});
+document.getElementById("exportCancel").addEventListener("click", ()=> exportOverlay.classList.remove("open"));
+document.getElementById("exportConfirm").addEventListener("click", async ()=>{
+  const mode = exportOverlay.querySelector('input[name="exportMode"]:checked').value;
+  const all = monthlyYearRange();
+  let opts;
+  if (mode === "all") opts = { years: all };
+  else if (mode === "range"){
+    const from = document.getElementById("exportFromDate").value;
+    const to = document.getElementById("exportToDate").value;
+    if (!from || !to){ await notify("請選擇起始日期與結束日期。"); return; }
+    if (from > to){ await notify("起始日期不能晚於結束日期，請重新選擇。"); return; }
+    const fy = Number(from.slice(0,4)), ty = Number(to.slice(0,4));
+    const ys = []; for (let y = fy; y <= ty; y++) ys.push(y);
+    opts = { years: ys, from, to };
+  } else opts = { years: [Number(document.getElementById("exportSingleYear").value)] };
+  exportOverlay.classList.remove("open");
+  await exportToExcel(opts);
+});
+// 動了下拉選單／日期欄位就自動切到對應的選項，免得還要再點一次圓鈕。
+document.getElementById("exportSingleYear").addEventListener("change", ()=>{ exportOverlay.querySelector('input[value="single"]').checked = true; });
+["exportFromDate","exportToDate"].forEach(id=> document.getElementById(id).addEventListener("change", ()=>{ exportOverlay.querySelector('input[value="range"]').checked = true; }));
 
 /* ---------------- SharePoint 連結 icon ---------------- */
 const spLink = document.getElementById("sharepointLink");
