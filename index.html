@@ -726,6 +726,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <input type="text" id="dialogInput" class="dialog-input">
         <button type="button" class="dialog-toggle-pw" id="dialogTogglePw" style="display:none;" title="顯示/隱藏密碼"></button>
       </div>
+      <p id="dialogError" role="alert" style="display:none; color:#d03b3b; font-size:13px; font-weight:600; margin:8px 0 0;"></p>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" id="dialogCancel">取消</button>
@@ -1260,6 +1261,10 @@ function migrateZoneFloorsIfNeeded(zone){
 }
 function computeUnitRent(rec, asOf){
   const start = parseLocalDate(rec.start);
+  // 租約到期之後不再繼續調整：查詢日期超過租約到期日時，一律用「到期日當天」的單價來算，
+  // 已到期租約顯示的是最後生效的那個單價，不會因為今天又過了一個週年就繼續往上加。
+  const endDate = parseLocalDate(rec.end);
+  if (endDate && asOf > endDate) asOf = endDate;
   const freq = (!rec.freq || rec.freq <= 0) ? 1 : Number(rec.freq);
   // 租金調整要以「租約起始日的週年」為準（例如 2023-06-01 起租，要到每年 6/1 才調整一次），
   // 不能只用「年曆年份相減」（asOf 的西元年 - 起租的西元年）：那樣算法會讓非 1/1 起租的合約
@@ -1322,7 +1327,8 @@ function fmtPct1(n){ return (Number(n)*100).toFixed(1) + "%"; }
 /* ---------------- 自訂對話框（取代 alert/confirm/prompt，確保在各種內嵌預覽環境都能正常顯示） ---------------- */
 const ICON_EYE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const ICON_EYE_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.57 18.57 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.57 18.57 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-function showDialog({title="提示", message="", withInput=false, defaultValue="", alertOnly=false}){
+// validate（選填）：回傳錯誤文字＝對話框不關閉、在輸入框下方用紅字顯示錯誤、清空輸入並重新聚焦；回傳空字串＝通過。
+function showDialog({title="提示", message="", withInput=false, defaultValue="", alertOnly=false, validate=null}){
   return new Promise(resolve=>{
     const overlay = document.getElementById("dialogOverlay");
     const okBtn = document.getElementById("dialogOk");
@@ -1332,6 +1338,8 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
 
     const msgEl = document.getElementById("dialogMessage");
     const toggleBtn = document.getElementById("dialogTogglePw");
+    const errEl = document.getElementById("dialogError");
+    errEl.style.display = "none"; errEl.textContent = "";
 
     document.getElementById("dialogTitle").textContent = title;
     msgEl.textContent = message;
@@ -1359,6 +1367,7 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
     }
     function cleanup(result){
       overlay.classList.remove("open");
+      errEl.style.display = "none"; errEl.textContent = "";
       okBtn.removeEventListener("click", onOk);
       cancelBtn.removeEventListener("click", onCancel);
       overlay.removeEventListener("click", onOverlay);
@@ -1369,7 +1378,17 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
       input.type = "text";
       resolve(result);
     }
-    function onOk(){ cleanup(withInput ? (input.value.trim() || null) : true); }
+    function onOk(){
+      if (withInput && validate){
+        const msg = validate(input.value.trim());
+        if (msg){
+          errEl.textContent = msg; errEl.style.display = "block";
+          input.value = ""; input.focus();
+          return;
+        }
+      }
+      cleanup(withInput ? (input.value.trim() || null) : true);
+    }
     function onCancel(){ cleanup(withInput ? null : false); }
     function onOverlay(e){ if (e.target === overlay) onCancel(); }
     function onKeydown(e){ if (e.key === "Enter"){ e.preventDefault(); onOk(); } }
@@ -1383,10 +1402,10 @@ function showDialog({title="提示", message="", withInput=false, defaultValue="
 function notify(message, title="提示"){ return showDialog({title, message, alertOnly:true}); }
 function askConfirm(message, title="請確認"){ return showDialog({title, message}); }
 function askPrompt(message, defaultValue="", title="請輸入"){ return showDialog({title, message, withInput:true, defaultValue}); }
-function askPassword(message, title="請輸入密碼"){
+function askPassword(message, title="請輸入密碼", validate=null){
   const input = document.getElementById("dialogInput");
   input.type = "password";
-  return showDialog({title, message, withInput:true}).then(val=>{
+  return showDialog({title, message, withInput:true, validate}).then(val=>{
     return val;
   });
 }
@@ -1403,12 +1422,10 @@ function updateZoneAdminToggle(){
 }
 async function ensureZoneAdmin(){
   if (zoneAdminUnlocked) return true;
-  const pw = await askPassword("", "解鎖編輯 - 請輸入管理員密碼");
+  // 密碼錯誤（或沒輸入就按 Enter）時，對話框不會關閉，直接在輸入框下方顯示紅字提示，可以馬上重打。
+  const pw = await askPassword("", "解鎖編輯 - 請輸入管理員密碼", v => !v ? "請輸入管理員密碼" : (v !== ADMIN_PASSWORD ? "密碼錯誤，請再試一次" : ""));
   if (pw === null) return false;
-  if (pw !== ADMIN_PASSWORD){
-    await notify("管理員密碼錯誤，請再試一次。");
-    return false;
-  }
+  if (pw !== ADMIN_PASSWORD) return false;
   zoneAdminUnlocked = true;
   updateZoneAdminToggle();
   renderArea();
