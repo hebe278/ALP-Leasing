@@ -197,6 +197,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   table.resizable input.unit-note:hover{border-color:var(--border); background:#fff;}
   table.resizable input.unit-note:focus{background:#fff; border-color:var(--series-1); outline:none;}
   table.resizable input.unit-note::placeholder{color:#b8b8bd;}
+  #wrap_unitpicker .btn-link{background:none; border:none; color:var(--series-1); font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit;}
   tr.subrow td{background:#fbfbfc; color:var(--text-soft); font-size:12.2px;}
   tr.subrow-warn td{background:#fff8ea; color:var(--status-warning);}
 
@@ -600,7 +601,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <input type="text" id="f_unit" placeholder="例如 B3-2F" required>
         </div>
         <div class="form-field full hidden" id="wrap_unitpicker">
-          <label>對應單元（可複選） <span class="req">*</span></label>
+          <label style="display:flex; align-items:center; gap:10px;">對應單元（可複選） <span class="req">*</span>
+            <span style="margin-left:auto; display:inline-flex; gap:12px; font-weight:400;">
+              <button type="button" class="btn-link" id="unitPickerAll">勾選整棟</button>
+              <button type="button" class="btn-link" id="unitPickerNone">全部取消</button>
+            </span>
+          </label>
           <div id="unitPickerList" style="display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px 10px;"></div>
           <div class="hint">請直接勾選這張租約實際承租的範圍（可以勾多個樓層／單元），系統會自動加總坪數、帶出對應的「樓層」欄位，並在「租賃單元狀態」頁面標示這些單元為承租中。</div>
           <div class="hint" id="pickerFloorHint" style="font-weight:600;"></div>
@@ -1186,15 +1192,34 @@ function computeZoneAreaFromBuildings(buildings){
 // 不用管中間到底拆了幾層。
 function collectBuildingLeaves(building){
   const leaves = [];
+  // 這一棟只有一層、而且沒有再拆單元＝整棟就是一個空間，顯示成「（整棟）」，比「（整層）」貼切。
+  const singleFloor = buildingFloors(building).length === 1;
   buildingFloors(building).forEach(floor=>{
     const units = floorUnits(floor);
     if (units.length){
-      units.forEach(u=> leaves.push({ id:u.id, label:`${floor.name}－${u.name}`, floorName:floor.name, unitName:u.name, area:Number(u.area)||0, note:u.note||"" }));
+      units.forEach(u=> leaves.push({ id:u.id, label:`${floor.name}－${u.name}`, buildingName:building.name||"", floorName:floor.name, unitName:u.name, area:Number(u.area)||0, note:u.note||"" }));
     } else {
-      leaves.push({ id:floor.id, label:`${floor.name}（整層）`, floorName:floor.name, unitName:"", area:Number(floor.area)||0, note:floor.note||"" });
+      const whole = singleFloor;
+      leaves.push({ id:floor.id, label:`${floor.name}（${whole ? "整棟" : "整層"}）`, buildingName:building.name||"", floorName:floor.name, unitName:"", whole, area:Number(floor.area)||0, note:floor.note||"" });
     }
   });
   return leaves;
+}
+// 單元欄位要顯示的文字：有單元就用單元名稱；沒有拆單元的話，單層整棟顯示「（整棟）」，多層的整層顯示「（整層）」。
+// 整棟（單層、沒拆單元）的葉節點：樓層欄顯示「棟名(全棟)」，單元欄顯示實際空間名稱（例如 K1-1）。
+function leafFloorText(leaf){ return (leaf.whole && leaf.buildingName) ? `${leaf.buildingName}(全棟)` : leaf.floorName; }
+function leafUnitText(leaf){ return leaf.unitName || (leaf.whole ? leaf.floorName : "（整層）"); }
+// 租約表單：依勾選結果算出「樓層／單元」兩欄要寫入的文字。
+// 整棟都勾 → 樓層＝「棟名(全棟)」、單元＝實際空間名稱（有單元用單元名，沒拆單元用樓層名）；
+// 只勾一部分 → 樓層＝對應樓層、單元＝逐一列出的單元名稱（沒拆單元的整層用「（整層）」）。
+function pickerTexts(chosen, allLeaves, bName){
+  const wholeBuilding = chosen.length > 0 && chosen.length === allLeaves.length && !!bName;
+  if (wholeBuilding){
+    const multiFloor = new Set(chosen.map(l=> l.floorName)).size > 1;
+    const spaceName = l => l.unitName ? (multiFloor ? l.label : l.unitName) : l.floorName;
+    return { whole:true, floor:`${bName}(全棟)`, unit: chosen.map(spaceName).join("+") };
+  }
+  return { whole:false, floor:[...new Set(chosen.map(l=> l.floorName))].join("+"), unit: chosen.map(l=> leafUnitText(l)).join("+") };
 }
 // 樓層已經改成「必填結構」：每一棟底下一定至少要有一層樓層資料，不再是可選的細分。
 // 既有（或剛新增、還沒手動拆過樓層）的棟別，自動補一個預設樓層承接原本的棟別坪數，
@@ -2084,14 +2109,25 @@ function checkedPickerLeaves(){
 // 這樣「棟別／樓層／租賃單元」在租約列表才會是三個各自獨立的欄位，契約名稱也不會混到樓層字樣。
 function syncUnitFieldFromPicker(){
   const chosen = checkedPickerLeaves();
-  document.getElementById("f_unit").value = chosen.map(l=> l.unitName || "（整層）").join("+");
+  // 整棟都勾了（這一棟所有的樓層／單元全部選取）→ 單元寫成「棟名(全棟)」，契約名稱、報表上才看得出是哪一棟；
+  // 只勾其中一部分才逐一列出單元名稱（沒拆單元的整層用「（整層）」表示）。
+  const bName = document.getElementById("f_building").value;
+  const texts = pickerTexts(chosen, CURRENT_PICKER_LEAVES, bName);
+  document.getElementById("f_unit").value = texts.unit;
   const floorHint = document.getElementById("pickerFloorHint");
   if (floorHint){
-    const floorNames = [...new Set(chosen.map(l=> l.floorName))];
-    floorHint.textContent = floorNames.length ? `對應樓層：${floorNames.join("+")}` : "";
+    floorHint.textContent = texts.floor ? `對應樓層：${texts.floor}` : "";
   }
   if (chosen.length) document.getElementById("f_area").value = chosen.reduce((s,l)=> s + l.area, 0);
 }
+document.getElementById("unitPickerAll").addEventListener("click", ()=>{
+  document.querySelectorAll("#unitPickerList [data-unitpick]").forEach(cb => { cb.checked = true; });
+  syncUnitFieldFromPicker();
+});
+document.getElementById("unitPickerNone").addEventListener("click", ()=>{
+  document.querySelectorAll("#unitPickerList [data-unitpick]").forEach(cb => { cb.checked = false; });
+  syncUnitFieldFromPicker();
+});
 function updateUnitPicker(keepIds, legacyUnitText){
   const leaves = (fCategory.value === "倉儲") ? currentBuildingLeaves() : [];
   CURRENT_PICKER_LEAVES = leaves;
@@ -2250,7 +2286,7 @@ document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
     category: fCategory.value,
     building: buildingVisible ? document.getElementById("f_building").value : "",
     // 樓層是獨立欄位（只記錄這張租約橫跨哪些樓層，給之後算「每層出租率」用），不會出現在單元或契約名稱裡。
-    floor: unitPickerVisible ? [...new Set(pickedLeaves.map(l=> l.floorName))].join("+") : "",
+    floor: unitPickerVisible ? pickerTexts(pickedLeaves, CURRENT_PICKER_LEAVES, document.getElementById("f_building").value).floor : "",
     unit: document.getElementById("f_unit").value.trim(),
     unitIds: unitPickerVisible ? pickedLeaves.map(l=>l.id) : [],
     client: document.getElementById("f_client").value.trim(),
@@ -2973,8 +3009,8 @@ function renderUnitStatus(){
         <tr>
           <td>${z.zone}</td>
           <td>${b.name}</td>
-          <td>${leaf.floorName}</td>
-          <td>${leaf.unitName || "（整層）"}</td>
+          <td>${leafFloorText(leaf)}</td>
+          <td>${leafUnitText(leaf)}</td>
           <td class="num">${fmt2(leaf.area)}</td>
           <td>${statusCell}</td>
           <td><input type="text" class="unit-note" maxlength="200" placeholder="輸入備註" data-zone="${escHtml(z.zone)}" data-leaf="${escHtml(leaf.id)}" value="${escHtml(leaf.note || "")}"></td>
@@ -3796,7 +3832,7 @@ function buildUnitStatusSheet(){
       collectBuildingLeaves(b).forEach(leaf=>{
         const occ = findOccupyingLease(leaf.id);
         if (unitStatusFilter === "vacant" && occ) return;
-        rows.push([z.zone, b.name, leaf.floorName, leaf.unitName || "（整層）", leaf.area, occ ? "承租中" : "空置", occ ? occ.client : "", occ ? occ.end : "", leaf.note || ""]);
+        rows.push([z.zone, b.name, leafFloorText(leaf), leafUnitText(leaf), leaf.area, occ ? "承租中" : "空置", occ ? occ.client : "", occ ? occ.end : "", leaf.note || ""]);
       });
     });
   });
