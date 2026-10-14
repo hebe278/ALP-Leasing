@@ -122,6 +122,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     border:1px solid var(--border); border-radius:7px; padding:7px 10px;
     font-size:13px; font-family:inherit; background:#fff; color:var(--text);
   }
+  .multi-filter{position:relative;}
+  .multi-btn{border:1px solid var(--border); border-radius:7px; padding:7px 10px; font-size:13px; font-family:inherit; background:#fff; color:var(--text); cursor:pointer; min-width:112px; text-align:left; display:inline-flex; align-items:center; justify-content:space-between; gap:10px;}
+  .multi-btn.on{border-color:var(--series-1); font-weight:700;}
+  .multi-menu{display:none; position:absolute; top:calc(100% + 4px); left:0; z-index:30; background:#fff; border:1px solid var(--border); border-radius:8px; padding:6px; min-width:150px; box-shadow:0 6px 18px rgba(0,0,0,.12);}
+  .multi-menu.open{display:block;}
+  .multi-menu label{display:flex; align-items:center; gap:8px; padding:6px 8px; font-size:13px; border-radius:5px; cursor:pointer; white-space:nowrap;}
+  .multi-menu label:hover{background:#f2f4f7;}
+  .multi-menu .multi-clear{display:block; width:100%; text-align:left; background:none; border:none; border-top:1px solid var(--border); margin-top:4px; padding:7px 8px 3px; font-size:12px; color:var(--text-soft); cursor:pointer; font-family:inherit;}
   select:focus, input:focus, textarea:focus{outline:2px solid #2a78d633; border-color:var(--series-1);}
   .btn{
     border:none; border-radius:7px; padding:9px 16px; font-size:13px; font-weight:700;
@@ -397,7 +405,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <section class="panel active" id="panel-db">
     <div class="toolbar">
       <select id="dbZoneFilter"></select>
-      <select id="dbCategoryFilter"><option value="">全部類型</option><option value="倉儲">倉儲</option><option value="設備">設備</option><option value="停車位">停車位</option></select>
+      <div class="multi-filter" id="dbCategoryFilter">
+        <button type="button" class="multi-btn" id="dbCategoryBtn" title="可複選：勾選要看的類型，都不勾＝全部">全部類型 <span>▾</span></button>
+        <div class="multi-menu" id="dbCategoryMenu">
+          <label><input type="checkbox" value="倉儲"> 倉儲</label>
+          <label><input type="checkbox" value="設備"> 設備</label>
+          <label><input type="checkbox" value="停車位"> 停車位</label>
+          <button type="button" class="multi-clear" id="dbCategoryClear">清除（顯示全部）</button>
+        </div>
+      </div>
       <select id="dbStageFilter"><option value="">全部案件</option><option value="預計進駐">只看預計進駐</option><option value="已簽約">只看已簽約</option></select>
       <input type="text" id="dbSearch" placeholder="搜尋客戶、棟別、樓層、單元、契約名稱…" style="width:220px;">
       <div class="spacer"></div>
@@ -1947,15 +1963,31 @@ function refreshZoneDropdowns(){
 }
 dbZoneFilter.addEventListener("change", renderDb);
 const dbStageFilter = document.getElementById("dbStageFilter");
-const dbCategoryFilter = document.getElementById("dbCategoryFilter");
+// 類型篩選：可複選（例如同時看倉儲和設備），都不勾＝全部類型。
+const dbCategoryMenu = document.getElementById("dbCategoryMenu");
+const dbCategoryBtn = document.getElementById("dbCategoryBtn");
+function dbCategorySelected(){ return [...dbCategoryMenu.querySelectorAll("input:checked")].map(i => i.value); }
+function setDbCategories(list){
+  dbCategoryMenu.querySelectorAll("input").forEach(i => { i.checked = list.includes(i.value); });
+  updateDbCategoryBtn();
+}
+function updateDbCategoryBtn(){
+  const sel = dbCategorySelected();
+  dbCategoryBtn.firstChild.textContent = (sel.length ? sel.join("、") : "全部類型") + " ";
+  dbCategoryBtn.classList.toggle("on", sel.length > 0);
+}
+dbCategoryBtn.addEventListener("click", (e)=>{ e.stopPropagation(); dbCategoryMenu.classList.toggle("open"); });
+dbCategoryMenu.addEventListener("click", (e)=> e.stopPropagation());
+dbCategoryMenu.addEventListener("change", ()=>{ updateDbCategoryBtn(); renderDb(); });
+document.getElementById("dbCategoryClear").addEventListener("click", ()=>{ setDbCategories([]); renderDb(); });
+document.addEventListener("click", ()=> dbCategoryMenu.classList.remove("open"));
 dbStageFilter.addEventListener("change", renderDb);
-dbCategoryFilter.addEventListener("change", renderDb);
 // 篩選：案件狀態＋類型（舊資料沒有類型或叫「廠房」的一律當倉儲）
 function dbStageMatch(r){
   const v = dbStageFilter.value;
   if (v && (v === "預計進駐" ? r.stage !== "預計進駐" : r.stage === "預計進駐")) return false;
-  const c = dbCategoryFilter.value;
-  return !c || normalizeCategory(r.category) === c;
+  const sel = dbCategorySelected();
+  return !sel.length || sel.includes(normalizeCategory(r.category));
 }
 document.getElementById("dbSearch").addEventListener("input", renderDb);
 
@@ -3273,7 +3305,7 @@ function pendingText(p){ return `${monthText(p.start)} ${p.client}${p.kind === "
 document.getElementById("addBookingBtn").addEventListener("click", ()=> openLeaseModal(null, null, { stage:"預計進駐" }));
 document.getElementById("vacGoDbBtn").addEventListener("click", ()=>{
   dbStageFilter.value = "預計進駐";
-  dbCategoryFilter.value = "";
+  setDbCategories([]);
   dbZoneFilter.value = "";
   document.getElementById("dbSearch").value = "";
   switchToTab("db");
