@@ -1369,7 +1369,14 @@ function leafUnitText(leaf){ return leaf.unitName || (leaf.whole ? leaf.floorNam
 function pickerTexts(chosen, allLeaves, bName){
   const wholeBuilding = chosen.length > 0 && chosen.length === allLeaves.length && !!bName;
   if (wholeBuilding){
-    const multiFloor = new Set(chosen.map(l=> l.floorName)).size > 1;
+    const floorNames = new Set(chosen.map(l=> l.floorName));
+    const multiFloor = floorNames.size > 1;
+    // 整棟只有一個樓層、而且樓層名稱是自己取的（不是系統預設的「1樓」），樓層欄直接顯示那個名稱，
+    // 例如把唯一的樓層取名「1+2+3+4樓」，租約的樓層欄就會顯示「1+2+3+4樓」，不必知道每層各自的坪數。
+    if (!multiFloor){
+      const only = [...floorNames][0];
+      if (only && !/^1(樓|F)$/i.test(String(only).trim())) return { whole:true, floor:only, unit: chosen.map(l => l.unitName ? l.unitName : l.floorName).join("+") };
+    }
     const spaceName = l => l.unitName ? (multiFloor ? l.label : l.unitName) : l.floorName;
     return { whole:true, floor:`${bName}(全棟)`, unit: chosen.map(spaceName).join("+") };
   }
@@ -1387,6 +1394,30 @@ function migrateZoneFloorsIfNeeded(zone){
     return { ...b, floors: [{ id: genNodeId(), name:"1樓", area:Number(b.area)||0, note:"", units:[] }] };
   });
   return changed ? buildings : null;
+}
+// 租約上的「棟別／樓層／單元」文字原本是儲存當下從勾選結果抄進去的，之後在「園區坪數基準」改名（棟別、樓層、單元），
+// 舊租約的文字就會跟不上。這裡每次畫面更新前，依租約勾選的單元（unitIds）重新算一次這三個欄位，
+// 改名之後所有租約自動跟著變，不用一筆一筆重新儲存。只處理「勾選的單元都還存在、而且都在同一棟」的租約，
+// 其他（沒勾單元的舊資料、單元已被刪除）維持原本的文字不動。
+function syncLeaseLabels(){
+  if (!LEASE_DB.length || !ZONE_AREA.length) return;
+  const byLeaf = new Map();
+  ZONE_AREA.forEach(z => zoneBuildings(z).forEach(b => {
+    if (!buildingFloors(b).length) return;
+    const leaves = collectBuildingLeaves(b);
+    leaves.forEach(l => byLeaf.set(l.id, { zone:z.zone, b, leaves }));
+  }));
+  LEASE_DB.forEach(r => {
+    const ids = Array.isArray(r.unitIds) ? r.unitIds : [];
+    if (!ids.length) return;
+    const first = byLeaf.get(ids[0]);
+    if (!first || first.zone !== r.zone) return;
+    if (!ids.every(id => { const h = byLeaf.get(id); return h && h.b === first.b; })) return;
+    const chosen = first.leaves.filter(l => ids.includes(l.id));
+    if (chosen.length !== ids.length) return;
+    const t = pickerTexts(chosen, first.leaves, first.b.name);
+    r.building = first.b.name; r.floor = t.floor; r.unit = t.unit;
+  });
 }
 function computeUnitRent(rec, asOf){
   const start = parseLocalDate(rec.start);
@@ -2042,6 +2073,7 @@ function buildContractNameMap(records){
 }
 
 function renderDb(){
+  syncLeaseLabels();
   const zoneVal = dbZoneFilter.value;
   const q = document.getElementById("dbSearch").value.trim().toLowerCase();
   const tbody = document.getElementById("dbTbody");
@@ -3303,6 +3335,7 @@ function vacChipsHtml(chips){
   return `<div class="vac-chips">${chips.map(c => `<span class="vac-chip ${c.kind}"><i class="vac-dot"></i>${escHtml(c.text)}</span>`).join("")}</div>`;
 }
 function vacCollect(){
+  syncLeaseLabels();
   const T = vacAsOf();
   const leafArea = allLeafAreaMap();
   const showFull = document.getElementById("vacShowFull").checked;
@@ -3509,6 +3542,7 @@ function occRowHtml({label, total, leased, vacant, rate, count, rent, isZone, wa
 }
 
 function renderOcc(){
+  syncLeaseLabels();
   let rowsHtml = "";
   let totalArea = 0, totalLeased = 0, totalRent = 0, totalCount = 0;
 
@@ -3584,6 +3618,7 @@ function findOccupyingLease(leafId){
 }
 let unitStatusFilter = "all"; // "all" | "vacant"
 function renderUnitStatus(){
+  syncLeaseLabels();
   const zoneVal = document.getElementById("unitStatusZoneFilter").value;
   const tbody = document.getElementById("unitStatusTbody");
   let rowsHtml = "";
@@ -3960,6 +3995,7 @@ function currentMonthlyExpandedSet(){
 }
 
 function renderMonthly(){
+  syncLeaseLabels();
   const yearSel = document.getElementById("monthlyYear");
   // 每次都重新計算年度選項（而不是只在下拉選單還沒選過值時才算一次）：
   // 租約資料是從共用資料庫非同步載入的，第一次畫面出現時 LEASE_DB 可能還是空的，
@@ -4025,6 +4061,7 @@ document.getElementById("monthlyExpandAllBtn").addEventListener("click", ()=>{
 function pad2(n){ return String(n).padStart(2,"0"); }
 
 function buildExportSheets(exportOpts){
+  syncLeaseLabels();
   const dbHeader = ["園區","類型","棟別","樓層","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
     "調整方式","調整頻率(年)","調整百分比","調整金額","手動覆蓋總月租金","單位租金",
     "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註"];
