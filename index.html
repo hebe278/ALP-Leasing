@@ -397,6 +397,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <section class="panel active" id="panel-db">
     <div class="toolbar">
       <select id="dbZoneFilter"></select>
+      <select id="dbCategoryFilter"><option value="">全部類型</option><option value="倉儲">倉儲</option><option value="設備">設備</option><option value="停車位">停車位</option></select>
       <select id="dbStageFilter"><option value="">全部案件</option><option value="預計進駐">只看預計進駐</option><option value="已簽約">只看已簽約</option></select>
       <input type="text" id="dbSearch" placeholder="搜尋客戶、棟別、樓層、單元、契約名稱…" style="width:220px;">
       <div class="spacer"></div>
@@ -423,7 +424,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             <tr>
               <th style="width:30px;"><input type="checkbox" id="dbSelectAll" title="全選／取消全選"></th>
               <th>園區</th>
-              <th>類型</th>
+              <th style="text-align:center;">類型</th>
               <th>棟別</th>
               <th>樓層</th>
               <th>單元</th>
@@ -1915,6 +1916,7 @@ function switchToTab(tabName){
   const matchingBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
   if (matchingBtn) matchingBtn.classList.add("active");
   document.getElementById("panel-"+tabName).classList.add("active");
+  if (tabName === "db") renderDb();
   if (tabName === "occ") renderOcc();
   if (tabName === "vacancy") renderVacancy();
   if (tabName === "monthly") renderMonthly();
@@ -1945,10 +1947,15 @@ function refreshZoneDropdowns(){
 }
 dbZoneFilter.addEventListener("change", renderDb);
 const dbStageFilter = document.getElementById("dbStageFilter");
+const dbCategoryFilter = document.getElementById("dbCategoryFilter");
 dbStageFilter.addEventListener("change", renderDb);
+dbCategoryFilter.addEventListener("change", renderDb);
+// 篩選：案件狀態＋類型（舊資料沒有類型或叫「廠房」的一律當倉儲）
 function dbStageMatch(r){
   const v = dbStageFilter.value;
-  return !v || (v === "預計進駐" ? r.stage === "預計進駐" : r.stage !== "預計進駐");
+  if (v && (v === "預計進駐" ? r.stage !== "預計進駐" : r.stage === "預計進駐")) return false;
+  const c = dbCategoryFilter.value;
+  return !c || normalizeCategory(r.category) === c;
 }
 document.getElementById("dbSearch").addEventListener("input", renderDb);
 
@@ -2118,12 +2125,12 @@ function renderDb(){
       ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數">停車位</span>`
       : isEquip
         ? `<span class="pill pill-vacant" title="單純記帳用，不計入出租率坪數；月租金另外列在「租賃收入總覽」的「設備」報表">設備</span>`
-        : "倉儲";
+        : `<span class="pill pill-vacant" title="倉儲：計入出租率坪數與租金收入">倉儲</span>`;
     const checked = dbSelectedIds.has(String(r.id)) ? "checked" : "";
     return `<tr data-id="${r.id}"${tent ? ' class="tent-row"' : ""} title="雙擊可編輯這筆${tent ? "預計進駐" : "租約"}">
       <td><input type="checkbox" data-rowcheck="${r.id}" ${checked}></td>
       <td>${r.zone}</td>
-      <td>${categoryCell}</td>
+      <td style="text-align:center;">${categoryCell}</td>
       <td>${r.building||""}</td>
       <td>${r.floor||""}</td>
       <td>${r.unit}</td>
@@ -2709,6 +2716,7 @@ async function persistZoneBuildings(idx, buildings, opts){
     z.area = newArea;
     renderArea();
     renderOcc();
+    renderDb();
     renderMonthly();
     try{ await DB.collection("zones").doc(z._id).update({ buildings, area: newArea }); await logZoneChange(); }
     catch(err){ await notify("更新棟別失敗，請稍後再試一次。"); console.warn(err); }
@@ -2718,6 +2726,7 @@ async function persistZoneBuildings(idx, buildings, opts){
     persistState();
     renderArea();
     renderOcc();
+    renderDb();
     renderMonthly();
     await logZoneChange();
   }
@@ -3264,6 +3273,7 @@ function pendingText(p){ return `${monthText(p.start)} ${p.client}${p.kind === "
 document.getElementById("addBookingBtn").addEventListener("click", ()=> openLeaseModal(null, null, { stage:"預計進駐" }));
 document.getElementById("vacGoDbBtn").addEventListener("click", ()=>{
   dbStageFilter.value = "預計進駐";
+  dbCategoryFilter.value = "";
   dbZoneFilter.value = "";
   document.getElementById("dbSearch").value = "";
   switchToTab("db");
