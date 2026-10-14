@@ -462,7 +462,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>園區坪數基準</h2>
-          <p>此表為各園區的可租總坪數基準。「登記坪數」是每一棟登記的可租坪數，鎖定後作為「出租率總覽」計算出租率的分母（需管理員密碼才能修改）；「明細坪數」則是底下樓層／單元實際加總的結果，兩者不一致時會用紅字顯示「尚差／超出」幾坪，提醒明細有漏填或填錯（只警示、不會擋住儲存）。還沒填登記坪數的棟別，暫時以明細加總當分母。棟別可以選擇性地往下展開成「棟別」明細；但只要有棟別，底下就一定要有「樓層」（每一棟至少會自動保留一層，不能清空），樓層底下要不要再細分成「單元」則仍然是選填，不拆的話整層就是最底層的可租空間。坪數、名稱欄位預設鎖定，需先點右上角「解鎖編輯」並輸入管理員密碼才能修改（跟一開始的進站密碼是不同的兩組）；備註欄位則不受限制，可直接填寫。</p>
+          <p><b>登記坪數</b>是每棟登記的可租坪數，作為出租率的分母；<b>明細坪數</b>是底下樓層／單元實際加總。兩者不一致時，會在明細坪數下方標示「尚差／多出 X 坪」（以登記為準，提醒檢查明細有沒有漏填或填錯；只提醒、不擋儲存）。尚未填登記坪數的棟別，暫以明細加總當分母。坪數與名稱需點右上角「解鎖編輯」並輸入管理員密碼才能修改，備註可直接填寫。</p>
         </div>
       </div>
       <div class="table-scroll">
@@ -2747,14 +2747,17 @@ function renderArea(){
     const zoneUnset = buildings.filter(b=> !buildingRegisteredArea(b)).length;
     // 園區層級不顯示「差額」：各棟一個多、一個少會互相抵銷，算出來的淨差額不代表任何一棟真正的錯誤，
     // 只提示「有幾棟明細跟登記不符」，實際差多少坪看各棟那一列。
-    const zoneMismatch = buildings.filter(b=> { const g = buildingGap(b); return g !== null && Math.abs(g) >= 0.005; }).length;
+    // 差異坪數：尚差、多出各自加總，不互相抵銷（例如「尚差 120 坪、多出 30 坪」），沒有差異就不顯示任何字。
+    let zoneShort = 0, zoneOver = 0;
+    buildings.forEach(b=>{ const g = buildingGap(b); if (g === null || Math.abs(g) < 0.005) return; if (g < 0) zoneShort += -g; else zoneOver += g; });
+    const zoneGapTxt = [zoneShort > 0.005 ? `尚差 ${fmt2(zoneShort)} 坪` : "", zoneOver > 0.005 ? `多出 ${fmt2(zoneOver)} 坪` : ""].filter(Boolean).join("、");
     const breakdownCell = hasBuildings
-      ? `<span title="由下方 ${buildings.length} 棟的樓層／單元坪數加總計算">${fmt2(zoneBreakdown)}</span> <small style="color:var(--text-soft);">(${buildings.length}棟明細加總)</small>`
+      ? `<span title="由下方 ${buildings.length} 棟的樓層／單元坪數加總計算">${fmt2(zoneBreakdown)}</span>`
+        + (zoneGapTxt ? `<div class="gap-note gap-bad" title="登記坪數是出租率的分母、以登記為準；明細與登記不一致，請檢查樓層／單元有沒有漏填或填錯">${zoneGapTxt}</div>` : "")
       : `<span style="color:var(--text-soft);">—</span>`;
     const totalCell = hasBuildings
-      ? `<span title="由各棟登記坪數加總計算，如需調整請直接修改各棟的登記坪數">${fmt2(z.area)}</span> <small style="color:var(--text-soft);">(${zoneUnset === buildings.length ? "尚未登記，暫以明細加總" : (zoneUnset ? `${buildings.length - zoneUnset}棟登記＋${zoneUnset}棟暫以明細` : `${buildings.length}棟登記加總`)})</small>`
-        + (zoneMismatch ? `<div class="gap-note gap-bad">${zoneMismatch} 棟明細與登記不符</div>` : "")
-        + (zoneUnset ? `<div class="gap-note gap-warn">${zoneUnset} 棟尚未設定登記坪數</div>` : "")
+      ? `<span title="由各棟登記坪數加總計算；尚未登記的棟別暫以明細加總">${fmt2(z.area)}</span>`
+        + (zoneUnset ? `<div class="gap-note gap-warn" style="font-weight:600;">${zoneUnset === buildings.length ? "全部" : zoneUnset + " 棟"}尚未登記</div>` : "")
       : `<input type="number" class="zone-input${lockedCls}" data-idx="${idx}" data-field="area" value="${z.area}" step="0.01" min="0" ${lockedAttr}>`;
     html += `
     <tr data-zonerow="${idx}">
@@ -2773,13 +2776,14 @@ function renderArea(){
         const hasFloors = floors.length > 0;
         const buildingKey = `${z.zone}::${b.name}`;
         const buildingExpanded = expandedBuildingKeys.has(buildingKey);
+        const bGapTxt0 = gapText(buildingGap(b));
         const buildingAreaCell = hasFloors
-          ? `<span title="由下方 ${floors.length} 層坪數加總計算，如需調整請直接修改各樓層坪數">${fmt2(computeBuildingArea(b))}</span> <small style="color:var(--text-soft);">(${floors.length}層加總)</small>`
+          ? `<span title="由下方 ${floors.length} 層坪數加總計算，如需調整請直接修改各樓層坪數">${fmt2(computeBuildingArea(b))}</span>` + (bGapTxt0 ? `<div class="gap-note gap-bad" title="登記坪數是出租率的分母、以登記為準；請檢查樓層／單元有沒有漏填或填錯">${bGapTxt0}</div>` : "")
           : `<input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="area" value="${b.area||0}" step="0.01" min="0" ${lockedAttr}>`;
         const regVal = buildingRegisteredArea(b);
         const bGapTxt = gapText(buildingGap(b));
         const regCell = `<input type="number" class="zone-input${lockedCls}" data-bidx="${idx}:${bidx}" data-bfield="registeredArea" value="${regVal || ""}" placeholder="未設定" step="0.01" min="0" ${lockedAttr}>`
-          + (regVal <= 0 ? `<div class="gap-note gap-warn">未設定，暫以明細加總計算</div>` : (bGapTxt ? `<div class="gap-note gap-bad">明細${bGapTxt}</div>` : ""));
+          + (regVal <= 0 ? `<div class="gap-note gap-warn" style="font-weight:600;">尚未登記</div>` : "");
         html += `
         <tr class="subrow">
           <td style="padding-left:34px;">
@@ -2825,21 +2829,21 @@ function renderArea(){
               html += `
         <tr class="subrow">
           <td style="padding-left:82px;"><button type="button" class="btn btn-secondary" style="padding:4px 9px; font-size:11.5px;" data-addunit="${idx}:${bidx}:${fidx}">＋ 新增單元</button></td>
-          <td colspan="4">${hasUnits ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearunits="${idx}:${bidx}:${fidx}">清空單元，改回單一坪數輸入</button>` : ""}</td>
+          <td colspan="4"></td>
         </tr>`;
             }
           });
           html += `
         <tr class="subrow">
           <td style="padding-left:58px;"><button type="button" class="btn btn-secondary" style="padding:4px 9px; font-size:11.5px;" data-addfloor="${idx}:${bidx}">＋ 新增樓層</button></td>
-          <td colspan="4">${floors.length > 1 ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearfloors="${idx}:${bidx}">合併樓層為單一樓層</button>` : ""}</td>
+          <td colspan="4"></td>
         </tr>`;
         }
       });
       html += `
         <tr class="subrow">
           <td style="padding-left:34px;"><button type="button" class="btn btn-secondary" style="padding:5px 10px; font-size:12px;" data-addbuilding="${idx}">＋ 新增棟別</button></td>
-          <td colspan="4">${hasBuildings ? `<button type="button" class="btn-ghost" style="font-size:11px; color:#c14343; border:none;" data-clearbuildings="${idx}">清空棟別，改回單一坪數輸入</button>` : ""}</td>
+          <td colspan="4"></td>
         </tr>`;
     }
   });
@@ -3475,12 +3479,12 @@ function renderBaseAlerts(){
   const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
   const { gaps, unset, over } = collectBaseAlerts("");
   const parts = [];
-  if (gaps.length) parts.push(`${gaps.length} 棟明細與登記坪數不一致`);
+  if (gaps.length) parts.push(`${gaps.length} 棟明細與登記不一致`);
   if (over.length) parts.push(`${over.length} 處已租坪數超出登記坪數`);
   const bad = parts.length > 0;
-  if (unset.length) parts.push(`${unset.length} 棟尚未設定登記坪數`);
+  if (unset.length) parts.push(`${unset.length} 棟尚未登記`);
   set("baseAlertArea", parts.length
-    ? `<div class="base-alert ${bad ? "bad" : "warn"}" style="padding:7px 14px;">${bad ? "⚠ " : ""}${parts.join("；")}（詳細差額見下方各棟那一列）</div>`
+    ? `<div class="base-alert ${bad ? "bad" : "warn"}" style="padding:7px 14px;">${bad ? "⚠ " : ""}${parts.join("　｜　")}</div>`
     : `<div class="base-alert ok" style="padding:7px 14px;">✓ 各棟登記坪數與樓層／單元明細一致</div>`);
   set("baseAlertOcc", "");
   set("baseAlertUnit", "");
