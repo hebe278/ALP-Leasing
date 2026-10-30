@@ -496,6 +496,21 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .am-modes label{display:flex; align-items:center; gap:7px; font-weight:400; cursor:pointer;}
   .am-preview{margin-top:14px; padding:10px 12px; border:1px dashed #bbb; border-radius:8px; background:#fafafa; font-size:12.5px; line-height:1.6; min-height:20px;}
   .am-title{font-weight:700; margin-bottom:2px;}
+  .free-tag{display:inline-block; font-size:10.5px; font-weight:600; line-height:1.5; padding:0 5px; margin-right:5px; border-radius:99px; background:#d9f2ec; color:#0b6f5b; vertical-align:1px;}
+  .free-tag.full{margin-right:0; padding:0 8px;}
+  .ie-form{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px 12px;}
+  .ie-form input, .ie-form select{width:100%; box-sizing:border-box; min-width:0;}
+  .ie-form .ie-sec{grid-column:1 / -1; font-size:12.5px; font-weight:700; color:var(--text-soft); border-bottom:1px solid var(--border); padding-bottom:3px; margin-top:6px;}
+  .ie-form .form-field label{font-size:12px;}
+  .ie-form .form-field.bad input, .ie-form .form-field.bad select{border-color:#c14343; background:#fdf3f3;}
+  .ie-form .form-field.wide{grid-column:span 2;}
+  @media (max-width:760px){ .ie-form{grid-template-columns:repeat(2, minmax(0,1fr));} }
+  .imp-edited{font-size:11px; color:#1c5aa6;}
+  .rn-units{border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  .rn-units table{width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums;}
+  .rn-units th{background:#f7f8fa; text-align:left; font-weight:600; color:var(--text-soft); padding:6px 12px; white-space:nowrap;}
+  .rn-units td{padding:6px 12px; border-top:1px solid #eef0f3;}
+  .rn-units th.num, .rn-units td.num{text-align:right;}
   .am-line{padding-left:2px;}
   .am-sec{border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:10px;}
   .am-sec-h{display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; cursor:pointer;}
@@ -1302,7 +1317,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     </div>
     <div id="importStep2" style="display:none;">
       <h3>匯入預覽</h3>
-      <p class="sub">下列資料還沒有寫入。紅色列有錯誤，需要先修正檔案；疑似重複或重疊的列預設不勾選，可自行決定。</p>
+      <p class="sub">下列資料還沒有寫入。紅色列有錯誤，按該列的「修正」可以直接改（不用回 Excel）；疑似重複或重疊的列預設不勾選，可自行決定。</p>
       <div id="importSummary"></div>
       <div class="imp-tools">
         <label class="vac-opt"><input type="checkbox" id="importOnlyIssues"> 只看有問題的列</label>
@@ -1339,6 +1354,41 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" id="amCancel">取消</button>
       <button type="button" class="btn btn-primary" id="amConfirm" disabled>確認增補</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="impEditOverlay">
+  <div class="modal" style="max-width:860px;">
+    <h3 id="impEditTitle">修改這一列</h3>
+    <p class="sub">改這裡只影響匯入的資料，不會動到你的 Excel 檔。欄位下方會即時顯示檢查結果。</p>
+    <div id="impEditForm" class="ie-form"></div>
+    <div class="am-preview" id="impEditMsg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" id="impEditCancel">取消</button>
+      <button type="button" class="btn btn-primary" id="impEditApply">套用修改</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="renewOverlay">
+  <div class="modal" style="max-width:720px;">
+    <h3>續約</h3>
+    <p class="sub" id="rnOrig"></p>
+    <div class="form-grid" style="margin-bottom:12px;">
+      <div class="form-field"><label>新租期起</label><input type="date" id="rnStart"></div>
+      <div class="form-field"><label>新租期迄</label><input type="date" id="rnEnd"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:12px; grid-template-columns:repeat(3, minmax(0,1fr));">
+      <div class="form-field"><label>起始單價調整（%）</label><input type="number" id="rnPct" step="0.01" value="0" placeholder="0 ＝ 沿用舊約最後單價"></div>
+      <div class="form-field"><label>之後每幾年調漲（年）</label><input type="number" id="rnFreq" min="1" step="1" placeholder="例：1"></div>
+      <div class="form-field"><label>每次調漲（%）</label><input type="number" id="rnGrow" min="0" step="0.01" placeholder="0 或空白＝不調整"></div>
+    </div>
+    <div id="rnUnits" class="rn-units"></div>
+    <div class="am-preview" id="rnPreview"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" id="rnCancel">取消</button>
+      <button type="button" class="btn btn-primary" id="rnConfirm" disabled>建立續約</button>
     </div>
   </div>
 </div>
@@ -2856,8 +2906,8 @@ function renderDb(){
       <td class="num">${tent ? dash : (T.freq ?? 1)}</td>
       <td class="num">${(!tent && T.adjustType==="固定百分比遞增") ? fmtPct1(T.pct/100) : "—"}</td>
       <td>${r.inputBy||""}</td>
-      <td>${r.remark||""}${amendBadge(r)}</td>
-      <td style="white-space:nowrap;">${tent ? "" : `<button type="button" class="btn-link-inline" title="這份契約有增補（延長租期、調整租金、增減單位）" data-amend="${r.id}">增補</button> `}<button class="btn-danger-ghost" title="刪除" data-del="${r.id}">×</button></td>
+      <td>${r.remark||""}${amendBadge(r)}${r.renewOf ? ` <span class="pill pill-plan" style="cursor:help;" title="由前一份契約續約而來">續約</span>` : ""}</td>
+      <td style="white-space:nowrap;">${tent ? "" : `<button type="button" class="btn-link-inline" title="這份契約有增補（延長租期、調整租金、增減單位）" data-amend="${r.id}">增補</button> <button type="button" class="btn-link-inline" title="契約到期後續約：整份契約的單元一次複製成新租期" data-renew="${r.id}">續約</button> `}<button class="btn-danger-ghost" title="刪除" data-del="${r.id}">×</button></td>
     </tr>`;
   }).join("");
 
@@ -2875,6 +2925,9 @@ function renderDb(){
 
   tbody.querySelectorAll("[data-amend]").forEach(btn=>{
     btn.addEventListener("click", (e)=>{ e.stopPropagation(); openAmendModal(btn.dataset.amend); });
+  });
+  tbody.querySelectorAll("[data-renew]").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{ e.stopPropagation(); openRenewModal(btn.dataset.renew); });
   });
   tbody.querySelectorAll("[data-del]").forEach(btn=>{
     btn.addEventListener("click", async (e)=>{
@@ -5557,6 +5610,19 @@ function monthCalcText(r, year, mi){
   if (monthlyMetric === "combined" && r.category !== "設備") return head + part("租金", rentFull, occ - free, monthlyRentFor(r, year, mi), true) + "\n　" + part("管理費", mgFull, mgPay, monthlyMgmtFor(r, year, mi), !!r.freeMgmt);
   return head + part("租金", rentFull, occ - free, monthlyRentFor(r, year, mi), true);
 }
+// 這個月內免租幾天（只算在租期內的天數）。看管理費時，只有勾了「免租期間管理費免收」的契約才算。
+function monthFreeDays(r, year, mi){
+  if (!leaseHasFree(r)) return 0;
+  if (monthlyMetric === "mgmt" && !r.freeMgmt) return 0;
+  const dim = new Date(year, mi + 1, 0).getDate();
+  const mStart = new Date(year, mi, 1), mEnd = new Date(year, mi, dim);
+  const s = parseLocalDate(r.start), e = parseLocalDate(r.end);
+  const from = (s && s > mStart) ? s : mStart, to = (e && e < mEnd) ? e : mEnd;
+  if (to < from) return 0;
+  const fs = parseLocalDate(r.freeStart), fe = parseLocalDate(r.freeEnd);
+  const a = fs > from ? fs : from, b = fe < to ? fe : to;
+  return b >= a ? Math.round((b - a) / 86400000) + 1 : 0;
+}
 function computeMonthlyGroups(records, year){
   const groups = new Map();
   records.forEach(r=>{
@@ -5565,7 +5631,7 @@ function computeMonthlyGroups(records, year){
     groups.get(key).leases.push(r);
   });
   const clientRows = [...groups.values()].map(g=>{
-    const cells = new Array(12).fill(0), tips = new Array(12).fill("");
+    const cells = new Array(12).fill(0), tips = new Array(12).fill(""), free = new Array(12).fill(0);
     let rowTotal = 0;
     for (let m=0; m<12; m++){
       const lines = [], act = [];
@@ -5577,20 +5643,23 @@ function computeMonthlyGroups(records, year){
       if (val !== each && lines.length) lines.push(`※ 同一份契約各單元依期間合併後再四捨五入：合計 ${fmtInt(val)}（逐單元相加為 ${fmtInt(each)}）`);
       cells[m] = val;
       tips[m] = lines.join("\n");
+      const fd = act.reduce((t, r) => t + monthFreeDays(r, year, m), 0);
+      free[m] = fd ? { days: fd, full: val === 0 } : 0;   // 這格有免租：整月都免＝顯示「免租」；只免一部分＝金額旁加「免」標記
       rowTotal += val;
     }
-    return { zone:g.zone, client:g.client, cells, tips, rowTotal };
+    return { zone:g.zone, client:g.client, cells, tips, free, rowTotal };
   });
 
   const zoneOrder = zoneNames();
   const zoneMap = new Map();
   clientRows.forEach(cr=>{
-    if (!zoneMap.has(cr.zone)) zoneMap.set(cr.zone, { clients:[], cells:new Array(12).fill(0), total:0 });
+    if (!zoneMap.has(cr.zone)) zoneMap.set(cr.zone, { clients:[], cells:new Array(12).fill(0), free:new Array(12).fill(0), total:0 });
     const z = zoneMap.get(cr.zone);
     z.clients.push(cr);
-    for (let m=0; m<12; m++) z.cells[m] += cr.cells[m];
+    for (let m=0; m<12; m++){ z.cells[m] += cr.cells[m]; if (cr.free[m]) z.free[m] = { days:(z.free[m] ? z.free[m].days : 0) + cr.free[m].days, full:false }; }
     z.total += cr.rowTotal;
   });
+  zoneMap.forEach(z => { for (let m=0; m<12; m++) if (z.free[m]) z.free[m].full = z.cells[m] === 0; });
   const zonesInOrder = [...zoneMap.keys()].sort((a,b)=>{
     const oa = zoneOrder.indexOf(a), ob = zoneOrder.indexOf(b);
     return (oa===-1 ? 999 : oa) - (ob===-1 ? 999 : ob);
@@ -5610,7 +5679,11 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
     return;
   }
 
-  const monthCellsHtml = (arr, tips) => arr.map((v, i)=>`<td class="num"${tips && tips[i] ? ` data-tip="${escHtml(tips[i])}" style="cursor:help;"` : ""}>${v ? fmtInt(v) : "-"}</td>`).join("");
+  const monthCellsHtml = (arr, tips, free) => arr.map((v, i)=>{
+    const f = free && free[i];
+    const body = f && f.full ? `<span class="free-tag full">免租</span>` : `${f ? `<span class="free-tag">免</span>` : ""}${v ? fmtInt(v) : "-"}`;
+    return `<td class="num"${tips && tips[i] ? ` data-tip="${escHtml(tips[i])}" style="cursor:help;"` : ""}>${body}</td>`;
+  }).join("");
   // 園區那一列的明細＝底下各客戶的明細串起來（太長就只列前面幾筆）
   const zoneTips = z => z.cells.map((_, m) => { const ls = []; z.clients.forEach(c => { if (c.tips[m]) ls.push(...String(c.tips[m]).split("\n").map((t, k) => (k === 0 ? `【${c.client}】` : "") + t)); }); return ls.length > 14 ? ls.slice(0, 14).join("\n") + `\n…（共 ${ls.length} 行，展開客戶列可看各客戶明細）` : ls.join("\n"); });
 
@@ -5629,7 +5702,7 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
       <td colspan="2">
         <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:11px; margin-right:8px;" data-toggle-zone="${zoneName}" title="展開／收合客戶明細">${expanded ? "▾" : "▸"}</button>${zoneName}
       </td>
-      ${monthCellsHtml(z.cells, zoneTips(z))}
+      ${monthCellsHtml(z.cells, zoneTips(z), z.free)}
       <td class="num computed">${z.total ? fmtInt(z.total) : "-"}</td>
     </tr>`;
 
@@ -5638,7 +5711,7 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
         html += `<tr class="subrow">
           <td></td>
           <td>　└ ${cr.client}</td>
-          ${monthCellsHtml(cr.cells, cr.tips)}
+          ${monthCellsHtml(cr.cells, cr.tips, cr.free)}
           <td class="num computed">${cr.rowTotal ? fmtInt(cr.rowTotal) : "-"}</td>
         </tr>`;
       });
@@ -6887,13 +6960,15 @@ function impRenderPreview(){
       <td class="num">${r.stage ? "—" : fmt2(r.baseUnit)}</td><td>${escHtml(r.stage ? "—" : (r.adjustType === "固定百分比遞增" ? `每${r.freq}年 +${r.pct}%` : r.adjustType === "固定金額遞增" ? `每${r.freq}年 +${r.amt}元` : r.adjustType) + (r.adjustUntil ? `（至 ${dateText(r.adjustUntil)} 止）` : ""))}</td>`
       : (() => { const w = it.raw || {}, g = k => escHtml(impStr(w[k])), gd = k => { const d = impParseDate(w[k]); return d.ok ? dateText(d.iso) : g(k); };
         return `<td>${g("zone")}<br><span class="imp-sub">${g("building")}</span></td><td>${g("floor")}</td><td>${g("unit")}</td><td>${g("client")}</td><td>${g("category")}</td><td class="num">${g("area")}</td><td>${gd("start")}<br>${gd("end")}</td><td class="num">${g("baseUnit")}</td><td>${g("adjustType")}</td>`; })();
-    return `<tr class="${!it.rec ? "imp-row-err" : ""}"><td><input type="checkbox" data-imp="${idx}" ${it.checked ? "checked" : ""} ${it.rec ? "" : "disabled"}></td>
-      <td class="num">${it.rowNo}</td><td><span class="pill ${s.cls}">${s.text}</span></td>${cells}<td class="imp-msg">${msgs}</td></tr>`;
+    return `<tr class="${!it.rec ? "imp-row-err" : ""}" data-improw="${idx}" title="雙擊可修改這一列"><td><input type="checkbox" data-imp="${idx}" ${it.checked ? "checked" : ""} ${it.rec ? "" : "disabled"}></td>
+      <td class="num">${it.rowNo}</td><td><span class="pill ${s.cls}">${s.text}</span>${st.edited && st.edited.has(it.rowNo) ? ` <span class="imp-edited">已修改</span>` : ""}<br><button type="button" class="btn-link-inline" data-impedit="${idx}">${it.rec ? "修改" : "修正"}</button></td>${cells}<td class="imp-msg">${msgs}</td></tr>`;
   }).join("");
   document.getElementById("importTbody").innerHTML = rowsHtml || `<tr><td colspan="13" class="imp-sub" style="padding:18px;">${items.length ? "沒有需要注意的列。" : "檔案裡沒有可以匯入的資料列。"}</td></tr>`;
   document.getElementById("importTbody").querySelectorAll("input[data-imp]").forEach(cb => cb.addEventListener("change", () => {
     items[Number(cb.dataset.imp)].checked = cb.checked; impUpdateConfirmBtn();
   }));
+  document.getElementById("importTbody").querySelectorAll("[data-impedit]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); impOpenEdit(Number(b.dataset.impedit)); }));
+  document.getElementById("importTbody").querySelectorAll("tr[data-improw]").forEach(tr => tr.addEventListener("dblclick", () => impOpenEdit(Number(tr.dataset.improw))));
   impUpdateConfirmBtn();
 }
 function impShowStep(n){
@@ -6938,6 +7013,123 @@ document.getElementById("importOnlyIssues").addEventListener("change", () => { i
 document.getElementById("importSelectOk").addEventListener("click", () => { if (!IMPORT_STATE) return; IMPORT_STATE.items.forEach(i => { i.checked = !!i.rec && !i.dup; }); impRenderPreview(); });
 document.getElementById("importSelectAll").addEventListener("click", () => { if (!IMPORT_STATE) return; IMPORT_STATE.items.forEach(i => { i.checked = !!i.rec; }); impRenderPreview(); });
 document.getElementById("importSelectNone").addEventListener("click", () => { if (!IMPORT_STATE) return; IMPORT_STATE.items.forEach(i => { i.checked = false; }); impRenderPreview(); });
+
+
+/* ---- 匯入預覽：直接修改有問題的列 ---- */
+const IE_FIELDS = [
+  { sec:"基本資料" },
+  { k:"stage", type:"select", opts:["", "已簽約", "預計進駐"], blank:"（空白＝已簽約）" },
+  { k:"zone", type:"zone" }, { k:"category", type:"select", opts:["倉儲", "設備", "停車位"] },
+  { k:"building", type:"building" }, { k:"floor" }, { k:"unit" }, { k:"client", wide:true }, { k:"area" },
+  { sec:"租期" },
+  { k:"start", ph:"2026-03-01" }, { k:"end", ph:"2028-02-29" }, { k:"freeStart", ph:"（沒有免租期就留白）" }, { k:"freeEnd" },
+  { k:"freeMgmt", type:"select", opts:["", "免收", "照收"], blank:"（空白＝照收）" },
+  { sec:"租金與調整" },
+  { k:"baseUnit" }, { k:"mgmt" }, { k:"mgmtMode", type:"select", opts:["", "整包"], blank:"依面積（元/坪）" },
+  { k:"adjustType", type:"select", opts:["", "無調整", "固定百分比遞增", "固定金額遞增", "逐年手動填寫"], blank:"（空白＝無調整）" },
+  { k:"freq" }, { k:"pct" }, { k:"amt" }, { k:"adjustUntil" }, { k:"override" },
+  { k:"prorate", type:"select", opts:["", "31", "當月實際天數"], blank:"÷30", labels:{ "31":"÷31" } },
+  { sec:"其他" },
+  { k:"inputBy" }, { k:"sap" }, { k:"group" }, { k:"remark", wide:true },
+];
+let IE = null;   // { idx, rowNo }
+function ieLabel(k){ const c = IMPORT_COLS.find(x => x.key === k); return c ? c.label : k; }
+function ieRawText(v, k){
+  if (["start","end","freeStart","freeEnd","adjustUntil"].includes(k)){ const d = impParseDate(v); if (d.ok) return d.iso; }
+  return impStr(v);
+}
+function ieBuildingOptions(zoneText){
+  const z = ZONE_AREA.find(x => sameName(x.zone, zoneText));
+  return z ? zoneBuildings(z).map(b => b.name) : [];
+}
+function ieFillBuilding(cur){
+  const sel = document.getElementById("ie_building"); if (!sel) return;
+  const opts = ieBuildingOptions(document.getElementById("ie_zone").value);
+  const list = [...opts]; if (cur && !list.some(o => sameName(o, cur))) list.push(cur);
+  sel.innerHTML = `<option value="">（空白／自動帶入）</option>` + list.map(o => `<option value="${escHtml(o)}">${escHtml(o)}${opts.includes(o) ? "" : "（原值，無此棟）"}</option>`).join("");
+  const hit = list.find(o => sameName(o, cur)); sel.value = hit || "";
+}
+function ieRead(){
+  const raw = {};
+  IE_FIELDS.forEach(f => { if (f.k){ const el = document.getElementById("ie_" + f.k); raw[f.k] = el ? el.value : ""; } });
+  return raw;
+}
+function ieRefresh(){
+  if (!IE) return;
+  const raw = ieRead();
+  const t = impBuildItem(raw, IE.rowNo, { groups:new Map() });
+  const txt = [...t.errors, ...t.warnings];
+  const MAP = { stage:/案件狀態/, zone:/找不到園區|園區必填/, category:/^類型/, building:/此棟|棟別必填/, floor:/樓層/, unit:/單元必填|找不到單元|單元「/, client:/客戶必填/, area:/面積|車位數|數量/,
+    start:/租期起|預計進駐日/, end:/租期迄/, baseUnit:/首年單位租金/, mgmt:/管理費單價/, adjustType:/調整方式「/, freq:/調整頻率/, pct:/調整百分比/, amt:/調整金額/,
+    override:/手動覆蓋/, adjustUntil:/停止調整日/, freeStart:/免租期/, freeEnd:/免租期/, inputBy:/BD承辦必填/ };
+  IE_FIELDS.forEach(f => { if (!f.k) return;
+    const fld = document.getElementById("ie_" + f.k); if (!fld) return;
+    fld.closest(".form-field").classList.toggle("bad", !!MAP[f.k] && t.errors.some(m => MAP[f.k].test(m)));
+  });
+  document.getElementById("impEditMsg").innerHTML = (txt.length || t.infos.length ? "" : `<div class="imp-info" style="color:#0b6f5b;">✓ 這一列檢查通過</div>`)
+    + t.errors.map(m => `<div class="imp-err">✕ ${escHtml(m)}</div>`).join("") + t.warnings.map(m => `<div class="imp-warn">⚠ ${escHtml(m)}</div>`).join("") + t.infos.map(m => `<div class="imp-info">ℹ ${escHtml(m)}</div>`).join("");
+}
+function impOpenEdit(idx){
+  const it = IMPORT_STATE && IMPORT_STATE.items[idx]; if (!it) return;
+  IE = { idx, rowNo: it.rowNo };
+  document.getElementById("impEditTitle").textContent = `修改檔案第 ${it.rowNo} 列`;
+  const raw = it.raw || {};
+  document.getElementById("impEditForm").innerHTML = IE_FIELDS.map(f => {
+    if (f.sec) return `<div class="ie-sec">${f.sec}</div>`;
+    const v = ieRawText(raw[f.k], f.k), lab = escHtml(ieLabel(f.k));
+    let input;
+    if (f.type === "zone"){
+      const list = ZONE_AREA.map(z => z.zone); if (v && !list.some(z => sameName(z, v))) list.push(v);
+      input = `<select id="ie_zone"><option value="">（請選擇）</option>${list.map(z => `<option value="${escHtml(z)}">${escHtml(z)}${ZONE_AREA.some(x => sameName(x.zone, z)) ? "" : "（原值，無此園區）"}</option>`).join("")}</select>`;
+    } else if (f.type === "building"){
+      input = `<select id="ie_building"></select>`;
+    } else if (f.type === "select"){
+      const cur = v, list = [...f.opts]; if (cur && !list.some(o => impKey(o) === impKey(cur)) && !(f.k === "prorate" && /31|實際|當月|天數|30/.test(cur)) ) list.push(cur);
+      let selVal = list.find(o => impKey(o) === impKey(cur)) || "";
+      if (f.k === "prorate"){ selVal = /實際|當月|天數/.test(cur) ? "當月實際天數" : (/31/.test(cur) && !/30/.test(cur) ? "31" : (cur && !/30/.test(cur) ? cur : "")); if (selVal && !list.includes(selVal)) list.push(selVal); }
+      if (f.k === "freeMgmt"){ selVal = cur ? (/照收|否|不/.test(cur) ? "照收" : "免收") : ""; }
+      if (f.k === "mgmtMode"){ selVal = cur ? (/整包|總額|總價|固定|月/.test(cur) ? "整包" : "") : ""; }
+      input = `<select id="ie_${f.k}">${list.map(o => `<option value="${escHtml(o)}"${o === selVal ? " selected" : ""}>${escHtml(o === "" ? (f.blank || "") : ((f.labels && f.labels[o]) || o))}</option>`).join("")}</select>`;
+    } else {
+      input = `<input type="text" id="ie_${f.k}" value="${escHtml(v)}"${f.ph ? ` placeholder="${escHtml(f.ph)}"` : ""}>`;
+    }
+    return `<div class="form-field${f.wide ? " wide" : ""}"><label>${lab}</label>${input}</div>`;
+  }).join("");
+  const zsel = document.getElementById("ie_zone");
+  const zraw = ieRawText(raw.zone, "zone"); zsel.value = [...zsel.options].find(o => sameName(o.value, zraw))?.value || "";
+  ieFillBuilding(ieRawText(raw.building, "building"));
+  zsel.addEventListener("change", () => { ieFillBuilding(""); ieRefresh(); });
+  document.getElementById("impEditOverlay").classList.add("open");
+  ieRefresh();
+}
+function impReanalyze(editedRowNo){
+  const st = IMPORT_STATE;
+  if (!st.edited) st.edited = new Set();
+  if (editedRowNo) st.edited.add(editedRowNo);
+  const prev = new Map(st.items.map(i => [i.rowNo, { checked:i.checked, dup:i.dup }]));
+  const ctx = { groups:new Map() };
+  const items = st.items.map(it => impBuildItem(it.raw, it.rowNo, ctx));
+  impCrossCheck(items);
+  items.forEach(it => {
+    const p = prev.get(it.rowNo);
+    if (!it.rec) it.checked = false;
+    else if (it.rowNo === editedRowNo) it.checked = !it.dup;
+    else if (it.dup && !(p && p.dup)) it.checked = false;
+    else it.checked = p ? p.checked : !it.dup;
+  });
+  st.items = items;
+}
+document.getElementById("impEditForm").addEventListener("input", ieRefresh);
+document.getElementById("impEditForm").addEventListener("change", ieRefresh);
+document.getElementById("impEditCancel").addEventListener("click", () => { IE = null; document.getElementById("impEditOverlay").classList.remove("open"); });
+document.getElementById("impEditApply").addEventListener("click", () => {
+  if (!IE || !IMPORT_STATE) return;
+  const it = IMPORT_STATE.items[IE.idx]; if (!it) return;
+  it.raw = { ...it.raw, ...ieRead() };
+  impReanalyze(IE.rowNo);
+  IE = null; document.getElementById("impEditOverlay").classList.remove("open");
+  impRenderPreview();
+});
 
 document.getElementById("importConfirm").addEventListener("click", async () => {
   if (!IMPORT_STATE) return;
@@ -9000,6 +9192,149 @@ amEl("amConfirm").addEventListener("click", async () => {
   refreshVacancyIfVisible();
   refreshUnitStatusIfVisible();
   showToast(`增補完成：修改 ${nUpd} 筆、新增 ${nAdd} 筆`);
+});
+
+/* ---------------- 續約（租出契約）----------------
+   整份契約（同一個契約編號的所有單元）一次複製成新租期：租期起＝舊約到期日隔天，單價＝舊約最後生效的單價（可再加減 %），
+   往後的調漲由使用者填「每 N 年 N%」（空白或 0＝不調整），管理費、不足月算法沿用；免租期、增補紀錄、備註不帶。舊契約原封不動，新的另外存成一份，並標上「續約」。 */
+let RN = null;
+const rnOverlay = document.getElementById("renewOverlay");
+function rnEl(id){ return document.getElementById(id); }
+function rnDefaultEnd(oldStart, oldEnd, newStart){
+  const days = Math.round((parseLocalDate(oldEnd) - parseLocalDate(oldStart)) / 86400000) + 1;
+  const months = Math.max(1, Math.round(days / 30.4375));
+  const d = parseLocalDate(newStart); const day = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + months);
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  d.setDate(d.getDate() - 1);
+  return amIso(d);
+}
+function openRenewModal(id){
+  const rec = LEASE_DB.find(r => String(r.id) === String(id));
+  if (!rec) return;
+  if (rec.stage === "預計進駐"){ notify("預計進駐還沒有簽約，不需要續約；直接雙擊修改即可。"); return; }
+  const key = contractGroupKey(rec);
+  const sibs = LEASE_DB.filter(r => r.stage !== "預計進駐" && contractGroupKey(r) === key);
+  const list = leaseSortedList(sibs.length ? sibs : [rec]);
+  const ends = list.map(r => r.end).filter(Boolean);
+  if (ends.length !== list.length){ notify("這份契約有單元沒有租期迄日（不定期），無法自動算續約的起始日；請先到「增補」或雙擊編輯補上租期迄。"); return; }
+  const lastEnd = ends.sort().slice(-1)[0], firstStart = list.map(r => r.start).sort()[0];
+  RN = { rec, list, cid: rec.contractId || "" };
+  const start = amAddDays(lastEnd, 1);
+  rnEl("rnOrig").innerHTML = `${escHtml(rec.client)}　${escHtml(rec.zone)}　舊約 ${dateText(firstStart)}～${dateText(lastEnd)}，共 ${list.length} 個單元`;
+  rnEl("rnStart").value = start;
+  rnEl("rnEnd").value = rnDefaultEnd(firstStart, lastEnd, start);
+  rnEl("rnPct").value = "0";
+  {   // 舊約最後一段若是「固定百分比遞增」，先帶入同樣的頻率與幅度（可改、可清空）
+    const T0 = leaseTermsAt(rec, parseLocalDate(rec.end));
+    const keep = T0.adjustType === "固定百分比遞增" && Number(T0.pct) > 0;
+    rnEl("rnFreq").value = keep ? String(T0.freq || 1) : "";
+    rnEl("rnGrow").value = keep ? String(T0.pct) : "";
+  }
+  rnEl("rnUnits").innerHTML = `<table><thead><tr><th style="width:28px;"><input type="checkbox" id="rnAll" checked></th><th>單元</th><th class="num">坪數／數量</th><th class="num">舊約最後單價</th><th class="num">新單價</th></tr></thead><tbody>${
+    list.map((r, i) => `<tr><td><input type="checkbox" data-rnu="${i}" checked></td><td>${escHtml([r.building, r.floor, r.unit].filter(Boolean).join(" / "))}${r.category && r.category !== "倉儲" ? ` <small style="color:var(--text-soft);">${escHtml(r.category)}</small>` : ""}</td><td class="num">${fmt2(r.area)}</td><td class="num">${amMoney(rnLastUnit(r))}</td><td class="num" data-rnnew="${i}"></td></tr>`).join("")}</tbody></table>`;
+  rnOverlay.classList.add("open");
+  rnRefresh();
+}
+function rnLastUnit(r){ return computeUnitRentDisplay(r, parseLocalDate(r.end)); }
+function rnBuild(r, start, end, pct, freq, grow){
+  const e = parseLocalDate(r.end), T = leaseTermsAt(r, e), g = 1 + pct / 100;
+  const adj = v => { const x = v * g; return T.roundInt ? Math.round(x) : Math.round(x * 100) / 100; };
+  const hasOv = T.override !== null && T.override !== undefined && T.override !== "";
+  const { id, freeStart, freeEnd, freeMgmt, adjustUntil, ...rest } = r;
+  const nr = { ...rest, start, end, remark:"", priceChanges:[], amendLog:[],
+    baseUnit: adj(computeUnitRent(r, e)), mgmt: T.mgmt, adjustType: grow > 0 ? "固定百分比遞增" : "無調整", freq: grow > 0 ? freq : 1, pct: grow > 0 ? grow : 0, amt: 0,
+    override: hasOv ? Math.round(Number(T.override) * g) : null, roundInt: T.roundInt, renewOf: r.contractId || "" };
+  if (!nr.roundInt) delete nr.roundInt;
+  return nr;
+}
+function rnCompute(){
+  const R = { errors:[], warnings:[], lines:[], recs:[], newUnit:{} };
+  if (!RN) return R;
+  const start = rnEl("rnStart").value, end = rnEl("rnEnd").value;
+  const pctS = String(rnEl("rnPct").value).trim(), pct = pctS === "" ? 0 : Number(pctS);
+  const chosen = [...document.querySelectorAll("#rnUnits [data-rnu]")].filter(c => c.checked).map(c => RN.list[Number(c.dataset.rnu)]);
+  if (!start) R.errors.push("請填新租期起");
+  if (!end) R.errors.push("請填新租期迄");
+  if (start && end && end < start) R.errors.push("新租期迄早於新租期起");
+  if (!isFinite(pct)) R.errors.push("起始單價調整％不是有效數字");
+  const fS = String(rnEl("rnFreq").value).trim(), gS = String(rnEl("rnGrow").value).trim();
+  const grow = gS === "" ? 0 : Number(gS), freq = fS === "" ? 1 : Number(fS);
+  if (!isFinite(grow) || grow < 0) R.errors.push("每次調漲％要填 0 以上的數字");
+  if (!isFinite(freq) || freq < 1 || !Number.isInteger(freq)) R.errors.push("調漲間隔要填 1 以上的整數（年）");
+  if (!chosen.length) R.errors.push("請至少勾選一個單元");
+  if (R.errors.length) return R;
+  const oldEnd = RN.list.map(r => r.end).sort().slice(-1)[0];
+  if (start <= oldEnd) R.warnings.push(`新租期起（${dateText(start)}）沒有晚於舊約到期日（${dateText(oldEnd)}），期間會重疊`);
+  chosen.forEach(r => {
+    const nr = rnBuild(r, start, end, pct, freq, grow);
+    R.recs.push(nr);
+    if (isOccupancyLease(nr) && Array.isArray(nr.unitIds) && nr.unitIds.length){
+      nr.unitIds.forEach(uid => {
+        const x = LEASE_DB.find(o => isOccupancyLease(o) && o.stage !== "預計進駐" && !RN.list.some(s => String(s.id) === String(o.id)) && Array.isArray(o.unitIds) && o.unitIds.includes(uid) && impPeriodOverlap(start, end, o.start, o.end || "9999-12-31"));
+        if (x) R.errors.push(`${[r.building, r.floor, r.unit].filter(Boolean).join(" / ")} 在 ${dateText(start)}～${dateText(end)} 與「${x.client}」（${dateText(x.start)}～${dateText(x.end || "")}）重疊`);
+      });
+    }
+    R.newUnit[RN.list.indexOf(r)] = computeUnitRentDisplay(nr, parseLocalDate(start));
+  });
+  const succ = LEASE_DB.filter(o => o.renewOf && RN.list.some(s => s.contractId && s.contractId === o.renewOf));
+  if (succ.length) R.warnings.push("這份契約已經續約過一次了，確定要再續一次嗎？");
+  R.lines.push(`新租期 ${dateText(start)}～${dateText(end)}，建立 ${R.recs.length} 筆（${chosen.length === RN.list.length ? "整份契約" : "只含勾選的單元"}）`);
+  if (pct) R.lines.push(`起始單價 ${pct > 0 ? "調漲" : "調降"} ${Math.abs(pct)}%`);
+  R.lines.push(grow > 0 ? `之後每 ${freq} 年調漲 ${grow}%（固定百分比遞增）` : "之後不調整（單價固定）");
+  R.lines.push("管理費、不足月算法沿用舊約；免租期、增補紀錄、備註不帶");
+  return R;
+}
+function rnRefresh(){
+  if (!RN) return;
+  const R = rnCompute();
+  RN.R = R;
+  document.querySelectorAll("#rnUnits [data-rnnew]").forEach(td => { const v = R.newUnit[td.dataset.rnnew]; td.textContent = v === undefined ? "—" : amMoney(v); });
+  rnEl("rnPreview").innerHTML = R.lines.map(l => `<div class="am-line">・${escHtml(l)}</div>`).join("") + R.errors.map(m => `<div class="imp-err">✕ ${escHtml(m)}</div>`).join("") + R.warnings.map(m => `<div class="imp-warn">⚠ ${escHtml(m)}</div>`).join("");
+  rnEl("rnConfirm").disabled = R.errors.length > 0 || !R.recs.length;
+}
+function closeRenewModal(){ rnOverlay.classList.remove("open"); RN = null; }
+["rnStart","rnEnd","rnPct","rnFreq","rnGrow"].forEach(i => rnEl(i).addEventListener("input", rnRefresh));
+rnEl("rnUnits").addEventListener("change", (e)=>{
+  if (e.target.id === "rnAll") document.querySelectorAll("#rnUnits [data-rnu]").forEach(c => { c.checked = e.target.checked; });
+  rnRefresh();
+});
+rnEl("rnCancel").addEventListener("click", closeRenewModal);
+let rnBusy = false;
+rnEl("rnConfirm").addEventListener("click", async () => {
+  if (!RN || !RN.R || RN.R.errors.length || !RN.R.recs.length || rnBusy) return;
+  rnBusy = true; rnEl("rnConfirm").disabled = true;
+  const recs = RN.R.recs, oldList = RN.list, client = RN.rec.client;
+  try{
+    await ensureOperatorName();
+    // 沒有契約編號的舊資料：補上，續約才接得上
+    let oldCid = RN.cid;
+    if (!oldCid){
+      oldCid = genNodeId();
+      for (const o of oldList){
+        const upd = { ...o, contractId: oldCid };
+        if (USING_DB){ const { id, ...body } = upd; await DB.collection("leases").doc(String(id)).set(body); }
+        else { const i = LEASE_DB.findIndex(r => String(r.id) === String(o.id)); if (i !== -1) LEASE_DB[i] = upd; }
+      }
+    }
+    const newCid = genNodeId();
+    for (const r of recs){
+      const nr = { ...r, contractId: newCid, renewOf: oldCid };
+      let newId = "";
+      if (USING_DB){ const ref = await DB.collection("leases").add(nr); newId = (ref && ref.id) ? String(ref.id) : ""; }
+      else { const full = { ...nr, id: nextId++ }; LEASE_DB.push(full); newId = String(full.id); }
+      await auditRecord({ action:"新增", entity:"lease", targetId:newId, label:auditLeaseLabel(nr), changes:[{ label:"來源", to:`續約自 ${dateText(oldList[0].start)}～${dateText(oldList[0].end)} 的契約` }, ...leaseSummaryChanges(nr)], snapshot:{ ...nr } });
+    }
+  }catch(err){
+    console.warn("續約寫入失敗：", err);
+    await notify("續約寫入到一半失敗了，請重新整理頁面確認目前的資料，再重新操作一次。");
+    rnBusy = false; closeRenewModal(); return;
+  }
+  if (!USING_DB){ persistState(); renderDb(); renderOcc(); renderMonthly(); }
+  rnBusy = false; closeRenewModal();
+  refreshVacancyIfVisible();
+  refreshUnitStatusIfVisible();
+  showToast(`已建立「${client}」續約：${recs.length} 筆。單價或調整方式不同的單元，雙擊那一列修改即可。`);
 });
 
 /* ---------------- init ---------------- */
