@@ -118,6 +118,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;
   }
   .toolbar .spacer{flex:1;}
+  .hl-round-opt{display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; margin:0 0 8px;}
+  .hl-round-opt label{display:flex; align-items:center; gap:6px; font-weight:400; font-size:12.5px; margin:0;}
+  .hl-round-opt select{padding:4px 6px; font-size:12.5px; width:auto;}
+  .free-mgmt-opt{display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; margin-top:8px; cursor:pointer;}
+  .free-mgmt-opt input{width:auto;}
+  .yr-nav{display:flex; gap:6px;}
+  .yr-nav .btn{padding:6px 12px; min-width:40px;}
+  .yr-nav .btn:disabled{opacity:.4; cursor:default;}
   select, input[type=text], input[type=number], input[type=date], textarea{
     border:1px solid var(--border); border-radius:7px; padding:7px 10px;
     font-size:13px; font-family:inherit; background:#fff; color:var(--text);
@@ -178,6 +186,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .btn:disabled{opacity:.42; cursor:not-allowed;}
   .btn:disabled:hover{background:inherit;}
 
+  /* 數字欄位只能打字或貼上：不顯示上下小箭頭，滑鼠滾輪、鍵盤上下鍵也不會改數字 */
+  input[type=number]{-moz-appearance:textfield; appearance:textfield;}
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
   table{width:100%; border-collapse:collapse; font-size:12.8px;}
   thead th{
     position:sticky; top:0; background:#fafafa; border-bottom:1px solid var(--border);
@@ -228,8 +239,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .vac-sw{display:inline-block; width:16px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px;}
   .sw-leased, .seg-leased{background:#2a78d6;}
   .sw-exp, .seg-exp{background:repeating-linear-gradient(135deg,#c47a12 0 4px,#ecc27a 4px 8px);}
-  .sw-bin, .seg-bin{background:#1a9a82;}
-  .sw-later, .seg-later{background:repeating-linear-gradient(135deg,#1a9a82 0 4px,#9fdccf 4px 8px);}
+  .sw-bin, .seg-bin{background:repeating-linear-gradient(135deg,#1a9a82 0 4px,#9fdccf 4px 8px);}
   .sw-free{background:var(--gray-fill-strong);}
   .vac-zone{padding:14px 18px 12px; border-bottom:1px solid var(--border);}
   .vac-zone:last-child{border-bottom:none;}
@@ -252,8 +262,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .vac-chip.warn{border-color:#e4b04f; background:#fff6e3; color:#7a4a05;}
   .vac-dot{width:9px; height:9px; border-radius:2px; display:inline-block;}
   .vac-chip.exp .vac-dot{background:repeating-linear-gradient(135deg,#c47a12 0 3px,#ecc27a 3px 6px);}
-  .vac-chip.bin .vac-dot{background:#1a9a82;}
-  .vac-chip.later .vac-dot{background:repeating-linear-gradient(135deg,#1a9a82 0 3px,#9fdccf 3px 6px);}
+  .vac-chip.bin .vac-dot{background:repeating-linear-gradient(135deg,#1a9a82 0 3px,#9fdccf 3px 6px);}
   .vac-kids{margin:10px 0 2px 18px; padding-left:14px; border-left:2px solid var(--gray-fill-strong); display:flex; flex-direction:column; gap:14px;}
   .has-tip{cursor:help; border-bottom:1px dotted #9aa3af;}
   .vac-empty{padding:28px 18px; font-size:13.5px; color:var(--text-soft);}
@@ -271,24 +280,37 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .vac-nums div{display:flex; align-items:center; gap:6px; white-space:nowrap;}
   .vac-nums .vac-sw{margin:0; flex:none;}
   .vac-nums b{margin-left:4px; font-weight:600; white-space:nowrap;}
+  .vac-nums .vac-total{flex-basis:100%; font-size:13px; font-weight:700;}
+  .vac-nums .vac-total b{font-weight:800;}
   .vac-kid-main{display:flex; gap:10px 20px; align-items:flex-start; flex-wrap:wrap; margin-top:8px;}
   .vac-kid-info{flex:1; min-width:320px;}
   .vac-sum{font-size:12.5px; color:var(--text); margin:2px 0 8px;}
-  .vac-tbl-wrap{overflow-x:auto;}
-  table.vac-tbl{border-collapse:collapse; width:100%; font-size:12.5px; font-variant-numeric:tabular-nums;}
-  .vac-tbl th{text-align:left; font-weight:600; color:var(--text-soft); padding:5px 10px; border-bottom:1px solid var(--border); white-space:nowrap;}
-  .vac-tbl td{padding:6px 10px; border-bottom:1px solid #eef0f3; vertical-align:top;}
+  .vac-tbl-wrap{overflow-x:auto; max-width:100%;}
+  table.vac-tbl{border-collapse:collapse; width:auto; min-width:360px; font-size:13px; font-variant-numeric:tabular-nums;}
+  .vac-tbl th{text-align:left; font-weight:600; color:var(--text-soft); padding:6px 18px 6px 12px; border-bottom:1px solid var(--border); background:#f7f8fa; white-space:nowrap;}
+  .vac-tbl td{padding:7px 18px 7px 12px; border-bottom:1px solid #eef0f3; vertical-align:top;}
+  .vac-tbl tbody tr:hover td{background:#f4f8fe;}
+  .vac-tbl td.num, .vac-tbl th.num{padding-right:22px;}
   .vac-tbl td.num, .vac-tbl th.num{text-align:right;}
   .vac-tbl tr:last-child td{border-bottom:none;}
   .vac-st{display:inline-block; font-size:11.5px; font-weight:600; padding:1px 8px; border-radius:99px; white-space:nowrap;}
   .vac-st.free{background:#eceef1; color:#4b5563;}
   .vac-st.exp{background:#fbefd9; color:#8a5207;}
   .vac-st.bin{background:#d9f2ec; color:#0b6f5b;}
+  .vac-st.leased{background:#dfeafb; color:#1c5aa6;}
+  .vac-chip.leased .vac-dot{background:#2a78d6;}
   .vac-plan{color:#0b6f5b; font-weight:600;}
   .vac-none{color:var(--text-soft);}
   .vac-note{font-size:12px; color:var(--status-warning); margin-top:6px;}
   .vac-sub{font-size:12px; color:var(--text-soft); margin:8px 0 -2px;}
   #vacTip{position:fixed; z-index:10000; display:none; background:#111; color:#fff; font-size:12px; line-height:1.5; padding:5px 9px; border-radius:6px; pointer-events:none; max-width:300px;}
+  .lease-nav{position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:0 0 12px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);}
+  .lease-nav .ln-label{font-size:12px; color:var(--text-soft); margin-right:2px;}
+  .lease-nav button{font-family:inherit; font-size:12.5px; border:1px solid var(--border); background:var(--card); color:var(--text); border-radius:999px; padding:3px 11px; cursor:pointer; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lease-nav button:hover{border-color:var(--series-1);}
+  .lease-nav button.on{background:var(--text); color:#fff; border-color:var(--text); cursor:default;}
+  .lease-nav button.arrow{padding:3px 9px;}
+  .lease-nav button:disabled{opacity:.35; cursor:default;}
   .btn-link-inline{background:none; border:none; padding:0 2px; font-size:12px; color:var(--series-1); cursor:pointer; text-decoration:underline; font-family:inherit;}
   .vac-opt{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-soft);}
 
@@ -343,10 +365,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .hl-renew-note{display:none; font-size:12.5px; line-height:1.6; background:var(--gray-fill); border-radius:8px; padding:8px 12px; margin-bottom:12px;}
   .hl-renew-note.show{display:block;}
   .hl-remain{font-size:11px; color:var(--text-soft); margin-top:2px; white-space:nowrap;}
-  .hl-row{display:grid; grid-template-columns:150px 130px 150px 70px; gap:6px; align-items:center; margin-bottom:6px;}
+  .hl-row{display:grid; grid-template-columns:150px 130px 150px 170px 60px; gap:6px; align-items:center; margin-bottom:6px;}
   .hl-row input{width:100%; min-width:0;}
+  .lt-row{display:grid; grid-template-columns:140px 105px 125px 120px 56px; gap:6px; align-items:center; margin-bottom:6px;}
+  .lt-row input{width:100%; min-width:0;}
+  .lt-row-head{font-size:11.5px; color:var(--text-soft); font-weight:700; margin-bottom:2px;}
   .hl-row-warn{grid-column:1/-1; display:none; color:var(--status-critical); font-size:12px; line-height:1.5; margin:-2px 0 4px;}
   .hl-row-warn.show{display:block;}
+  .hl-row select[data-k=rnd]{width:100%; padding:7px 4px; font-size:12px;}
+  .hl-row.manual input[data-k=rent]{background:#fff6cc; border-color:#e0b800;}
+  .hl-genprev-scroll{max-height:200px; overflow:auto; max-width:460px;}
   .hl-row-head{font-size:11.5px; color:var(--text-soft); font-weight:700; margin-bottom:2px;}
   .hl-grid-wrap{max-height:300px; overflow:auto; padding-right:4px;}
   .hl-tools{display:flex; gap:14px; flex-wrap:wrap; margin-top:6px;}
@@ -359,6 +387,18 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .hl-panel .hl-panel-row{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-top:6px;}
   .hl-panel .hl-panel-row label{display:flex; flex-direction:column; gap:2px; font-size:11.5px; color:var(--text-soft);}
   .hl-panel .hl-panel-row input, .hl-panel .hl-panel-row select{width:110px; padding:5px 8px;}
+  #lt_panelGen .lt-gen-desc{color:var(--text-soft);}
+  #lt_panelGen .lt-gen-sec{margin-top:12px;}
+  #lt_panelGen .lt-gen-h{font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid var(--border);}
+  #lt_panelGen .lt-gen-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 12px; align-items:start;}
+  #lt_panelGen .lt-gen-grid.two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  #lt_panelGen .lt-gen-grid label{display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--text-soft); white-space:nowrap;}
+  #lt_panelGen .lt-gen-grid input, #lt_panelGen .lt-gen-grid select{width:100%; min-width:0; padding:6px 8px;}
+  #lt_panelGen .lt-gen-grid label.lt-gen-check{grid-column:1 / -1; flex-direction:row; align-items:center; gap:6px; color:var(--text);}
+  #lt_panelGen .lt-gen-grid label.lt-gen-check input{width:auto;}
+  #lt_panelGen .lt-gen-actions{display:flex; align-items:center; gap:10px; margin-top:14px;}
+  #lt_genPreview .hl-genprev-scroll{max-width:none;}
+  @media (max-width:560px){ #lt_panelGen .lt-gen-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .hl-check-tbl{width:100%; border-collapse:collapse; margin-top:8px; font-size:12px;}
   .hl-check-tbl th, .hl-check-tbl td{padding:3px 6px; text-align:right; border-bottom:1px solid var(--border);}
   .hl-check-tbl th:first-child, .hl-check-tbl td:first-child{text-align:left;}
@@ -381,7 +421,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   #occStats .stat-asof, #vacStats .stat-asof{grid-column:1/-1; font-size:12px; color:var(--text-soft); margin-top:-4px;}
   #occStats .stat-card[data-tip], #vacStats .stat-card[data-tip]{cursor:help;}
   #occStats .stat-card[data-tip] .value, #vacStats .stat-card[data-tip] .value{text-decoration:underline dotted var(--text-soft); text-underline-offset:4px;}
-  #occTip{position:fixed; z-index:10000; display:none; background:#111; color:#fff; font-size:12px; line-height:1.6; padding:6px 10px; border-radius:6px; pointer-events:none; max-width:420px; white-space:pre-line;}
+  #occTip{position:fixed; z-index:10000; display:none; background:#111; color:#fff; font-size:12px; line-height:1.6; padding:6px 10px; border-radius:6px; pointer-events:none; max-width:560px; white-space:pre-line;}
 
   footer{
     max-width:1400px; margin:0 auto; padding:0 28px 40px; color:var(--text-faint); font-size:11.5px;
@@ -531,7 +571,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 <nav class="tabs">
   <button class="tab-btn active" data-tab="db">資料庫</button>
   <button class="tab-btn" data-tab="occ">出租率總覽</button>
-  <button class="tab-btn" data-tab="vacancy">空置總覽</button>
+  <button class="tab-btn" data-tab="vacancy">空置率總覽</button>
   <button class="tab-btn" data-tab="monthly">租賃收入總覽</button>
   <button class="tab-btn" data-tab="cost">租賃成本總覽</button>
   <button class="tab-btn" data-tab="unitstatus">租賃單元狀態</button>
@@ -700,7 +740,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
     <pattern id="vacPatExp" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#ecc27a"/><rect width="4" height="8" fill="#c47a12"/></pattern>
-    <pattern id="vacPatLater" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#9fdccf"/><rect width="4" height="8" fill="#1a9a82"/></pattern></defs></svg>
+    <pattern id="vacPatBin" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#9fdccf"/><rect width="4" height="8" fill="#1a9a82"/></pattern></defs></svg>
 
   <!-- ============ 出租率總覽 ============ -->
   <section class="panel" id="panel-occ">
@@ -729,7 +769,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button type="button" class="seg-btn" data-view="equip">設備</button>
       </div>
       <div class="spacer"></div>
-      <div id="monthlyCount" style="font-size:12px; color:var(--text-soft);"></div>
+      <div id="monthlyCount" style="display:none;"></div>
+      <div class="yr-nav"><button type="button" class="btn btn-secondary" id="monthlyPrev" title="上一年">◀</button><button type="button" class="btn btn-secondary" id="monthlyNext" title="下一年">▶</button></div>
       <button type="button" class="btn-ghost" id="monthlyExpandAllBtn">全部展開</button>
     </div>
     <div class="card">
@@ -762,6 +803,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="toolbar">
       <select id="costYear"></select>
       <div class="spacer"></div>
+      <div class="yr-nav"><button type="button" class="btn btn-secondary" id="costPrev" title="上一年">◀</button><button type="button" class="btn btn-secondary" id="costNext" title="下一年">▶</button></div>
       <div id="costCount" style="font-size:12px; color:var(--text-soft);"></div>
     </div>
     <div class="card">
@@ -840,7 +882,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <button type="button" class="seg-btn" data-add="12">1 年後</button>
       </div>
       <select id="vacSort">
-        <option value="rate">排序：出租率低 → 高</option>
+        <option value="vacrate">排序：空置率高 → 低</option>
         <option value="vacant">排序：空置坪數多 → 少</option>
         <option value="name">排序：園區名稱</option>
       </select>
@@ -852,16 +894,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div class="card">
       <div class="card-head">
         <div>
-          <h2>空置總覽 — 未租滿園區的出租率</h2>
+          <h2>空置率總覽 — 依園區</h2>
           <p id="vacSummary"></p>
         </div>
       </div>
       <div class="vac-legend">
+        <span><i class="vac-sw sw-free"></i>空置</span>
         <span><i class="vac-sw sw-leased"></i>已出租</span>
-        <span><i class="vac-sw sw-exp"></i>快到期（90 天內）</span>
-        <span class="has-tip" data-tip="預計進駐＝已簽約但尚未起租，或未簽約但預計進駐的客戶。進駐日在查看日期當天或之前，算已進駐，計入出租率。進駐日已過的，記得到資料庫轉成正式租約。"><i class="vac-sw sw-bin"></i>預計進駐(已到進駐日)</span>
-        <span class="has-tip" data-tip="預計進駐＝已簽約但尚未起租，或未簽約但預計進駐的客戶。進駐日在查看日期之後，不計入出租率，只是提醒之後會有人進駐。"><i class="vac-sw sw-later"></i>預計進駐(未到進駐日)</span>
-        <span><i class="vac-sw sw-free"></i>未出租</span>
+        <span><i class="vac-sw sw-exp"></i>即將到期（90 天內）</span>
+        <span><i class="vac-sw sw-bin"></i>預計進駐</span>
       </div>
       
       <div id="vacChart"></div>
@@ -870,7 +911,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="card-head">
         <div>
           <h2>預計進駐</h2>
-          <p>已知未來某個空間要租給某客戶、但還沒簽約時，到「資料庫」按「＋ 新增預計進駐」（或在新增租約表單把「案件狀態」選成「預計進駐」）填寫，就會顯示在上面的圖表；簽約後在同一筆把案件狀態改成「已簽約」並補齊租金資料即可。已簽約但起租日還沒到的租約不用重複填，圖表會自動帶入。</p>
+          <p>還沒簽約、但已知要進駐的客戶，到「資料庫」按「＋ 新增預計進駐」填寫；進駐日到了之後會顯示在上面的圖表。簽約後把案件狀態改成「已簽約」並補齊租金即可。</p>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:2px 0 4px;">
@@ -923,6 +964,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     <div id="advancedPanel" class="advanced-panel">
       想清掉目前存的資料、換回內建示範資料嗎？此動作會影響「所有人共用」的資料，且無法復原，請務必先確認沒有人還需要目前的資料。
       <a href="#" id="resetDemoLink" style="color:#111; font-weight:700;">點這裡重設</a>。
+      <div style="margin-top:10px;">正式資料上線前，想把測試用的租約全部清掉嗎？這會刪除<b>所有租出契約（含預計進駐、增補紀錄）和全部操作紀錄</b>；園區坪數基準、租入契約、草稿都不會動。此動作無法復原。
+        <a href="#" id="wipeLeasesLink" style="color:#c14343; font-weight:700;">清空租出契約與操作紀錄</a>。</div>
     </div>
   </div>
 </footer>
@@ -931,6 +974,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   <div class="modal">
     <h3 id="leaseModalTitle">新增租約</h3>
     <p class="sub" id="leaseModalSub">填寫業務簽約後的基本資訊，系統會自動試算單位租金、總月租金與狀態。</p>
+    <div class="lease-nav" id="leaseNav" style="display:none;"></div>
     <form id="addForm" novalidate>
       <div class="form-grid">
         <div class="form-field full">
@@ -950,7 +994,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <select id="f_category">
             <option value="倉儲">倉儲</option>
             <option value="停車位">停車位</option>
-            <option value="設備">設備</option>
+            <option value="設備">設備／追加項目（固定金額）</option>
           </select>
           <div class="hint" id="categoryHint"></div>
         </div>
@@ -992,12 +1036,73 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <input type="date" id="f_end" required>
         </div>
         <div class="form-field tent-hide">
-          <label id="label_baseunit">首年單位租金（元/坪） <span class="req">*</span></label>
-          <input type="number" id="f_baseunit" step="0.01" min="0" required>
+          <label>免租期起（選填）</label>
+          <input type="date" id="f_freeStart">
         </div>
         <div class="form-field tent-hide">
+          <label>免租期迄</label>
+          <input type="date" id="f_freeEnd">
+          <div class="hint">有免租期的話，免租期間<b>租金算 0</b>，租金表的日期照合約填即可。沒有免租期就兩格都留白。</div>
+          <label class="free-mgmt-opt"><input type="checkbox" id="f_freeMgmt"> 免租期間管理費免收</label>
+        </div>
+        <div class="form-field tent-hide">
+          <label>管理費計算方式</label>
+          <select id="f_mgmtmode"><option value="unit">依面積（單價 × 面積）</option><option value="total">整包金額（每月固定總額，不依面積）</option></select>
+          <div class="hint" id="mgmtModeHint"></div>
+        </div>
+        <div class="form-field tent-hide">
+          <label>不足月計算方式</label>
+          <select id="f_prorate"><option value="30">月租金 ÷ 30 × 天數（預設）</option><option value="31">月租金 ÷ 31 × 天數</option><option value="actual">月租金 ÷ 當月實際天數 × 天數</option></select>
+          <div class="hint">起租月、到期月、免租期結束的月份不足整月時，用哪一種方式折算（租金與管理費相同）。契約寫「依當月實際天數」的選第二個。</div>
+        </div>
+        <div class="form-field tent-hide" id="wrap_mgmt">
           <label id="label_mgmt">管理費（元/坪）</label>
           <input type="number" id="f_mgmt" step="0.01" min="0" value="0">
+        </div>
+        <div class="form-field full tent-hide" id="wrap_ltable">
+          <label>租金表 <span class="req">*</span></label>
+          <div class="hint" style="margin:0 0 6px;">每一列＝「從這天起」的單位租金，第一列的日期就是租期起。只填單價，月租金自動＝單價×面積；月租金那一欄通常留空，只有合約寫的是固定總金額、跟單價×面積對不起來時才填。有調整的契約，用下方「用公式產生」最快。</div>
+          <div class="hl-grid-wrap"><div id="lt_stages"></div></div>
+          <div class="hl-tools">
+            <button type="button" class="btn-link-inline" id="lt_addStage">＋ 新增一列</button>
+            <button type="button" class="btn-link-inline" id="lt_toolPaste">貼上 Excel 資料</button>
+            <button type="button" class="btn-link-inline" id="lt_toolGen">用公式產生（例如每年漲 0.5%）</button>
+          </div>
+          <div class="hl-panel hidden" id="lt_panelPaste">
+            <div>從 Excel 複製「日期、單價、月租金」幾欄直接貼上，欄位順序不拘，系統會自己判斷（民國年、2018/8/1 都可以）。貼上會取代目前的租金表。</div>
+            <textarea id="lt_pasteText" placeholder="例：&#10;2024/1/1&#9;450&#10;2025/1/1&#9;455"></textarea>
+            <div class="hl-panel-row"><button type="button" class="btn btn-primary" id="lt_pasteApply" style="padding:5px 14px;">套用到租金表</button><span id="lt_pasteMsg" style="color:var(--text-soft);"></span></div>
+          </div>
+          <div class="hl-panel hidden" id="lt_panelGen">
+            <div class="lt-gen-desc">合約每隔幾年漲固定比例或金額時，填條件，一次展開成租金表。</div>
+            <div class="lt-gen-sec">
+              <div class="lt-gen-h">租金</div>
+              <div class="lt-gen-grid">
+                <label title="這一天開始用「起始單價」，之後每隔 N 年調一次。起算日之前已經填好的列會保留。"><span class="lbl">起算日（預設＝租期起）</span><input type="date" id="lt_genFrom"></label>
+                <label><span class="lbl">起始單價（<span id="lt_genUnitWord">元/坪/月</span>）</span><input type="number" id="lt_genUnit" min="0" step="0.01"></label>
+                <label><span class="lbl">每隔幾年調整</span><input type="number" id="lt_genFreq" min="1" step="1" value="1"></label>
+                <label><span class="lbl">調整方式</span><select id="lt_genMode"><option value="pct">漲固定百分比</option><option value="amt">加固定金額</option></select></label>
+                <label><span class="lbl"><span id="lt_genValLabel">漲幅（%）</span></span><input type="number" id="lt_genVal" step="0.01"></label>
+                <label title="合約寫「漲到某年為止、之後固定」時填。這天之後單價維持不變。"><span class="lbl">調漲到這天為止（選填）</span><input type="date" id="lt_genUntil"></label>
+                <label class="lt-gen-check" title="每一期漲完先四捨五入成整數，下一期再用取整後的單價去漲（例如 606 → 609 → 612）；不勾就保留小數。"><input type="checkbox" id="lt_genRound"> 單價每期四捨五入成整數</label>
+              </div>
+            </div>
+            <div class="lt-gen-sec">
+              <div class="lt-gen-h">管理費（沒有調整就不用填）</div>
+              <div class="lt-gen-grid two">
+                <label id="lt_genMgmtWrap"><span class="lbl">起始管理費（<span id="lt_genMgmtUnit">元/坪</span>）</span><input type="number" id="lt_genMgmt" min="0" step="0.01"></label>
+                <label id="lt_genMgmtPctWrap"><span class="lbl">每期漲幅（%）</span><input type="number" id="lt_genMgmtPct" step="0.01" placeholder="空白＝不漲"></label>
+              </div>
+            </div>
+            <div class="lt-gen-actions"><button type="button" class="btn btn-primary" id="lt_genApply" style="padding:6px 18px;">產生租金表</button></div>
+            <div id="lt_genPreview" style="margin-top:6px;"></div>
+            <div id="lt_genMsg" style="color:var(--text-soft); margin-top:4px;"></div>
+          </div>
+        </div>
+        <div id="lt_legacy" style="display:none;">
+        <div class="form-field tent-hide">
+          <label id="label_baseunit">首年單位租金（元/坪） <span class="req">*</span></label>
+          <input type="number" id="f_baseunit" step="0.01" min="0">
         </div>
         <div class="form-field full tent-hide">
           <label>調整方式</label>
@@ -1025,6 +1130,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
           <label>手動覆蓋總月租金（選填）</label>
           <input type="number" id="f_override" step="1" min="0" placeholder="留空則依上方規則自動試算">
         </div>
+        </div>
         <div class="form-field">
           <label id="label_inputby">BD承辦 <span class="req">*</span></label>
           <input type="text" id="f_input_by" required>
@@ -1042,6 +1148,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" id="cancelAdd">取消</button>
         <button type="button" class="btn btn-secondary" id="draftLeaseBtn" title="資料還沒填完也可以先存成草稿，之後再繼續編輯；草稿不計入任何統計">暫存草稿</button>
+        <button type="button" class="btn btn-secondary" id="submitAddItemBtn" title="先把這張表單存起來（視窗不會關閉就消失），接著直接開一張同契約的新項目：例如固定月租、不隸屬特定區域的「追加項目租金」">儲存，並新增下一項</button>
         <button type="button" class="btn btn-primary" id="submitLeaseBtn">送出登錄</button>
       </div>
     </form>
@@ -1065,16 +1172,20 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
         <div class="form-field"><label>租期起 <span class="req">*</span></label><input type="date" id="hl_start"></div>
         <div class="form-field"><label>租期迄 <span class="req">*</span></label><input type="date" id="hl_end"></div>
         <div class="form-field"><label>免租期起</label><input type="date" id="hl_freeStart"></div>
-        <div class="form-field"><label>免租期迄（含當天）</label><input type="date" id="hl_freeEnd"><div class="hint">有免租期的話，免租期間月租金算 0，租金表的日期照合約填即可。沒有免租期就兩格都留白。</div></div>
+        <div class="form-field"><label>免租期迄</label><input type="date" id="hl_freeEnd"><div class="hint">有免租期的話，免租期間月租金算 0，租金表的日期照合約填即可。沒有免租期就兩格都留白。</div></div>
         <div class="form-field full">
           <label>租金表 <span class="req">*</span></label>
           <div class="hint" style="margin:0 0 6px;">每一列＝「從這天起」的租金。只填單坪，月租金自動＝單坪×承租坪數；只填月租金，單坪自動換算；兩個都填就以你填的為準。手上有合約租金表的話，用下方「貼上 Excel 資料」最快。</div>
+          <div class="hl-round-opt">
+            <label>月租金取整
+              <select id="hl_roundUnit"><option value="0">四捨五入至元（未稅）</option><option value="1000">四捨五入至仟元（未稅）</option></select>
+            </label>
+          </div>
           <div class="hl-grid-wrap"><div id="hl_stages"></div></div>
           <div class="hl-tools">
             <button type="button" class="btn-link-inline" id="hl_addStage">＋ 新增一列</button>
             <button type="button" class="btn-link-inline" id="hl_toolPaste">貼上 Excel 資料</button>
             <button type="button" class="btn-link-inline" id="hl_toolGen">用公式產生（例如每年漲 1%）</button>
-            <button type="button" class="btn-link-inline" id="hl_toolCheck">核對合約金額</button>
           </div>
           <div class="hl-panel hidden" id="hl_panelPaste">
             <div>從 Excel 複製「日期、單坪、月租金」幾欄直接貼上，欄位順序不拘，系統會自己判斷（民國年、2018/8/1 都可以）。貼上會取代目前的租金表。</div>
@@ -1082,23 +1193,19 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
             <div class="hl-panel-row"><button type="button" class="btn btn-primary" id="hl_pasteApply" style="padding:5px 14px;">套用到租金表</button><span id="hl_pasteMsg" style="color:var(--text-soft);"></span></div>
           </div>
           <div class="hl-panel hidden" id="hl_panelGen">
-            <div>合約是「每隔幾年漲固定比例／固定金額」的話，輸入起算條件，系統會一期一期展開成租金表（到租期迄為止），展開後每一列都還能再手動修改。</div>
+            <div>合約是「每隔幾年漲固定比例／固定金額」的話，輸入起算條件，系統會一期一期展開成租金表（到租期迄為止），展開後每一列都還能再手動修改。合約寫「漲到某年為止、之後固定」的，填「調漲到這天為止」，這天之後單價維持不變；起算日之前已經填好的列會保留。</div>
             <div class="hl-panel-row">
               <label>起算日（預設＝租期起）<input type="date" id="hl_genFrom"></label>
               <label>起始單坪月租<input type="number" id="hl_genUnit" min="0" step="0.01" placeholder="元/坪"></label>
               <label>每隔幾年<input type="number" id="hl_genFreq" min="1" step="1" value="1"></label>
               <label>調整方式<select id="hl_genMode"><option value="pct">漲固定百分比</option><option value="amt">加固定金額</option></select></label>
               <label><span id="hl_genValLabel">漲幅（%）</span><input type="number" id="hl_genVal" step="0.01"></label>
-              <label style="flex-direction:row; align-items:center; gap:4px; padding-bottom:6px;"><input type="checkbox" id="hl_genRound" style="width:auto;"> 每期取整數元</label>
+              <label>調漲到這天為止（選填）<input type="date" id="hl_genUntil" style="width:140px;"></label>
+              <label style="flex-direction:row; align-items:center; gap:4px; padding-bottom:6px;" title="只影響「單坪月租」：每一期漲完先四捨五入成整數元／坪，下一期再用取整後的單坪去漲（例如 606 → 609 → 612）。不勾就保留小數（606 → 609.03 → 612.08）。月租金的取整請用上方「月租金取整」或每列的「取整方式」。"><input type="checkbox" id="hl_genRound" style="width:auto;"> 單坪月租每期四捨五入成整數（元/坪）</label>
               <button type="button" class="btn btn-primary" id="hl_genApply" style="padding:5px 14px;">產生租金表</button>
             </div>
+            <div id="hl_genPreview" style="margin-top:6px;"></div>
             <div id="hl_genMsg" style="color:var(--text-soft); margin-top:4px;"></div>
-          </div>
-          <div class="hl-panel hidden" id="hl_panelCheck">
-            <div>把合約上的租金（日期＋單坪或月租金）貼進來，系統會逐期跟上面的租金表比對，哪一期對不上會標紅。</div>
-            <textarea id="hl_checkText" placeholder="從 Excel 複製「日期、單坪、月租金」貼上"></textarea>
-            <div class="hl-panel-row"><button type="button" class="btn btn-primary" id="hl_checkApply" style="padding:5px 14px;">開始核對</button></div>
-            <div id="hl_checkResult"></div>
           </div>
         </div>
         <div class="form-field full"><label>備註</label><input type="text" id="hl_remark" autocomplete="off"></div>
@@ -1255,6 +1362,15 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </div>
 
 <script>
+/* 數字欄位只能打字或貼上：滾輪經過時先讓欄位失焦（這樣值不會被滾動改掉，頁面照常捲動），上下鍵也擋掉 */
+document.addEventListener("wheel", (e) => {
+  const t = e.target;
+  if (t && t.tagName === "INPUT" && t.type === "number" && document.activeElement === t) t.blur();
+}, { capture:true, passive:true });
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (t && t.tagName === "INPUT" && t.type === "number" && (e.key === "ArrowUp" || e.key === "ArrowDown")) e.preventDefault();
+}, true);
 /* 日期欄位：瀏覽器預設年份可以打到 6 位數（例如 202172），也不會在打完 4 位後自動跳到月份。
    給每個日期欄位補上 max=9999-12-31，年份就限制 4 位數，打完 4 位數會自動跳到下一格（月）。 */
 (function(){
@@ -1868,12 +1984,12 @@ function capToEnd(rec, asOf){
   return (e && asOf > e) ? e : asOf;
 }
 function leaseTermsAt(rec, asOf){
-  let t = { start: rec.start, baseUnit: rec.baseUnit, mgmt: rec.mgmt, adjustType: rec.adjustType, freq: rec.freq, pct: rec.pct, amt: rec.amt, override: rec.override, roundInt: rec.roundInt };
+  let t = { start: rec.start, baseUnit: rec.baseUnit, mgmt: rec.mgmt, adjustType: rec.adjustType, freq: rec.freq, pct: rec.pct, amt: rec.amt, override: rec.override, roundInt: rec.roundInt, adjustUntil: rec.adjustUntil };
   const ch = rec.priceChanges;
   if (Array.isArray(ch) && ch.length){
     const d = startOfLocalDay(asOf);
     [...ch].sort((a, b) => a.from < b.from ? -1 : 1).forEach(c => {
-      if (parseLocalDate(c.from) <= d) t = { start: c.from, baseUnit: c.baseUnit, mgmt: c.mgmt, adjustType: c.adjustType, freq: c.freq, pct: c.pct, amt: c.amt, override: c.override, roundInt: c.roundInt };
+      if (parseLocalDate(c.from) <= d) t = { start: c.from, baseUnit: c.baseUnit, mgmt: c.mgmt, adjustType: c.adjustType, freq: c.freq, pct: c.pct, amt: c.amt, override: c.override, roundInt: c.roundInt, adjustUntil: c.adjustUntil };
     });
   }
   return t;
@@ -1883,6 +1999,8 @@ function computeUnitRent(rec, asOf){
   // 已到期租約顯示的是最後生效的那個單價，不會因為今天又過了一個週年就繼續往上加。
   asOf = capToEnd(rec, asOf);
   const T = leaseTermsAt(rec, asOf);
+  // 「調漲到某天為止、之後固定」：超過停止調整日之後，一律用停止調整日當天的價格（不再繼續往上調）
+  if (T.adjustUntil){ const u = parseLocalDate(T.adjustUntil); if (u && asOf > u) asOf = u; }
   const start = parseLocalDate(T.start);
   const freq = (!T.freq || T.freq <= 0) ? 1 : Number(T.freq);
   // 租金調整要以「這組價格條款起算日的週年」為準（例如 2023-06-01 起租，要到每年 6/1 才調整一次），
@@ -1904,6 +2022,13 @@ function computeUnitRent(rec, asOf){
     return T.roundInt ? Math.round(v) : v;
   }
   return T.baseUnit; // 無調整 / 逐年手動填寫（無覆蓋時退回首年單位租金）
+}
+// 列表／匯出顯示用：有逐期租金表（多段「無調整」）的契約顯示「租金表（N 期）」，否則顯示原本的調整方式；有停止調整日時加註
+function adjustLabelFor(rec, T){
+  const ch = Array.isArray(rec.priceChanges) ? rec.priceChanges : [];
+  if (ch.length && (rec.adjustType || "無調整") === "無調整" && ch.every(c => (c.adjustType || "無調整") === "無調整")) return `租金表（${ch.length + 1} 期）`;
+  const base = T.adjustType;
+  return (T.adjustUntil && (base === "固定百分比遞增" || base === "固定金額遞增")) ? `${base}（至 ${dateText(T.adjustUntil)} 止）` : base;
 }
 function computeUnitRentDisplay(rec, asOf){
   const T = leaseTermsAt(rec, capToEnd(rec, asOf));
@@ -1929,19 +2054,17 @@ function amendLogLines(rec){
 }
 function amendBadge(r){
   const lines = amendLogLines(r);
-  const n = Math.max(lines.length, Array.isArray(r.priceChanges) ? r.priceChanges.length : 0);
+  const n = lines.length;   // 只算真正簽過的增補契約；租金表的各期價格不算
   if (!n) return "";
-  return ` <span class="pill pill-plan" style="cursor:help;" title="${escHtml(lines.join("\n") || "有價格調整紀錄")}">增補 ${n}</span>`;
+  return ` <span class="pill pill-plan" style="cursor:help;" title="${escHtml(lines.join("\n"))}">增補 ${n}</span>`;
 }
 function renderLeaseAmendLog(rec){
   const box = document.getElementById("leaseAmendLogBox");
   if (!box) return;
   const lines = rec ? amendLogLines(rec) : [];
-  const pcs = rec && Array.isArray(rec.priceChanges) ? [...rec.priceChanges].sort((a, b) => a.from < b.from ? -1 : 1) : [];
-  if (!lines.length && !pcs.length){ box.style.display = "none"; box.innerHTML = ""; return; }
+  if (!lines.length){ box.style.display = "none"; box.innerHTML = ""; return; }   // 租金表各期價格已經在上面的租金表裡，不重複列在這裡
   box.style.display = "";
   box.innerHTML = `<div class="am-title">增補紀錄（唯讀；要新增請在資料庫按該列的「增補」）</div>` +
-    (pcs.length ? `<div class="am-line"><b>價格調整：</b>首年條款 單價 ${escHtml(fmt2(rec.baseUnit))}、管理費 ${escHtml(String(rec.mgmt || 0))}（${escHtml(rec.adjustType)}）</div>` + pcs.map(c => `<div class="am-line">　${dateText(c.from)} 起：單價 ${escHtml(fmt2(c.baseUnit))}${c.override !== null && c.override !== undefined && c.override !== "" ? "（手動覆蓋 " + escHtml(String(c.override)) + "）" : ""}、管理費 ${escHtml(String(c.mgmt || 0))}（${escHtml(c.adjustType)}${c.adjustType === "固定百分比遞增" ? `，每${c.freq || 1}年 +${c.pct}%` : c.adjustType === "固定金額遞增" ? `，每${c.freq || 1}年 +${c.amt}元` : ""}）</div>`).join("") : "") +
     lines.map(l => `<div class="am-line">・${escHtml(l)}</div>`).join("");
 }
 function computeStatus(rec, asOf){
@@ -1965,8 +2088,19 @@ function isCurrentlyActive(rec, asOf){
 function isOccupancyLease(rec){
   return rec.category !== "停車位" && rec.category !== "設備" && rec.stage !== "預計進駐";   // 預計進駐（尚未簽約）不算已租
 }
+// 未四捨五入的月租金／月管理費：只給「月別總表」合併計算用（同一份契約各單元先加總、最後才四捨五入，避免每個單元各捨一點、合計差幾塊錢）。
+function computeTotalRentExact(rec, asOf){
+  const T = leaseTermsAt(rec, capToEnd(rec, asOf));
+  if (T.override !== null && T.override !== "" && T.override !== undefined) return Number(T.override);
+  return computeUnitRent(rec, asOf) * (Number(rec.area) || 0);
+}
+function computeMgmtTotalExact(rec, asOf){
+  const m = asOf ? leaseTermsAt(rec, capToEnd(rec, asOf)).mgmt : rec.mgmt;
+  return rec.mgmtMode === "total" ? (Number(m) || 0) : (Number(m) || 0) * (Number(rec.area) || 0);
+}
 function computeMgmtTotal(rec, asOf){
   const m = asOf ? leaseTermsAt(rec, capToEnd(rec, asOf)).mgmt : rec.mgmt;
+  if (rec.mgmtMode === "total") return Math.round(Number(m) || 0);   // 整包金額：每月固定總額，不乘面積
   return Math.round((Number(m)||0) * (Number(rec.area)||0));
 }
 function statusPillClass(s){
@@ -2164,8 +2298,8 @@ async function auditRecord(entry){
 
 /* ---- 算出「改了什麼」 ---- */
 const LEASE_FIELD_LABELS = {
-  stage:"案件狀態", zone:"園區", category:"類型", building:"棟別", floor:"樓層", unit:"單元", client:"客戶",
-  start:"租期起", end:"租期迄", area:"面積／車位數", baseUnit:"首年單位租金", adjustType:"調整方式",
+  stage:"案件狀態", zone:"園區", category:"類型", building:"棟別", floor:"樓層", unit:"單元", client:"客戶", adjustUntil:"停止調整日",
+  start:"租期起", end:"租期迄", freeStart:"免租期起", freeEnd:"免租期迄", freeMgmt:"免租期管理費也免收", area:"面積／車位數", baseUnit:"首年單位租金", adjustType:"調整方式",
   freq:"調整頻率(年)", pct:"調整百分比", amt:"調整金額", override:"手動覆蓋總月租金",
   mgmt:"管理費單價", inputBy:"BD承辦", sap:"SAP契約號碼", remark:"備註",
 };
@@ -2283,7 +2417,7 @@ function auditDateKey(ts){
 }
 function auditPillClass(a){
   if (a === "新增" || a === "還原" || a === "匯入") return "pill-good";
-  if (a === "刪除" || a === "清空棟別明細" || a === "重設為示範資料") return "pill-critical";
+  if (a === "刪除" || a === "清空棟別明細" || a === "重設為示範資料" || a === "清空租約資料") return "pill-critical";
   if (a === "修改") return "pill-warning";
   return "pill-vacant";
 }
@@ -2613,9 +2747,35 @@ function contractGroupKey(rec){
   if (rec.contractId) return "cid:" + rec.contractId;
   return ["legacy", rec.zone, rec.category, rec.building||"", rec.client, rec.start, rec.end].join("␟");
 }
+// 排列順序（由上而下）：園區（照園區坪數基準的順序）→ 同一份契約放在一起（依契約內最前面的單元位置）→ 倉儲、停車位、設備（追加項目）→ 棟別 → 樓層 → 單元，
+// 數字依大小排（A2 在 A10 前面、1 樓在 2 樓前面），所以不管匯入或新增的先後，畫面和匯出檔都是同一種有條理的順序。
+const NAT = new Intl.Collator("zh-Hant", { numeric:true, sensitivity:"base" });
+function leaseCatRank(c){ return c === "倉儲" || !c || c === "廠房" ? 0 : (c === "停車位" ? 1 : 2); }
+function leaseLocCmp(a, b){
+  return leaseCatRank(a.category) - leaseCatRank(b.category)
+    || NAT.compare(a.building || "", b.building || "") || NAT.compare(a.floor || "", b.floor || "") || NAT.compare(a.unit || "", b.unit || "");
+}
+function leaseSortedList(list){
+  const zi = new Map(zoneNames().map((z, i) => [z, i]));
+  const byKey = new Map();
+  list.forEach(r => { const k = contractGroupKey(r); if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(r); });
+  const anchor = new Map();
+  byKey.forEach((arr, k) => anchor.set(k, [...arr].sort(leaseLocCmp)[0]));
+  return [...list].sort((a, b) => {
+    const za = zi.has(a.zone) ? zi.get(a.zone) : 9999, zb = zi.has(b.zone) ? zi.get(b.zone) : 9999;
+    if (za !== zb) return za - zb;
+    if (za === 9999 && a.zone !== b.zone) return NAT.compare(a.zone || "", b.zone || "");
+    const ka = contractGroupKey(a), kb = contractGroupKey(b);
+    if (ka !== kb){
+      const x = anchor.get(ka), y = anchor.get(kb);
+      return leaseLocCmp(x, y) || NAT.compare(a.client || "", b.client || "") || (ka < kb ? -1 : 1);
+    }
+    return leaseLocCmp(a, b);
+  });
+}
 function buildContractNameMap(records){
   const groups = new Map();
-  records.forEach(r=>{
+  [...records].sort(leaseLocCmp).forEach(r=>{
     const key = contractGroupKey(r);
     if (!groups.has(key)) groups.set(key, { client: r.client, units: [] });
     const g = groups.get(key);
@@ -2633,7 +2793,7 @@ function renderDb(){
   const q = document.getElementById("dbSearch").value.trim().toLowerCase();
   const tbody = document.getElementById("dbTbody");
   const contractNameMap = buildContractNameMap(LEASE_DB);
-  const rows = LEASE_DB
+  const rows = leaseSortedList(LEASE_DB)
     .filter(dbZoneMatch)
     .filter(dbStageMatch)
     .filter(r => {
@@ -2688,11 +2848,11 @@ function renderDb(){
       <td>${r.start}</td>
       <td>${r.end || dash}</td>
       <td class="num">${fmtInt(r.area)}</td>
-      <td class="computed num"${prorate.days ? ` title="本月只租 ${prorate.days} 天，按「月租金 ÷ 30 × ${prorate.days} 天」計算；完整月租金為 ${fmtInt(computeTotalRent(r, TODAY))}"` : ""}>${tent ? dash : fmtInt(totalRent)}${(!tent && prorate.days) ? ` <small style="color:var(--text-soft);">(${prorate.days}天)</small>` : ""}</td>
-      <td class="computed num">${tent ? dash : fmtInt(computeMgmtNow(r, TODAY))}</td>
-      <td class="computed num">${tent ? dash : fmt2(unitRent)}</td>
+      <td class="computed num"${prorate.days ? ` title="本月只租 ${prorate.days} 天，按「月租金 ÷ ${r.prorate === "actual" ? new Date(TODAY.getFullYear(), TODAY.getMonth() + 1, 0).getDate() + "（當月天數）" : prorateDivisor(r, 0)} × ${prorate.days} 天」計算；完整月租金為 ${fmtInt(computeTotalRent(r, TODAY))}"` : ""}>${tent ? dash : (totalRent ? fmtInt(totalRent) : "-")}${(!tent && leaseFreeNow(r, TODAY)) ? ` <span class="pill pill-plan" title="免租期 ${escHtml(dateText(r.freeStart))} ～ ${escHtml(dateText(r.freeEnd))}：這段期間租金為 0（${r.freeMgmt ? "管理費也免收" : "管理費照收"}）">免租中</span>` : ""}${(!tent && prorate.days) ? ` <small style="color:var(--text-soft);">(${prorate.days}天)</small>` : ""}</td>
+      <td class="computed num">${tent ? dash : (computeMgmtNow(r, TODAY) ? fmtInt(computeMgmtNow(r, TODAY)) : "-")}</td>
+      <td class="computed num">${tent ? dash : (unitRent ? fmt2(unitRent) : "-")}</td>
       <td class="computed"><span class="pill ${statusPillClass(status)}">${status}</span></td>
-      <td>${tent ? dash : T.adjustType}</td>
+      <td>${tent ? dash : escHtml(adjustLabelFor(r, T))}</td>
       <td class="num">${tent ? dash : (T.freq ?? 1)}</td>
       <td class="num">${(!tent && T.adjustType==="固定百分比遞增") ? fmtPct1(T.pct/100) : "—"}</td>
       <td>${r.inputBy||""}</td>
@@ -2764,8 +2924,50 @@ let editingId = null;
 let editingRecRef = null;
 let prefillContractId = null;
 
+// 同一份契約底下有好幾筆（單元、追加項目…）時，編輯畫面上方顯示「◀ 上一項／各項目／下一項 ▶」，不用關掉視窗再重新點進去。
+let leaseSnap = "", leaseRecSig = "", leaseNavAfter = null;   // leaseNavAfter：按了上方切換列、儲存完要跳去的那一項
+function canonJson(v){
+  if (Array.isArray(v)) return "[" + v.map(canonJson).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).sort().filter(k => v[k] !== undefined).map(k => JSON.stringify(k) + ":" + canonJson(v[k])).join(",") + "}";
+  return JSON.stringify(v === undefined ? null : v);
+}
+function leaseFormSig(){
+  return JSON.stringify([[...addForm.elements].map(el => el.type === "checkbox" ? el.checked : el.value), ltReadRows()]);
+}
+function leaseGroupItems(rec){
+  if (!rec || rec.stage === "預計進駐") return [];
+  const key = contractGroupKey(rec);
+  return LEASE_DB.filter(r => r.stage !== "預計進駐" && contractGroupKey(r) === key).sort(leaseLocCmp);
+}
+function renderLeaseNav(rec){
+  const box = document.getElementById("leaseNav");
+  const items = leaseGroupItems(rec);
+  if (items.length < 2){ box.style.display = "none"; box.innerHTML = ""; return; }
+  const idx = items.findIndex(r => String(r.id) === String(rec.id));
+  const name = r => r.unit || "（未命名）";
+  box.innerHTML = `<span class="ln-label">此契約共 ${items.length} 項</span>` +
+    `<button type="button" class="arrow" data-ln="${idx - 1}" ${idx <= 0 ? "disabled" : ""} title="上一項">◀</button>` +
+    items.map((r, i) => `<button type="button" data-ln="${i}" class="${i === idx ? "on" : ""}" title="${escHtml(r.unit || "")}">${escHtml(name(r))}</button>`).join("") +
+    `<button type="button" class="arrow" data-ln="${idx + 1}" ${idx >= items.length - 1 ? "disabled" : ""} title="下一項">▶</button>`;
+  box.style.display = "";
+  box.querySelectorAll("button[data-ln]").forEach(b => b.addEventListener("click", async () => {
+    const t = items[Number(b.dataset.ln)];
+    if (!t || String(t.id) === String(rec.id)) return;
+    if (leaseFormSig() !== leaseSnap){   // 有修改：先自動儲存這一項再切換（資料有問題存不了的話，會留在這一項並顯示原因）
+      if (leaseSubmitting) return;
+      leaseSubmitting = true; leaseNavAfter = t.id;
+      try{ await submitLeaseForm(); }
+      finally{ leaseSubmitting = false; leaseNavAfter = null; }
+      return;
+    }
+    openLeaseModal(t);
+    overlay.scrollTop = 0; const mm = overlay.querySelector(".modal"); if (mm) mm.scrollTop = 0;
+  }));
+}
+let nextItemMode = false;   // 正在填「同契約的下一項」：類型改成設備時，自動換成追加項目的預設值
 function openLeaseModal(existingRec, prefill, opts){
   renderLeaseAmendLog(null);
+  nextItemMode = !!(prefill && prefill.nextItem);
   opts = opts || {};
   currentDraftId = opts.draft ? String(opts.draft.id) : null;
   document.getElementById("draftLeaseBtn").style.display = existingRec ? "none" : "";   // 草稿只給「新增」用；編輯既有租約不需要
@@ -2807,14 +3009,17 @@ function openLeaseModal(existingRec, prefill, opts){
     document.getElementById("f_input_by").value = existingRec.inputBy || "";
     document.getElementById("f_sap").value = existingRec.sap || "";
     document.getElementById("f_remark").value = existingRec.remark || "";
+    document.getElementById("f_freeStart").value = existingRec.freeStart || "";
+    document.getElementById("f_freeEnd").value = existingRec.freeEnd || "";
+    document.getElementById("f_freeMgmt").checked = !!existingRec.freeMgmt;
     renderLeaseAmendLog(existingRec);
   } else if (prefill){
     // 同一份契約、新增下一個租賃單元：帶入共用欄位，只留單元本身的資料（單元、坪數、租金…）給使用者填。
     editingId = null;
     editingRecRef = null;
     prefillContractId = prefill.contractId || null;
-    document.getElementById("leaseModalTitle").textContent = "新增租約（同契約的下一個單元）";
-    document.getElementById("leaseModalSub").textContent = "已自動帶入客戶、租期、調整方式等共用資料，請填寫這個單元本身的資訊。";
+    document.getElementById("leaseModalTitle").textContent = "新增下一項（同契約）";
+    document.getElementById("leaseModalSub").textContent = "已自動帶入客戶、租期、租金表等共用資料，請填寫這一項本身的資訊。要加每月固定金額的追加項目時，把「類型」改成「設備／追加項目」即可。";
     document.getElementById("submitLeaseBtn").textContent = "送出登錄";
     fZone.value = prefill.zone;
     updateBuildingField(prefill.building);
@@ -2831,6 +3036,16 @@ function openLeaseModal(existingRec, prefill, opts){
     document.getElementById("f_amt").value = prefill.amt || "";
     document.getElementById("f_input_by").value = prefill.inputBy || "";
     document.getElementById("f_sap").value = prefill.sap || "";
+    document.getElementById("f_freeStart").value = prefill.freeStart || "";
+    document.getElementById("f_freeEnd").value = prefill.freeEnd || "";
+    document.getElementById("f_freeMgmt").checked = !!prefill.freeMgmt;
+    if (prefill.addItem){   // 追加項目（固定金額）：數量 1，單價＝每月金額，單元欄先帶一個名稱
+      document.getElementById("leaseModalTitle").textContent = "新增下一項（同契約・追加項目）";
+      document.getElementById("leaseModalSub").textContent = "已帶入客戶、租期等共用資料。請填「單元」欄的項目名稱（例如 追加項目租金）與租金表的每月金額；數量固定為 1，不計入出租率坪數。";
+      document.getElementById("f_unit").value = prefill.unit || "追加項目租金";
+      document.getElementById("f_area").value = 1;
+      document.getElementById("f_mgmt").value = 0;
+    }
   } else if (opts.draft){
     // 從草稿接著填：照暫存當下的內容把表單填回去（跟編輯一樣的順序：園區→棟別→類型→租期→單元），仍然是「新增」，要正式登錄才會進資料庫。
     const f = opts.draft.data.form || {};
@@ -2860,6 +3075,9 @@ function openLeaseModal(existingRec, prefill, opts){
     document.getElementById("f_input_by").value = f.inputBy || "";
     document.getElementById("f_sap").value = f.sap || "";
     document.getElementById("f_remark").value = f.remark || "";
+    document.getElementById("f_freeStart").value = f.freeStart || "";
+    document.getElementById("f_freeEnd").value = f.freeEnd || "";
+    document.getElementById("f_freeMgmt").checked = !!f.freeMgmt;
   } else {
     editingId = null;
     editingRecRef = null;
@@ -2875,22 +3093,34 @@ function openLeaseModal(existingRec, prefill, opts){
     document.getElementById("f_freq").value = 1;
   }
   updateAdjustFields();
+  ltEl("f_mgmtmode").value = ((existingRec ? existingRec.mgmtMode : (prefill ? prefill.mgmtMode : (opts.draft ? (opts.draft.data.form || {}).mgmtMode : ""))) === "total") ? "total" : "unit";
+  ltApplyMgmtMode();
+  ltEl("f_prorate").value = (v => (v === "actual" || v === "31") ? v : "30")(existingRec ? existingRec.prorate : (prefill ? prefill.prorate : (opts.draft ? (opts.draft.data.form || {}).prorate : "")));
+  ltLoad(existingRec ? ltRowsFromRec(existingRec) : (prefill ? (prefill.ltRows || null) : (opts.draft ? ltRowsFromForm(opts.draft.data.form || {}) : null)));
+  ltEl("f_start").dataset.prev = ltEl("f_start").value;
   leaseTitleBase = document.getElementById("leaseModalTitle").textContent;
   leaseSubBase = document.getElementById("leaseModalSub").textContent;
   leaseBtnBase = document.getElementById("submitLeaseBtn").textContent;
   updateStageFields(false);
+  renderLeaseNav(existingRec || null);
+  leaseSnap = leaseFormSig();
+  leaseRecSig = existingRec ? canonJson(existingRec) : "";
   overlay.classList.add("open");
   if (prefill){
     setTimeout(()=>{
-      const u = document.getElementById("f_unit");
-      u.focus();
+      const u = prefill.addItem ? document.querySelector('#lt_stages [data-k="unit"]') : document.getElementById("f_unit");
+      if (u) u.focus();
     }, 50);
   }
 }
 
 document.getElementById("openAddModal").addEventListener("click", ()=> openLeaseModal(null));
 document.getElementById("openAddPlanBtn").addEventListener("click", ()=> openLeaseModal(null, null, { stage:"預計進駐" }));
-document.getElementById("cancelAdd").addEventListener("click", ()=>{ overlay.classList.remove("open"); });
+document.getElementById("cancelAdd").addEventListener("click", async ()=>{
+  // 有修改還沒儲存就關掉視窗，會把剛打的資料全部丟掉：先問一聲
+  if (leaseFormSig() !== leaseSnap && !(await askConfirm("這個視窗有修改還沒儲存，現在關掉會全部放棄。\n\n確定要關閉嗎？（按取消回去繼續編輯）", "還沒儲存"))) return;
+  overlay.classList.remove("open");
+});
 document.getElementById("draftLeaseBtn").addEventListener("click", async ()=>{
   const g = id => document.getElementById(id).value;
   const unitPickerVisible = !document.getElementById("wrap_unitpicker").classList.contains("hidden");
@@ -2901,8 +3131,10 @@ document.getElementById("draftLeaseBtn").addEventListener("click", async ()=>{
     unit: g("f_unit").trim(), unitIds: picked.map(l => l.id), client: g("f_client").trim(), start: g("f_start"), end: g("f_end"),
     area: g("f_area"), baseUnit: g("f_baseunit"), mgmt: g("f_mgmt"), adjustType: g("f_adjusttype"), freq: g("f_freq"), pct: g("f_pct"), amt: g("f_amt"),
     override: g("f_override"), inputBy: g("f_input_by").trim(), sap: g("f_sap").trim(), remark: g("f_remark").trim(),
+    freeStart: g("f_freeStart"), freeEnd: g("f_freeEnd"), mgmtMode: g("f_mgmtmode"), prorate: g("f_prorate"), freeMgmt: ltEl("f_freeMgmt").checked,
+    ltRows: ltReadRows(),
   };
-  if (!form.client && !form.unit && !picked.length && !form.area && !form.start && !form.baseUnit && !form.remark){
+  if (!form.client && !form.unit && !picked.length && !form.area && !form.start && !ltHasData() && !form.remark){
     await notify("還沒填任何內容，至少填一點（例如客戶、單元或租期）再暫存。"); return;
   }
   const label = `${form.stage === "預計進駐" ? "預計進駐：" : ""}${form.client || "（未填客戶）"}${form.unit ? "-" + form.unit : ""}・${form.zone}`;
@@ -2926,9 +3158,10 @@ function updateStageFields(rerenderPicker){
   document.getElementById("label_end").innerHTML = t ? `預計租期迄（選填）` : `租期迄 <span class="req">*</span>`;
   document.getElementById("label_inputby").innerHTML = t ? `BD承辦（選填）` : `BD承辦 <span class="req">*</span>`;
   document.getElementById("stageHint").textContent = t
-    ? "還沒簽約、只知道未來某空間會租給誰時用這個：不會計入租賃收入與出租率，只顯示在「空置總覽」與「租賃單元狀態」。簽約後回來把案件狀態改成「已簽約」，補齊租期迄與租金即可。"
+    ? "還沒簽約、只知道未來某空間會租給誰時用這個：不會計入租賃收入；進駐日到了之後會顯示在「空置率總覽」與「租賃單元狀態」。簽約後回來把案件狀態改成「已簽約」，補齊租期迄與租金即可。"
     : "";
   const editing = editingId !== null;
+  document.getElementById("submitAddItemBtn").style.display = t ? "none" : "";
   document.getElementById("leaseModalTitle").textContent = t ? (editing ? "編輯預計進駐" : "新增預計進駐") : leaseTitleBase;
   document.getElementById("leaseModalSub").textContent = t ? "先把已知的預計進駐記下來（園區、單元、客戶、預計進駐日、坪數）。單元清單會依進駐日判斷：進駐日前不會空出的單元無法勾選。" : leaseSubBase;
   document.getElementById("submitLeaseBtn").textContent = (t && !editing) ? "送出預計進駐" : leaseBtnBase;
@@ -3000,7 +3233,11 @@ function syncUnitFieldFromPicker(){
   if (floorHint){
     floorHint.textContent = texts.floor ? `對應樓層：${texts.floor}` : "";
   }
-  if (chosen.length) document.getElementById("f_area").value = chosen.reduce((s,l)=> s + l.area, 0);
+  if (chosen.length){
+    const oldA = document.getElementById("f_area").value;
+    document.getElementById("f_area").value = chosen.reduce((s,l)=> s + l.area, 0);
+    if (typeof ltAreaChanged === "function" && document.getElementById("lt_stages")) ltAreaChanged(oldA);
+  }
 }
 document.getElementById("unitPickerAll").addEventListener("click", ()=>{
   document.querySelectorAll("#unitPickerList [data-unitpick]").forEach(cb => { cb.checked = true; });
@@ -3080,7 +3317,7 @@ function updateUnitPicker(keepIds, legacyUnitText){
       // 管理者如果想補登正確的樓層／單元，重新勾選即可（一勾選就會改用勾選結果覆蓋）。
       fUnit.value = legacyUnitText;
       const floorHint = document.getElementById("pickerFloorHint");
-      if (floorHint) floorHint.textContent = "⚠ 這筆租約建立時這一棟還沒有樓層資料，暫時維持原始單元文字；如需要請重新勾選對應的樓層／單元。";
+      if (floorHint) floorHint.textContent = "⚠ 這筆租約建立時此棟還沒有樓層資料，暫時維持原始單元文字；如需要請重新勾選對應的樓層／單元。";
     } else {
       syncUnitFieldFromPicker();
     }
@@ -3121,10 +3358,18 @@ function updateCategoryFields(){
   document.getElementById("categoryHint").textContent = isParking
     ? "單純記帳用，不計入出租率總覽的坪數，但月租金仍會算進租賃收入總覽。"
     : isEquip
-      ? "單純記帳用，不計入出租率總覽的坪數；月租金會獨立列在「租賃收入總覽」的「設備」報表，不跟倉儲/停車位的合計混在一起。"
+      ? "設備，或不隸屬特定區域的「追加項目租金」（每月固定金額）：數量填 1、單價填每月金額即可。單純記帳用，不計入出租率總覽的坪數；月租金會獨立列在「租賃收入總覽」的「設備」報表，不跟倉儲/停車位的合計混在一起。"
       : "";
 }
-fCategory.addEventListener("change", ()=>{ updateCategoryFields(); updateUnitPicker(); });
+fCategory.addEventListener("change", ()=>{
+  updateCategoryFields(); updateUnitPicker();
+  if (nextItemMode && fCategory.value === "設備"){   // 從倉儲單元的表單切成追加項目：單元名稱、數量帶預設值，租金表只留日期，單價重填
+    if (!document.getElementById("f_unit").value.trim()) document.getElementById("f_unit").value = "追加項目租金";
+    document.getElementById("f_area").value = 1;
+    document.getElementById("f_mgmt").value = 0;
+    ltLoad([{ from: ltFirstFrom() || "", unit:"", rent:"" }]);
+  }
+});
 
 const adjustHints = {
   "無調整": "每年維持首年單位租金，不會自動調整。",
@@ -3142,13 +3387,334 @@ function updateAdjustFields(){
 }
 updateAdjustFields();
 
+/* ---------------- 租出契約的租金表（跟租入契約同一種填法） ----------------
+   每一列＝「從這天起」的單位租金；第一列＝租期起，存成租約本身的首年條款，其餘各列存成價格調整紀錄（priceChanges，每列都是「無調整」），
+   所以原本的試算、月中換價按天數拆算、增補、報表全部沿用同一套計算。月租金那一欄＝選填的「手動覆蓋總月租金」。 */
+function ltEl(id){ return document.getElementById(id); }
+let ltRidSeq = 0;
+function ltUnitWord(){ const c = fCategory.value; return c === "停車位" ? "元/車位/月" : (c === "設備" ? "元/台/月" : "元/坪/月"); }
+// 管理費計算方式：依面積（單價 × 面積，全契約一個單價）或整包金額（每月固定總額，租金表每一列都可以填當期金額，每年調漲就逐年填）
+function ltMgmtTotal(){ return ltEl("f_mgmtmode").value === "total"; }
+// 依面積時，租金表管理費欄的單位（跟上方「管理費」欄位的標籤一致：元/坪，設備、停車位是 元/台/月 之類）
+function ltMgmtUnitWord(){ return ltEl("label_mgmt").textContent.replace(/^管理費（/, "").replace(/）$/, "") || "元/坪"; }
+function ltApplyMgmtMode(){
+  const t = ltMgmtTotal();
+  ltEl("wrap_mgmt").style.display = t ? "none" : "";
+  ltEl("lt_genMgmtUnit").textContent = t ? "元/月" : ltMgmtUnitWord();
+  ltEl("mgmtModeHint").textContent = t ? "每月固定一個總金額：到下方租金表「管理費」欄填各期金額（空白＝同上一列），每年調漲就逐年填，或用「用公式產生」一次展開。" : "";
+}
+ltEl("f_mgmtmode").addEventListener("change", () => {
+  const rows = ltReadRows().map(r => { const c = { ...r }; delete c._mgmt; return c; });   // 兩種方式的數字意義不同，切換時各列的管理費清空
+  ltApplyMgmtMode();
+  ltRenderRows(rows);
+  ltGenPreview();
+});
+function ltRowHtml(r, i){
+  const mgT = ltMgmtTotal();
+  const mg = "";
+  return `<div class="lt-row" data-i="${i}" data-rid="${escHtml(r._id || ("l" + (++ltRidSeq)))}"${mg}>
+    <input type="date" data-k="from" value="${escHtml(r.from || "")}">
+    <input type="number" data-k="unit" min="0" step="0.01" value="${escHtml(r.unit === undefined || r.unit === null ? "" : String(r.unit))}" placeholder="${ltUnitWord()}">
+    <input type="number" data-k="rent" min="0" step="1" value="${escHtml(r.rent === undefined || r.rent === null ? "" : String(r.rent))}" placeholder="元/月（選填）">
+    <input type="number" data-k="mgmt" min="0" step="${mgT ? 1 : 0.01}" value="${escHtml(r._mgmt === undefined || r._mgmt === null ? "" : String(r._mgmt))}" placeholder="同上一列">
+    <button type="button" class="btn-link-inline" data-ltrm="${i}" style="color:var(--status-critical);">移除</button>
+    <div class="hl-row-warn" data-warn="${i}"></div>
+  </div>`;
+}
+function ltRenderRows(rows){
+  if (!rows || !rows.length) rows = [{ from:"", unit:"", rent:"" }];
+  ltEl("lt_stages").innerHTML = `<div class="lt-row lt-row-head"><span>租金生效日（從這天起）</span><span id="lt_headUnit">單位租金（${ltUnitWord()}）</span><span>月租金（元，選填）</span><span id="lt_headMgmt" title="管理費有調整時，在調整生效的那一列填新的管理費；空白＝同上一列">${ltMgmtTotal() ? "管理費（元/月）" : "管理費（" + ltMgmtUnitWord() + "）"}</span><span><button type="button" class="btn-link-inline" id="lt_clearRows" style="color:var(--status-critical);" title="一次清空整個租金表">全部清空</button></span></div>` + rows.map(ltRowHtml).join("");
+  { const gw = ltEl("lt_genUnitWord"); if (gw) gw.textContent = ltUnitWord(); }
+  ltSyncHints();
+}
+function ltReadRows(){
+  const out = [];
+  ltEl("lt_stages").querySelectorAll(".lt-row[data-i]").forEach(row => {
+    const g = k => row.querySelector(`[data-k="${k}"]`).value;
+    const o = { from:g("from"), unit: g("unit") === "" ? "" : Number(g("unit")), rent: g("rent") === "" ? "" : Number(g("rent")), _id: row.dataset.rid };
+    const mi = row.querySelector('[data-k="mgmt"]');
+    if (mi){ if (mi.value !== "") o._mgmt = Number(mi.value); }
+    else if (row.dataset.mgmt !== undefined) o._mgmt = Number(row.dataset.mgmt);
+    out.push(o);
+  });
+  return out;
+}
+const ltHasData = () => ltReadRows().some(r => r.unit !== "" || r.rent !== "");
+function ltUpdateHead(){
+  const h = ltEl("lt_headUnit"); if (h) h.textContent = `單位租金（${ltUnitWord()}）`;
+  const hm = ltEl("lt_headMgmt"); if (hm && !ltMgmtTotal()) hm.textContent = `管理費（${ltMgmtUnitWord()}）`;
+  { const gw = ltEl("lt_genUnitWord"); if (gw) gw.textContent = ltUnitWord(); }
+  if (!ltMgmtTotal()) ltEl("lt_genMgmtUnit").textContent = ltMgmtUnitWord();
+  ltEl("lt_stages").querySelectorAll('[data-k="unit"]').forEach(el => { if (el.value === "") el.placeholder = ltUnitWord(); });
+}
+function ltArea(){ return Number(ltEl("f_area").value) || 0; }
+// 免租期（若從租期起就開始免租）：租金表第一列＝免租期結束後的第一天；沒有免租期或免租期在租期中間才開始，第一列＝租期起。
+function ltFreeRange(){
+  const fs = ltEl("f_freeStart").value, fe = ltEl("f_freeEnd").value;
+  return (fs && fe && fe >= fs) ? { fs, fe } : null;
+}
+function ltDayAfter(iso){ const d = parseLocalDate(iso); return d ? toDateInput(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) : ""; }
+function ltFirstFrom(){
+  const start = ltEl("f_start").value, fr = ltFreeRange();
+  return (fr && start && fr.fs <= start && start <= fr.fe) ? ltDayAfter(fr.fe) : start;
+}
+// 租期起或免租期一改，第一列的日期（還沒被手動改過的話）跟著換
+function ltRefreshFirst(){
+  const f = ltEl("lt_stages").querySelector('.lt-row[data-i="0"] [data-k="from"]'), exp = ltFirstFrom(), prev = ltEl("f_start").dataset.prevFirst || "";
+  if (f && (!f.value || f.value === prev)) f.value = exp;
+  ltEl("f_start").dataset.prevFirst = exp;
+  if (!ltEl("lt_genFrom").dataset.touched) ltEl("lt_genFrom").value = exp;
+  ltSyncHints(); ltGenPreview();
+}
+// 單價、月租金只填一邊時，另一格顯示自動換算的結果當提示；租金生效日不合理時在那一列下面跳紅字
+function ltSyncHints(){
+  const area = ltArea(), start = ltEl("f_start").value, end = ltEl("f_end").value;
+  ltEl("lt_stages").querySelectorAll(".lt-row[data-i]").forEach((row, i) => {
+    const u = row.querySelector('[data-k="unit"]'), r = row.querySelector('[data-k="rent"]'), f = row.querySelector('[data-k="from"]'), w = row.querySelector(".hl-row-warn");
+    u.placeholder = (u.value === "" && r.value !== "" && area > 0) ? "自動 " + fmt2(Number(r.value) / area) : ltUnitWord();
+    r.placeholder = (r.value === "" && u.value !== "" && area > 0) ? "自動 " + fmtInt(Math.round(Number(u.value) * area)) : "元/月（選填）";
+    let msg = "";
+    const fr = ltFreeRange(), first = ltFirstFrom();
+    if (f.value && start && f.value < start) msg = `租金生效日不能早於租期起（${dateText(start)}）`;
+    else if (f.value && end && f.value > end) msg = `租金生效日不能晚於租期迄（${dateText(end)}）`;
+    else if (f.value && fr && f.value >= fr.fs && f.value <= fr.fe) msg = `注意:租金生效日在免租期內（${dateText(fr.fs)} ～ ${dateText(fr.fe)}），請修改!`;
+    else if (i === 0 && f.value && start && f.value !== first) msg = first !== start ? `第一列的租金生效日要是免租期結束後的第一天（${dateText(first)}）` : `第一列的租金生效日要等於租期起（${dateText(start)}）`;
+    f.classList.toggle("field-error", !!msg); w.classList.toggle("show", !!msg); w.textContent = msg;
+    const mi = row.querySelector('[data-k="mgmt"]');
+    if (mi) mi.placeholder = (i === 0 && !ltMgmtTotal() && ltEl("f_mgmt").value !== "") ? String(ltEl("f_mgmt").value) : "同上一列";
+  });
+}
+// 把既有租約（首年條款＋價格調整紀錄）展開成逐期租金表；有公式的階段一期一期算出來。unitOnly＝只帶單價（給「同契約下一個單元」用，總月租金不帶）
+function ltRowsFromRec(rec, unitOnly){
+  const area = Number(rec.area) || 0, endD = parseLocalDate(rec.end), baseMgmt = Number(rec.mgmt) || 0;
+  const segs = [{ from:rec.start, t:rec }, ...(Array.isArray(rec.priceChanges) ? [...rec.priceChanges].sort((a, b) => a.from < b.from ? -1 : 1).map(c => ({ from:c.from, t:c })) : [])];
+  const rows = [];
+  const hasOv = v => v !== null && v !== undefined && v !== "" && !isNaN(Number(v));
+  let prevMg = baseMgmt;   // 依面積：管理費欄空白＝同上一列，所以只有「跟上一期不一樣」的那一列才填
+  segs.forEach((sg, i) => {
+    const t = sg.t, from = parseLocalDate(sg.from); if (!from) return;
+    if (endD && from > endD) return;   // 租期縮短後落在租期迄之後的價格調整已經沒有作用，不要展開成列
+    const next = segs[i + 1] ? parseLocalDate(segs[i + 1].from) : null;
+    const curMg = Number(t.mgmt) || 0, isTotal = rec.mgmtMode === "total";
+    const mg = isTotal ? (unitOnly ? undefined : curMg) : (curMg !== prevMg ? curMg : undefined);
+    if (!isTotal) prevMg = curMg;
+    let mgUsed = false;
+    const add = (d, unit, rent) => { const useMg = mg !== undefined && !(!isTotal && mgUsed); mgUsed = true; rows.push({ from:toDateInput(d), unit, rent, ...(useMg ? { _mgmt:mg } : {}) }); };
+    const formula = (t.adjustType === "固定百分比遞增" || t.adjustType === "固定金額遞增") && !hasOv(t.override);
+    if (!formula){
+      add(from, Number(t.baseUnit) > 0 ? Number(t.baseUnit) : (hasOv(t.override) && area > 0 ? Math.round(Number(t.override) / area * 100) / 100 : ""), (!unitOnly && hasOv(t.override)) ? Math.round(Number(t.override)) : "");
+      return;
+    }
+    const freq = Math.max(1, Number(t.freq) || 1), until = t.adjustUntil ? parseLocalDate(t.adjustUntil) : null;
+    for (let k = 0; k < 200; k++){
+      const d = new Date(from.getFullYear() + k * freq, from.getMonth(), from.getDate());
+      if ((next && d >= next) || (endD && d > endD) || (k > 0 && until && d > until)) break;
+      const u = computeUnitRent(rec, d), u2 = Math.round(u * 100) / 100;
+      if (unitOnly) add(d, Number(u.toFixed(4)), "");
+      else add(d, u2, (Math.abs(u - u2) > 1e-9 && area > 0) ? Math.round(u * area) : "");
+    }
+  });
+  // 從租期起就免租：租金表第一列放在免租期結束後的第一天（免租期內的列沒有意義，併掉）
+  if (rec.freeStart && rec.freeEnd && rec.freeStart <= rec.start && rec.start <= rec.freeEnd){
+    const d = parseLocalDate(rec.freeEnd), fe1 = d ? toDateInput(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) : "";
+    let idx = -1; rows.forEach((r, i) => { if (r.from <= fe1) idx = i; });
+    if (fe1 && idx >= 0 && !(endD && d >= endD)){
+      let eff = baseMgmt; if (rec.mgmtMode !== "total") rows.slice(0, idx + 1).forEach(r => { if (r._mgmt !== undefined) eff = r._mgmt; });
+      rows.splice(0, idx); rows[0].from = fe1;
+      if (rec.mgmtMode !== "total"){ if (eff !== baseMgmt) rows[0]._mgmt = eff; else delete rows[0]._mgmt; }
+    }
+  }
+  return rows;
+}
+// 讀取租金表並檢查；成功時回傳可以直接存進租約的欄位（首年條款＋價格調整紀錄）
+function ltCollect(){
+  const errors = [], area = ltArea(), start = ltEl("f_start").value, end = ltEl("f_end").value, mgmt = Number(ltEl("f_mgmt").value) || 0;
+  const rows = ltReadRows().map((r, i) => {
+    let unit = r.unit;
+    if (unit === "" && r.rent !== "" && area > 0) unit = Math.round(r.rent / area * 100) / 100;
+    return { ...r, unit, from: i === 0 ? (r.from || ltFirstFrom()) : r.from };
+  });
+  const fr = ltFreeRange(), firstFrom = ltFirstFrom();
+  const seen = new Set();
+  rows.forEach((r, i) => {
+    const no = `租金表第 ${i + 1} 列`;
+    if (!r.from) errors.push(`${no}：請填租金生效日`);
+    else {
+      if (start && r.from < start) errors.push(`${no}：租金生效日不能早於租期起`);
+      if (end && r.from > end) errors.push(`${no}：租金生效日不能晚於租期迄`);
+      if (fr && r.from >= fr.fs && r.from <= fr.fe) errors.push(`${no}：注意:租金生效日在免租期內（${dateText(fr.fs)} ～ ${dateText(fr.fe)}），請修改!`);
+      else if (i === 0 && start && r.from !== firstFrom) errors.push(firstFrom !== start ? `${no}：第一列的租金生效日要是免租期結束後的第一天（${dateText(firstFrom)}）` : `${no}：第一列的租金生效日要等於租期起（${dateText(start)}）`);
+      if (seen.has(r.from)) errors.push(`${no}：租金生效日跟其他列重複`);
+      seen.add(r.from);
+    }
+    const ok = r.unit !== "" && isFinite(r.unit) && Number(r.unit) >= 0;
+    if (!ok) errors.push(`${no}：請填單位租金或月租金`);
+    else if (i === 0 && !(Number(r.unit) > 0)) errors.push(`${no}：第一列的單位租金要大於 0`);
+  });
+  const sorted = [...rows].sort((a, b) => String(a.from) < String(b.from) ? -1 : (String(a.from) > String(b.from) ? 1 : 0));
+  const ov = r => (r.rent !== "" && isFinite(r.rent) && Math.round(Number(r.unit) * area) !== Number(r.rent)) ? Number(r.rent) : null;   // 月租金跟單價×面積一樣就不算覆蓋
+  const first = sorted[0] || { unit:"", from:firstFrom };
+  const mgT = ltMgmtTotal();
+  {   // 管理費：這一列沒填＝跟上一列一樣；第一列沒填＝上方「管理費」欄位的數字（整包金額則為 0）
+    let prev = mgT ? 0 : mgmt;
+    sorted.forEach(r => { if (r._mgmt !== undefined && r._mgmt !== null && isFinite(r._mgmt)){ if (Number(r._mgmt) < 0) errors.push("管理費不能是負數"); prev = Math.max(0, Number(r._mgmt)); } r._mg = prev; });
+  }
+  const changes = sorted.slice(1).map(r => ({ from:r.from, baseUnit:Number(r.unit) || 0, mgmt: r._mg, adjustType:"無調整", freq:1, pct:0, amt:0, override: ov(r), roundInt:false }));
+  return { errors, baseUnit: Number(first.unit) || 0, override: ov(first), changes, rows: sorted, mgmt0: first._mg !== undefined ? first._mg : (mgT ? 0 : mgmt) };
+}
+// 公式條件 → 每一期；回傳 { rows } 或 { err }
+function ltGenBuild(){
+  const from = ltEl("lt_genFrom").value || ltFirstFrom(), unit0 = Number(ltEl("lt_genUnit").value);
+  const freq = Math.max(1, Math.floor(Number(ltEl("lt_genFreq").value) || 1)), mode = ltEl("lt_genMode").value, val = Number(ltEl("lt_genVal").value) || 0;
+  const round = ltEl("lt_genRound").checked, end = parseLocalDate(ltEl("f_end").value), area = ltArea(), until = ltEl("lt_genUntil").value;
+  if (!from || !(unit0 > 0)) return { err:"請填起算日與起始單價。" };
+  if (!end) return { err:"請先在上方填好「租期迄」，系統才知道要展開到哪一年。" };
+  if (until && until < from) return { err:"「調漲到這天為止」不能早於起算日。" };
+  const f0 = parseLocalDate(from), rows = [];
+  let u = unit0;
+  for (let k = 0; k < 60; k++){
+    const d = new Date(f0.getFullYear() + k * freq, f0.getMonth(), f0.getDate());
+    if (d > end) break;
+    if (k > 0 && until && toDateInput(d) > until) break;   // 超過停止調整日：不再產生新的一期，單價維持最後一期
+    if (k > 0) u = mode === "pct" ? (round ? Math.round(u * (1 + val / 100)) : unit0 * Math.pow(1 + val / 100, k)) : (round ? Math.round(unit0 + val * k) : unit0 + val * k);
+    const u2 = Math.round(u * 100) / 100;
+    const row = { from:toDateInput(d), unit:u2, rent: (Math.abs(u - u2) > 1e-9 && area > 0) ? Math.round(u * area) : "" };
+    if (ltEl("lt_genMgmt").value !== ""){ const m0 = Number(ltEl("lt_genMgmt").value) || 0, mp = Number(ltEl("lt_genMgmtPct").value) || 0, mv = m0 * Math.pow(1 + mp / 100, k); row._mgmt = ltMgmtTotal() ? Math.round(mv) : Math.round(mv * 100) / 100; }
+    rows.push(row);
+  }
+  return { rows, from };
+}
+function ltGenPreview(){
+  const box = ltEl("lt_genPreview"); if (!box || ltEl("lt_panelGen").classList.contains("hidden")) return;
+  const g = ltGenBuild(), area = ltArea();
+  if (g.err){ box.innerHTML = `<span style="color:var(--text-soft);">${escHtml(g.err)}</span>`; return; }
+  const until = ltEl("lt_genUntil").value;
+  box.innerHTML = `<div style="color:var(--text-soft);margin-bottom:3px;">預覽（共 ${g.rows.length} 期${until ? `，${dateText(until)} 之後單價固定` : ""}；按「產生租金表」才會套用）</div><div class="hl-genprev-scroll"><table class="hl-check-tbl"><thead><tr><th>租金生效日</th><th>單位租金</th><th>月租金（元）</th><th>管理費（${ltMgmtTotal() ? "元/月" : escHtml(ltMgmtUnitWord())}）</th></tr></thead><tbody>` +
+    g.rows.map(r => `<tr><td>${escHtml(dateText(r.from))}</td><td style="text-align:right;">${fmt2(r.unit)}</td><td style="text-align:right;">${r.rent !== "" ? fmtInt(r.rent) : (area > 0 ? fmtInt(Math.round(r.unit * area)) : "—")}</td><td style="text-align:right;">${r._mgmt !== undefined ? (ltMgmtTotal() ? fmtInt(r._mgmt) : fmt2(r._mgmt)) : "同上"}</td></tr>`).join("") + `</tbody></table></div>`;
+}
+function ltHideTools(){ ["lt_panelPaste", "lt_panelGen"].forEach(id => ltEl(id).classList.add("hidden")); ltEl("lt_pasteMsg").textContent = ""; ltEl("lt_genMsg").textContent = ""; ltEl("lt_genPreview").innerHTML = ""; }
+// 開啟／切換表單時載入租金表：rows 為空就放一列空白（日期＝租期起）
+function ltLoad(rows){
+  ltHideTools();
+  ltEl("lt_genFrom").value = ""; delete ltEl("lt_genFrom").dataset.touched;
+  ["lt_genUnit", "lt_genVal", "lt_genUntil", "lt_genMgmt", "lt_genMgmtPct"].forEach(id => ltEl(id).value = "");
+  ltEl("lt_genFreq").value = 1; ltEl("lt_genMode").value = "pct"; ltEl("lt_genRound").checked = false; ltEl("lt_genValLabel").textContent = "漲幅（%）";
+  ltRenderRows(rows && rows.length ? rows : [{ from: ltFirstFrom() || "", unit:"", rent:"" }]);
+  ltEl("f_start").dataset.prevFirst = ltFirstFrom();
+  ltEl("f_area").dataset.prevArea = String(ltArea());
+}
+// 草稿／同契約下一單元用：沒有租金表資料時，用舊欄位湊出一個租約物件再展開
+function ltRowsFromForm(f){
+  if (Array.isArray(f.ltRows) && f.ltRows.length) return f.ltRows;
+  if (f.baseUnit === undefined || f.baseUnit === "" || f.baseUnit === null) return null;
+  return ltRowsFromRec({ start:f.start, end:f.end, area:Number(f.area) || 0, baseUnit:Number(f.baseUnit) || 0, mgmt:Number(f.mgmt) || 0, adjustType:f.adjustType || "無調整", freq:Number(f.freq) || 1, pct:Number(f.pct) || 0, amt:Number(f.amt) || 0, override:(f.override === "" || f.override === undefined) ? null : Number(f.override) });
+}
+
+ltEl("lt_addStage").addEventListener("click", () => {
+  const rows = ltReadRows(); rows.push({ from:"", unit:"", rent:"" });
+  ltRenderRows(rows);
+  const last = ltEl("lt_stages").querySelector('.lt-row[data-i]:last-child [data-k="from"]'); if (last) last.focus();
+});
+ltEl("lt_stages").addEventListener("click", async (e) => {
+  if (e.target.closest("#lt_clearRows")){
+    if (ltHasData() && !(await askConfirm("要清空整個租金表嗎？目前填的所有列都會刪掉（可以再貼上或重新填）。", "全部清空"))) return;
+    ltRenderRows([]); return;
+  }
+  const rm = e.target.closest("[data-ltrm]"); if (!rm) return;
+  const rows = ltReadRows(); rows.splice(Number(rm.dataset.ltrm), 1);
+  ltRenderRows(rows);
+});
+// 改了單價：這一列如果已經有月租金，馬上用新單價×面積重算，免得忘記改月租金
+ltEl("lt_stages").addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.matches && t.matches('[data-k="unit"]')){
+    const rent = t.closest(".lt-row").querySelector('[data-k="rent"]'), area = ltArea();
+    if (rent.value !== "" && t.value !== "" && area > 0) rent.value = String(Math.round(Number(t.value) * area));
+  }
+  ltSyncHints(); ltGenPreview();
+});
+function ltSortRowsIfNeeded(focusRid, focusK){
+  const rows = ltReadRows();
+  if (rows.length < 2 || rows.some(r => !r.from)) return;
+  const sorted = [...rows].sort((a, b) => a.from < b.from ? -1 : (a.from > b.from ? 1 : 0));
+  if (sorted.every((r, i) => r._id === rows[i]._id)) return;
+  ltRenderRows(sorted);
+  if (focusRid){ const el = ltEl("lt_stages").querySelector(`[data-rid="${focusRid}"] [data-k="${focusK}"]`); if (el) el.focus(); }
+}
+ltEl("lt_stages").addEventListener("focusout", (e) => {
+  const row = e.target.closest ? e.target.closest(".lt-row[data-rid]") : null; if (!row) return;
+  const rt = e.relatedTarget;
+  if (rt && row.contains(rt)) return;
+  if (rt && rt.tagName === "BUTTON") return;
+  const rtRow = rt && rt.closest ? rt.closest(".lt-row[data-rid]") : null;
+  setTimeout(() => ltSortRowsIfNeeded(rtRow ? rtRow.dataset.rid : null, rtRow && rt.dataset ? rt.dataset.k : null), 0);
+});
+// 租期起、租期迄、面積一改，租金表的提示跟第一列日期跟著更新
+ltEl("f_start").addEventListener("input", ltRefreshFirst);
+["f_freeStart", "f_freeEnd"].forEach(id => { ltEl(id).addEventListener("input", ltRefreshFirst); ltEl(id).addEventListener("change", ltRefreshFirst); });
+// 面積改了：月租金格裡「等於舊單價×舊面積」的金額（自動換算出來、不是特地覆蓋的）跟著用新面積重算，免得忘記改
+function ltAreaChanged(oldArea){
+  const nw = ltArea(); oldArea = Number(oldArea) || 0;
+  ltEl("f_area").dataset.prevArea = String(nw);
+  if (oldArea > 0 && nw > 0 && oldArea !== nw){
+    ltEl("lt_stages").querySelectorAll(".lt-row[data-i]").forEach(row => {
+      const u = row.querySelector('[data-k="unit"]'), r = row.querySelector('[data-k="rent"]');
+      if (u.value !== "" && r.value !== "" && Math.abs(Number(r.value) / oldArea - Number(u.value)) <= 0.0051) r.value = String(Math.round(Number(u.value) * nw));
+    });
+  }
+  ltSyncHints(); ltGenPreview();
+}
+ltEl("f_area").addEventListener("focus", () => { ltEl("f_area").dataset.prevArea = String(ltArea()); });
+ltEl("f_area").addEventListener("input", () => ltAreaChanged(ltEl("f_area").dataset.prevArea));
+["f_end", "f_mgmt"].forEach(id => ltEl(id).addEventListener("input", () => { ltSyncHints(); ltGenPreview(); }));
+fCategory.addEventListener("change", ltUpdateHead);
+// 三個小工具面板
+const LT_PANELS = { paste:"lt_panelPaste", gen:"lt_panelGen" };
+function ltToggleTool(name){
+  const el = ltEl(LT_PANELS[name]), wasHidden = el.classList.contains("hidden");
+  Object.values(LT_PANELS).forEach(id => ltEl(id).classList.add("hidden"));
+  if (wasHidden){
+    el.classList.remove("hidden");
+    if (name === "gen"){
+      const r0 = ltReadRows()[0] || {};
+      if (!ltEl("lt_genFrom").dataset.touched) ltEl("lt_genFrom").value = ltFirstFrom() || r0.from || "";
+      if (!ltEl("lt_genUnit").value && r0.unit !== "" && r0.unit !== undefined) ltEl("lt_genUnit").value = r0.unit;
+      ltGenPreview();
+    }
+  }
+}
+ltEl("lt_toolPaste").addEventListener("click", () => ltToggleTool("paste"));
+ltEl("lt_toolGen").addEventListener("click", () => ltToggleTool("gen"));
+["lt_pasteText"].forEach(id => ltEl(id).addEventListener("keydown", e => e.stopPropagation()));
+ltEl("lt_genFrom").addEventListener("input", () => { ltEl("lt_genFrom").dataset.touched = "1"; });
+ltEl("lt_genMode").addEventListener("change", () => { ltEl("lt_genValLabel").textContent = ltEl("lt_genMode").value === "pct" ? "漲幅（%）" : "每次加（元/坪）"; });
+["lt_genFrom", "lt_genUnit", "lt_genFreq", "lt_genMode", "lt_genVal", "lt_genUntil", "lt_genRound", "lt_genMgmt", "lt_genMgmtPct"].forEach(id => { ltEl(id).addEventListener("input", ltGenPreview); ltEl(id).addEventListener("change", ltGenPreview); });
+ltEl("lt_pasteApply").addEventListener("click", async () => {
+  const { rows, bad } = hlParsePaste(ltEl("lt_pasteText").value, ltArea());
+  if (!rows.length){ ltEl("lt_pasteMsg").textContent = bad.length ? bad.slice(0, 3).join("；") : "沒有讀到資料，請從 Excel 複製含日期與金額的幾欄再貼上。"; return; }
+  if (ltHasData() && !(await askConfirm(`目前的租金表會被取代為貼上的 ${rows.length} 期，確定嗎？`, "取代租金表"))) return;
+  ltRenderRows(rows.map(r => ({ from:r.from, unit:r.unit, rent:r.rent })));
+  ltEl("lt_pasteText").value = "";
+  ltEl("lt_pasteMsg").textContent = `已套用 ${rows.length} 期` + (bad.length ? `；略過 ${bad.length} 行：${bad.slice(0, 2).join("；")}` : "") + "。請檢查日期與金額是否正確。";
+});
+ltEl("lt_genApply").addEventListener("click", async () => {
+  const msg = ltEl("lt_genMsg"), g = ltGenBuild();
+  if (g.err){ msg.textContent = g.err; return; }
+  // 起算日之前已經填好的列保留（例如前幾年固定不調），起算日（含）之後的列換成產生出來的
+  const keep = ltReadRows().filter(r => r.from && r.from < g.from && (r.unit !== "" || r.rent !== ""));
+  const replaced = ltReadRows().filter(r => !(r.from && r.from < g.from) && (r.unit !== "" || r.rent !== ""));
+  if (replaced.length && !(await askConfirm(`起算日（${dateText(g.from)}）之後的租金表會被取代為展開的 ${g.rows.length} 期` + (keep.length ? `，起算日之前的 ${keep.length} 列會保留` : "") + "，確定嗎？", "取代租金表"))) return;
+  ltRenderRows([...keep, ...g.rows]);
+  msg.textContent = `已展開 ${g.rows.length} 期（${dateText(g.rows[0].from)} ～ ${dateText(g.rows[g.rows.length - 1].from)}）` + (keep.length ? `，保留起算日之前 ${keep.length} 列` : "") + "。可直接在上面的租金表修改個別期數。";
+});
+
 const REQUIRED_FIELDS = [
   {id:"f_unit", label:"單元"},
   {id:"f_client", label:"客戶"},
   {id:"f_area", label:"租賃面積", numeric:true},
   {id:"f_start", label:"租期起"},
   {id:"f_end", label:"租期迄"},
-  {id:"f_baseunit", label:"首年單位租金", numeric:true},
+  {id:"f_baseunit", label:"租金表第一列的單位租金", numeric:true},
   {id:"f_input_by", label:"BD承辦"},
 ];
 
@@ -3161,6 +3727,15 @@ async function submitLeaseForm(){
   const missing = [];
   let firstInvalidEl = null;
   const tent = isTentForm();
+  // 租金表 → 首年條款＋價格調整紀錄；先寫進隱藏欄位，後面既有的必填檢查與存檔流程就不用改
+  let ltRes = null;
+  if (!tent){
+    ltRes = ltCollect();
+    ltEl("f_baseunit").value = ltRes.baseUnit > 0 ? String(ltRes.baseUnit) : "";
+    ltEl("f_adjusttype").value = "無調整"; ltEl("f_freq").value = 1; ltEl("f_pct").value = ""; ltEl("f_amt").value = "";
+    ltEl("f_override").value = ltRes.override === null ? "" : String(ltRes.override);
+    ltEl("f_mgmt").value = String(ltRes.mgmt0 || 0);   // 第一列的管理費（沒填就是原本上方欄位的數字）＝首年條款的管理費
+  }
   const TENT_REQ = ["f_unit", "f_client", "f_area", "f_start"];   // 預計進駐只必填這幾項
   REQUIRED_FIELDS.forEach(f=>{
     const el = document.getElementById(f.id);
@@ -3191,12 +3766,33 @@ async function submitLeaseForm(){
     return;
   }
 
+  if (ltRes && ltRes.errors.length){
+    await notify(ltRes.errors.map(m => "・" + m).join("\n"), "租金表還有資料要補");
+    return;
+  }
   const start = document.getElementById("f_start").value;
   const end = document.getElementById("f_end").value;
   if (end && new Date(end) < new Date(start)){
     document.getElementById("f_end").classList.add("field-error");
     await notify("租期迄需晚於租期起，請確認日期。");
     return;
+  }
+  const freeStart = tent ? "" : document.getElementById("f_freeStart").value, freeEnd = tent ? "" : document.getElementById("f_freeEnd").value;
+  ["f_freeStart", "f_freeEnd"].forEach(id => document.getElementById(id).classList.remove("field-error"));
+  if (!!freeStart !== !!freeEnd){
+    document.getElementById(freeStart ? "f_freeEnd" : "f_freeStart").classList.add("field-error");
+    await notify("免租期要起、迄都填（或兩格都留白）。");
+    return;
+  }
+  if (freeStart){
+    let msg = "";
+    if (freeEnd < freeStart) msg = "免租期迄不能早於免租期起。";
+    else if (freeStart < start || (end && freeEnd > end)) msg = `免租期要落在租期內（${start} ～ ${end || "不定期"}）。`;
+    if (msg){
+      document.getElementById("f_freeStart").classList.add("field-error"); document.getElementById("f_freeEnd").classList.add("field-error");
+      await notify(msg);
+      return;
+    }
   }
   const unitPickerVisible = !document.getElementById("wrap_unitpicker").classList.contains("hidden");
   const pickedLeaves = unitPickerVisible ? checkedPickerLeaves() : [];
@@ -3228,14 +3824,18 @@ async function submitLeaseForm(){
     remark: document.getElementById("f_remark").value.trim(),
   };
   if (tent) Object.assign(recBody, { category:"倉儲", baseUnit:0, adjustType:"無調整", freq:1, pct:0, amt:0, override:null, mgmt:0, sap:"", stage:"預計進駐" });
+  if (freeStart && freeEnd) Object.assign(recBody, { freeStart, freeEnd });
+  if (!tent && freeStart && freeEnd && ltEl("f_freeMgmt").checked) recBody.freeMgmt = true;
+  if (!tent && ltMgmtTotal()) recBody.mgmtMode = "total";
+  if (!tent && (ltEl("f_prorate").value === "actual" || ltEl("f_prorate").value === "31")) recBody.prorate = ltEl("f_prorate").value;
   // 編輯既有記錄：延用原本的 contractId（舊資料沒有的話，藉這次儲存順便補一個，之後編輯內容
   // 導致跟其他筆兜不起來時——例如改了租期——還是能靠這個 id 正確分組，不必再依賴比對欄位）。
   // 透過「新增下一個單元」流程進來：延用上一筆傳過來的 contractId，確保同一份契約底下的
   // 每一筆都共用同一個 id。真正全新、獨立的一筆：產生一個新的 contractId。
-  if (editingRecRef){   // 編輯時不能把增補產生的價格調整紀錄弄丟
-    if (editingRecRef.priceChanges) recBody.priceChanges = editingRecRef.priceChanges;
-    if (editingRecRef.amendLog) recBody.amendLog = editingRecRef.amendLog;
-  }
+  if (ltRes){   // 租金表的第二列起＝價格調整紀錄（已經含增補產生的那些，編輯時一起展開成列）
+    if (ltRes.changes.length) recBody.priceChanges = ltRes.changes;
+  } else if (editingRecRef && editingRecRef.priceChanges) recBody.priceChanges = editingRecRef.priceChanges;
+  if (editingRecRef && editingRecRef.amendLog) recBody.amendLog = editingRecRef.amendLog;
   recBody.contractId = editingRecRef ? (editingRecRef.contractId || genNodeId())
     : (prefillContractId || genNodeId());
   if (recBody.adjustType === "逐年手動填寫" && recBody.override === null){
@@ -3251,6 +3851,11 @@ async function submitLeaseForm(){
     if (dup && !(await askConfirm(`資料庫裡已經有一筆完全相同的${kindTextFor(recBody)}（${recBody.client}／${recBody.unit}／${recBody.start}～${recBody.end || "不定期"}）。\n\n確定還要再新增一筆嗎？`, "疑似重複"))) return;
   }
   const isEditing = editingId !== null;
+  // 儲存前確認：開啟之後，這筆契約有沒有被別的視窗／同事改過（沒檢查的話，舊資料會把對方剛改的蓋掉）
+  if (isEditing && leaseRecSig){
+    const cur = LEASE_DB.find(r => String(r.id) === String(editingId));
+    if (cur && canonJson(cur) !== leaseRecSig && !(await askConfirm("這筆契約在你開啟編輯之後，已經被別的視窗或同事修改過。\n\n現在儲存會用你這個視窗的內容蓋掉對方的修改。確定要儲存嗎？\n（按取消可以先不存，把視窗留著，之後再比對）", "資料已被更新"))) return;
+  }
   const beforeLeaseRec = isEditing ? (LEASE_DB.find(r => String(r.id) === String(editingId)) || null) : null;
   const beforeLeaseSnap = beforeLeaseRec ? cloneJson(beforeLeaseRec) : null;
   let savedLeaseId = isEditing ? String(editingId) : "";
@@ -3291,46 +3896,79 @@ async function submitLeaseForm(){
   } else {
     await auditRecord({ action:"新增", entity:"lease", targetId:savedLeaseId, label:auditLeaseLabel(recBody), changes:leaseSummaryChanges(recBody), snapshot:{ ...recBody } });
   }
+  // 不足月計算方式、免租期管理費是整份契約共用的約定：改了這兩項，順便問要不要把同契約其他項目也改成一樣
+  // （先問完、同一個項目的修改合併成一次寫入，避免兩項一起改時後寫的蓋掉先寫的）
+  if (isEditing && !tent && beforeLeaseSnap){
+    const key = contractGroupKey(recBody);
+    const others = LEASE_DB.filter(r => r.stage !== "預計進駐" && String(r.id) !== String(savedLeaseId) && contractGroupKey(r) === key);
+    const patches = new Map();
+    const patchOf = sb => { if (!patches.has(sb.id)){ const { id: _sid, ...rest } = sb; patches.set(sb.id, { sb, upd: { ...rest }, changes: [] }); } return patches.get(sb.id); };
+    if ((beforeLeaseSnap.prorate || "") !== (recBody.prorate || "")){
+      const sibs = others.filter(r => (r.prorate || "") !== (recBody.prorate || ""));
+      const modeTxt = recBody.prorate === "actual" ? "月租金 ÷ 當月實際天數" : (recBody.prorate === "31" ? "月租金 ÷ 31" : "月租金 ÷ 30");
+      if (sibs.length && await askConfirm(`同一份契約還有 ${sibs.length} 項（${sibs.map(r => r.unit).join("、")}）的不足月計算方式不一樣。\n\n要一起改成「${modeTxt}」嗎？`, "同契約一起改")){
+        sibs.forEach(sb => { const pt = patchOf(sb); if (recBody.prorate) pt.upd.prorate = recBody.prorate; else delete pt.upd.prorate; pt.changes.push({ label:"不足月算法", from: prorateText(sb.prorate), to: prorateText(recBody.prorate) }); });
+      }
+    }
+    if (!!beforeLeaseSnap.freeMgmt !== !!recBody.freeMgmt){
+      const sibs = others.filter(r => r.freeStart && r.freeEnd && !!r.freeMgmt !== !!recBody.freeMgmt);
+      const modeTxt = recBody.freeMgmt ? "免租期間管理費免收" : "免租期間管理費照收";
+      if (sibs.length && await askConfirm(`同一份契約還有 ${sibs.length} 項（${sibs.map(r => r.unit).join("、")}）的免租期管理費設定不一樣。\n\n要一起改成「${modeTxt}」嗎？`, "同契約一起改")){
+        sibs.forEach(sb => { const pt = patchOf(sb); if (recBody.freeMgmt) pt.upd.freeMgmt = true; else delete pt.upd.freeMgmt; pt.changes.push({ label:"免租期管理費", from: sb.freeMgmt ? "免收" : "照收", to: recBody.freeMgmt ? "免收" : "照收" }); });
+      }
+    }
+    for (const pt of patches.values()){
+      try{
+        if (USING_DB) await DB.collection("leases").doc(String(pt.sb.id)).set(pt.upd);
+        else { const ix = LEASE_DB.findIndex(r => String(r.id) === String(pt.sb.id)); if (ix !== -1) LEASE_DB[ix] = { ...pt.upd, id: pt.sb.id }; }
+        await auditRecord({ action:"修改", entity:"lease", targetId:String(pt.sb.id), label:auditLeaseLabel(pt.upd), changes: pt.changes });
+      }catch(err){ console.warn(err); }
+    }
+    if (patches.size && !USING_DB){ persistState(); renderDb(); renderOcc(); renderMonthly(); }
+  }
   showToast(toastMsg);
   refreshVacancyIfVisible();
   refreshUnitStatusIfVisible();
 
-  if (!isEditing && !tent){
-    const addAnother = await askConfirm(
-      "是否要新增同一份契約的下一個租賃單元？\n將自動帶入園區、客戶、租期、調整方式、BD承辦、SAP契約號碼等共用資料，只需要填寫這個單元本身的資訊（單元、坪數、租金…）。",
-      "新增下一個單元"
-    );
-    if (addAnother){
-      openLeaseModal(null, {
-        zone: recBody.zone,
-        category: recBody.category,
-        building: recBody.building,
-        client: recBody.client,
-        start: recBody.start,
-        end: recBody.end,
-        adjustType: recBody.adjustType,
-        freq: recBody.freq,
-        pct: recBody.pct,
-        amt: recBody.amt,
-        inputBy: recBody.inputBy,
-        sap: recBody.sap,
-        contractId: recBody.contractId,
-      });
-      return;
-    }
+  // 「儲存，並新增下一項」：存完不關視窗，直接開同契約的下一筆。
+  // 這筆是設備／追加項目（固定金額）→ 下一筆也是追加項目；這筆是倉儲／停車位 → 下一筆帶入同一份租金表的日期與單價，
+  // 要加固定月租的追加項目時，把「類型」改成「設備／追加項目」就會自動換成數量 1。
+  if (leaseNavAfter !== null){
+    const nt = LEASE_DB.find(r => String(r.id) === String(leaseNavAfter));
+    if (nt){ openLeaseModal(nt); overlay.scrollTop = 0; const mm = overlay.querySelector(".modal"); if (mm) mm.scrollTop = 0; return; }
+  }
+  if (leaseAddItemAfter && !tent){
+    const common = { zone: recBody.zone, category: recBody.category, building: recBody.building, client: recBody.client,
+      start: recBody.start, end: recBody.end, adjustType:"無調整", freq:1, pct:0, amt:0,
+      inputBy: recBody.inputBy, sap: recBody.sap, contractId: recBody.contractId, nextItem: true,
+      freeStart: recBody.freeStart || "", freeEnd: recBody.freeEnd || "", freeMgmt: !!recBody.freeMgmt, prorate: recBody.prorate || "" };
+    if (recBody.category === "設備") openLeaseModal(null, { ...common, addItem: true });
+    else openLeaseModal(null, { ...common, mgmtMode: recBody.mgmtMode || "", ltRows: ltRowsFromRec(recBody, true) });   // 月租金（跟面積有關）不帶
+    return;
   }
   overlay.classList.remove("open");
 }
 // 送出期間鎖住按鈕、忽略重複點擊：儲存到資料庫需要一點時間，這段時間表單還開著，
 // 連點兩下（或按了又點）就會送出兩次，產生兩筆一模一樣的租約。
 let leaseSubmitting = false;
+let leaseAddItemAfter = false;    // 按「儲存，並新增此契約的追加項目」時為 true：存完不關視窗，直接開同契約的追加項目表單
 document.getElementById("submitLeaseBtn").addEventListener("click", async ()=>{
   if (leaseSubmitting) return;
   leaseSubmitting = true;
   const btn = document.getElementById("submitLeaseBtn");
   btn.disabled = true;
   try{ await submitLeaseForm(); }
-  finally{ leaseSubmitting = false; btn.disabled = false; }
+  finally{ leaseSubmitting = false; btn.disabled = false; leaseAddItemAfter = false; }
+});
+document.getElementById("submitAddItemBtn").addEventListener("click", async ()=>{
+  if (leaseSubmitting) return;
+  if (isTentForm()){ await notify("「預計進駐」還沒簽約，沒有契約可以追加項目；請先改成「已簽約」。"); return; }
+  leaseSubmitting = true;
+  leaseAddItemAfter = true;
+  const btn = document.getElementById("submitLeaseBtn"), btn2 = document.getElementById("submitAddItemBtn");
+  btn.disabled = true; btn2.disabled = true;
+  try{ await submitLeaseForm(); }
+  finally{ leaseSubmitting = false; btn.disabled = false; btn2.disabled = false; leaseAddItemAfter = false; }
 });
 
 function showToast(msg){
@@ -3497,7 +4135,7 @@ function renderArea(){
           <td class="num">${buildingAreaCell}</td>
           <td class="num">${regCell}</td>
           <td><input type="text" style="width:200px;" data-bidx="${idx}:${bidx}" data-bfield="note" value="${b.note||""}" placeholder="選填"></td>
-          <td><button class="btn-danger-ghost" title="刪除這一棟" data-delbuilding="${idx}:${bidx}">×</button></td>
+          <td><button class="btn-danger-ghost" title="刪除此棟" data-delbuilding="${idx}:${bidx}">×</button></td>
         </tr>`;
         if (buildingExpanded){
           floors.forEach((f, fidx)=>{
@@ -3691,7 +4329,7 @@ function renderArea(){
       const [idx, bidx] = btn.dataset.delbuilding.split(":").map(Number);
       const z = ZONE_AREA[idx];
       const bname = zoneBuildings(z)[bidx]?.name || "";
-      if (!(await askConfirm(`確定要刪除「${z.zone} / ${bname}」這一棟嗎？已經標記這一棟的租約不會被刪除，但棟別欄位會找不到對應資料，請記得之後手動修改那些租約的棟別。`))) return;
+      if (!(await askConfirm(`確定要刪除「${z.zone} / ${bname}」此棟嗎？已經標記此棟的租約不會被刪除，但棟別欄位會找不到對應資料，請記得之後手動修改那些租約的棟別。`))) return;
       const buildings = zoneBuildings(z).map(b=>({...b}));
       buildings.splice(bidx,1);
       await persistZoneBuildings(idx, buildings);
@@ -3725,7 +4363,7 @@ function renderArea(){
       const b = zoneBuildings(z)[bidx];
       const fname = buildingFloors(b)[fidx]?.name || "";
       if (buildingFloors(b).length <= 1){
-        await notify("每一棟至少需要保留一層樓層，無法刪除最後一層。如果這一棟不需要再細分，請直接調整這一層的坪數，或改用上方「刪除這一棟」整棟移除。");
+        await notify("每一棟至少需要保留一層樓層，無法刪除最後一層。如果此棟不需要再細分，請直接調整這一層的坪數，或改用上方「刪除此棟」整棟移除。");
         return;
       }
       if (!(await askConfirm(`確定要刪除「${z.zone} / ${b.name} / ${fname}」這一層嗎？這一層底下如果有拆單元，單元資料也會一併刪除；已經標記這一層（或其中單元）的租約不會被刪除，但會找不到對應資料，請記得之後手動修改那些租約。`))) return;
@@ -3892,8 +4530,8 @@ document.getElementById("addZoneRow").addEventListener("click", async ()=>{
 /* ---------------- 預計進駐（已知未來某個空間要租給某客戶，簽約前先記在資料庫） ----------------
    不另外存、也不另外開視窗：在「資料庫」新增／編輯租約時，把「案件狀態」選成「預計進駐」就是了
    （租約記錄上多一個 stage:"預計進駐"）。預計進駐不算租賃收入、也不算已租坪數（見 isOccupancyLease），
-   只會出現在「空置總覽」與「租賃單元狀態」；簽約後把同一筆改成「已簽約」並補齊租期迄、租金即可。
-   已經簽約、但起租日還沒到的租約（起租日晚於查看日期）不用另外填，空置總覽會自動抓出來當作「已簽約」。 */
+   只會出現在「空置率總覽」與「租賃單元狀態」；簽約後把同一筆改成「已簽約」並補齊租期迄、租金即可。
+   已經簽約、但起租日還沒到的租約，在起租日之前一律算空置（沒有「已有安排的空置」這一類）。 */
 function monthText(s){ const d = parseLocalDate(s); return d ? `${d.getFullYear()}/${pad2(d.getMonth()+1)}` : ""; }
 function dateText(s){ const d = parseLocalDate(s); return d ? `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}` : ""; }
 function fa(n){ return (Math.round((Number(n)||0) * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 }); }
@@ -3962,9 +4600,8 @@ function toDateInput(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pa
 function vacQuickDate(n){ return new Date(TODAY.getFullYear(), TODAY.getMonth() + n + 1, 0); }
 function vacAsOf(){ const d = vacAsOfInput.value ? parseLocalDate(vacAsOfInput.value) : null; return d || startOfLocalDay(TODAY); }
 function vacIsToday(){ return toDateInput(vacAsOf()) === toDateInput(TODAY); }
-// 算某一群租約＋預計進駐在「查看日期」當天的組成：
-//   已租（穩定）／即將空出（90 天內到期）／預計已進駐／之後進駐（尚未起租的已簽約租約＋預計進駐）／空置
-// 之後進駐的空間如果就是現在「即將空出」那間（單元重疊），只算一次，不重複占用長條的寬度。
+// 算某一群租約＋預計進駐在「查看日期」當天的組成：已租（穩定）／即將到期（90 天內）／預計進駐（已到進駐日）／空置。
+// 空置＝登記坪數 − 已租；還沒到起租日／進駐日的租約與預計進駐，在那天之前一律算空置，不另外分類。
 function vacCompute(leases, bookings, base, T, leafArea){
   const day = startOfLocalDay(T);
   const soon = new Date(day); soon.setDate(soon.getDate() + VAC_SOON_DAYS);
@@ -3973,35 +4610,25 @@ function vacCompute(leases, bookings, base, T, leafArea){
   const active = leases.filter(r => parseLocalDate(r.start) <= day && endOf(r) >= day);
   const expiring = active.filter(r => endOf(r) <= soon);
   const stable = active.filter(r => !expiring.includes(r));
-  const futureLeases = leases.filter(r => parseLocalDate(r.start) > day);
   // 預計進駐也有租期：只有「進駐日 ≤ 查看日期 ≤ 租期迄」才算已進駐；租期迄已過的，到了查看日期早就退出，不計入。
-  // 沒填租期迄的視為持續。已進駐的預計進駐，90 天內到期的跟租約一樣歸「快到期」。
+  // 沒填租期迄的視為持續。已進駐的預計進駐，90 天內到期的跟租約一樣歸「即將到期」。
   const bEndOf = b => parseLocalDate(b.end) || new Date(9999, 11, 31);
   const bActive = bookings.filter(b => parseLocalDate(b.start) <= day && bEndOf(b) >= day);
   const bExp = bActive.filter(b => bEndOf(b) <= soon);
   const bIn = bActive.filter(b => !bExp.includes(b));
-  const bLater = bookings.filter(b => parseLocalDate(b.start) > day);
-  const activeLeafIds = new Set();
-  active.forEach(r => (r.unitIds || []).forEach(id => activeLeafIds.add(id)));
-  bActive.forEach(b => (b.unitIds || []).forEach(id => activeLeafIds.add(id)));
-  const overlap = it => (it.unitIds || []).reduce((s,id)=> s + (activeLeafIds.has(id) ? (leafArea.get(id) || 0) : 0), 0);
-  const net = it => Math.max(0, (Number(it.area) || 0) - overlap(it));
   const Ls = sumA(stable), E = sumA(expiring) + sumA(bExp), Bin = sumA(bIn);
   const occupied = Ls + E + Bin;
-  let later = bLater.reduce((s,b)=> s + net(b), 0) + futureLeases.reduce((s,r)=> s + net(r), 0);
-  later = Math.min(later, Math.max(0, base - occupied));
-  const free = Math.max(0, base - occupied - later);
-  // laterGross：之後進駐的完整坪數（含接手「即將空出」那間，不扣除重疊），給文字說明用；長條上畫的是扣掉重疊後的 later。
-  const laterGross = sumA(bLater) + sumA(futureLeases);
+  const free = Math.max(0, base - occupied);
   const chips = [];
   expiring.forEach(r => chips.push({ kind:"exp", date:r.end, text:`${dateText(r.end)} 到期 · ${r.client} · ${fa(r.area)} 坪` }));
   const todayDay = startOfLocalDay(TODAY);
   bExp.forEach(b => chips.push({ kind:"exp", date:b.end, text:`${dateText(b.end)} 到期（預計進駐） · ${b.client} · ${fa(b.area)} 坪` }));
   bIn.forEach(b => { const od = parseLocalDate(b.start) <= todayDay && bEndOf(b) >= todayDay; chips.push({ kind:"bin", date:b.start, warn:od, text:`${monthText(b.start)} 進駐（預計） · ${b.client} · ${fa(b.area)} 坪${od ? " ⚠ 進駐日已到，請轉成正式租約" : ""}` }); });
-  bLater.forEach(b => chips.push({ kind:"later", date:b.start, text:`${monthText(b.start)} 進駐（預計） · ${b.client} · ${fa(b.area)} 坪${overlap(b) > 0 ? "（接手即將空出的空間）" : ""}` }));
-  futureLeases.forEach(r => chips.push({ kind:"later", date:r.start, text:`${dateText(r.start)} 起租（已簽約） · ${r.client} · ${fa(r.area)} 坪${overlap(r) > 0 ? "（接手即將空出的空間）" : ""}` }));
   chips.sort((a,b)=> String(a.date) < String(b.date) ? -1 : 1);
-  return { base, Ls, E, Bin, later, laterGross, free, occupied, rate: base > 0 ? occupied / base : 0, chips, hasExpiring: E > 0.005 };
+  const leasedChips = stable.map(r => ({ kind:"leased", date:r.end || "9999", text:`${r.client} · 租期迄 ${r.end ? dateText(r.end) : "不定期"} · ${fa(r.area)} 坪` }))
+    .sort((a,b)=> String(a.date) < String(b.date) ? -1 : 1);
+  return { base, Ls, E, Bin, free, occupied, leasedChips, rate: base > 0 ? occupied / base : 0,
+    vacant: free, vacRate: base > 0 ? free / base : 0, chips, hasExpiring: E > 0.005 };
 }
 function vacBarHtml(v, small){
   const seg = (cls, area, label) => {
@@ -4012,28 +4639,30 @@ function vacBarHtml(v, small){
     return `<span class="vac-seg ${cls}" style="width:${pct}%;" data-tip="${escHtml(tip)}" aria-label="${escHtml(tip)}">${inner}</span>`;
   };
   return `<div class="vac-bar${small ? " small" : ""}" role="img" aria-label="出租率 ${(v.rate*100).toFixed(1)}%">`
-    + seg("seg-leased", v.Ls, "已租") + seg("seg-exp", v.E, `即將空出（${VAC_SOON_DAYS} 天內到期）`)
-    + seg("seg-bin", v.Bin, "預計已進駐") + seg("seg-later", v.later, "之後進駐（預訂／已簽約）")
-    + seg("seg-free", v.free, "尚無安排的空置")
+    + seg("seg-leased", v.Ls, "已出租") + seg("seg-exp", v.E, `即將到期（${VAC_SOON_DAYS} 天內）`)
+    + seg("seg-bin", v.Bin, "預計進駐")
+    + seg("seg-free", v.free, "空置")
     + `</div>`;
 }
 function vacChipsHtml(chips){
   if (!chips.length) return "";
   return `<div class="vac-chips">${chips.map(c => `<span class="vac-chip ${c.kind}${c.warn ? " warn" : ""}"><i class="vac-dot"></i>${escHtml(c.text)}</span>`).join("")}</div>`;
 }
-// 圓餅圖（甜甜圈）：已租／即將空出／預計已進駐／之後進駐／尚無安排的空置
-function vacParts(v){
-  return [
+// 圓餅圖（甜甜圈）：已出租／即將到期／預計進駐／空置
+function vacParts(v, mode){
+  const parts = [
     { key:"leased", fill:"#2a78d6", area:v.Ls, label:"已出租", sw:"sw-leased" },
-    { key:"exp", fill:"url(#vacPatExp)", area:v.E, label:`快到期（${VAC_SOON_DAYS} 天內）`, sw:"sw-exp" },
-    { key:"bin", fill:"#1a9a82", area:v.Bin, label:"預計進駐(已到進駐日)", sw:"sw-bin", help:"預計進駐＝已簽約但尚未起租，或未簽約但預計進駐的客戶。進駐日在查看日期當天或之前，算已進駐，計入出租率。進駐日已過的，記得到資料庫轉成正式租約。" },
-    { key:"later", fill:"url(#vacPatLater)", area:v.later, label:"預計進駐(未到進駐日)", sw:"sw-later", help:"預計進駐＝已簽約但尚未起租，或未簽約但預計進駐的客戶。進駐日在查看日期之後，不計入出租率，只是提醒之後會有人進駐。" },
-    { key:"free", fill:"var(--gray-fill-strong)", area:v.free, label:"未出租", sw:"sw-free" },
+    { key:"exp", fill:"url(#vacPatExp)", area:v.E, label:`即將到期（${VAC_SOON_DAYS} 天內）`, sw:"sw-exp" },
+    { key:"bin", fill:"url(#vacPatBin)", area:v.Bin, label:"預計進駐", sw:"sw-bin" },
+    { key:"free", fill:"var(--gray-fill-strong)", area:v.free, label:"空置", sw:"sw-free" },
   ].filter(p => p.area > 0.005);
+  // 空置率版面：空置排在最前面
+  return mode === "vac" ? [...parts.filter(p => p.key === "free"), ...parts.filter(p => p.key !== "free")] : parts;
 }
-function vacDonutHtml(v, size, rateLabel, small){
+function vacDonutHtml(v, size, rateLabel, small, mode){
   const R = size / 2, th = Math.max(13, Math.round(size * 0.17)), r = R - th / 2, C = 2 * Math.PI * r;
-  const parts = vacParts(v);
+  const centerRate = mode === "vac" ? v.vacRate : v.rate;
+  const parts = vacParts(v, mode);
   const total = parts.reduce((s,p)=> s + p.area, 0) || 1;
   const gap = parts.length > 1 ? 2.5 : 0;
   let acc = 0;
@@ -4043,12 +4672,12 @@ function vacDonutHtml(v, size, rateLabel, small){
     const tip = `${p.label}：${fa(p.area)} 坪（${(p.area / v.base * 100).toFixed(1)}%）`;
     return `<circle cx="${R}" cy="${R}" r="${r}" fill="none" style="stroke:${p.fill}" stroke-width="${th}" stroke-dasharray="${dash.toFixed(2)} ${(C - dash).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 ${R} ${R})" data-tip="${escHtml(tip)}"></circle>`;
   }).join("");
-  return `<div class="vac-donut${small ? " sm" : ""}" style="width:${size}px;height:${size}px;" role="img" aria-label="${escHtml(rateLabel)} ${(v.rate*100).toFixed(1)}%">
+  return `<div class="vac-donut${small ? " sm" : ""}" style="width:${size}px;height:${size}px;" role="img" aria-label="${escHtml(rateLabel)} ${(centerRate*100).toFixed(1)}%">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${R}" cy="${R}" r="${r}" fill="none" style="stroke:var(--gray-fill)" stroke-width="${th}"></circle>${arcs}</svg>
-    <div class="vac-donut-center"><b>${(v.rate*100).toFixed(1)}%</b><span>${escHtml(rateLabel)}</span></div></div>`;
+    <div class="vac-donut-center"><b>${(centerRate*100).toFixed(1)}%</b><span>${escHtml(rateLabel)}</span></div></div>`;
 }
-function vacNumsHtml(v){
-  return `<div class="vac-nums">` + vacParts(v).map(p => `<div${p.help ? ` class="has-tip" data-tip="${escHtml(p.help)}"` : ""}><i class="vac-sw ${p.sw}"></i>${escHtml(p.label)}<b>${fa(p.area)} 坪（${(p.area / v.base * 100).toFixed(1)}%）</b></div>`).join("") + `</div>`;
+function vacNumsHtml(v, mode){
+  return `<div class="vac-nums">` + vacParts(v, mode).map(p => `<div><i class="vac-sw ${p.sw}"></i>${escHtml(p.label)}<b>${fa(p.area)} 坪（${(p.area / v.base * 100).toFixed(1)}%）</b></div>`).join("") + `</div>`;
 }
 // 某一棟「空置的有哪些空間、各幾坪、預計什麼時候有客戶進駐」：逐個單元（最底層的實際空間）列出。
 // 租約／預計進駐要有勾選單元（unitIds）才對得上單元；沒勾單元的另外列在「未指定單元的安排」。
@@ -4058,20 +4687,20 @@ function vacSpaces(b, leases, bookings, T){
   const endOf = r => parseLocalDate(r.end) || new Date(9999, 11, 31);
   const has = (it, id) => Array.isArray(it.unitIds) && it.unitIds.includes(id);
   const rows = [];
-  collectBuildingLeaves(b).forEach(l=>{
-    const active = leases.find(r => has(r, l.id) && parseLocalDate(r.start) <= day && endOf(r) >= day);
-    if (active && endOf(active) > soon) return;                         // 穩定出租中：不列
+  collectBuildingLeaves(b).forEach((l, seq)=>{
+    const actives = leases.filter(r => has(r, l.id) && parseLocalDate(r.start) <= day && endOf(r) >= day);
+    const active = actives[0];
+    if (active && endOf(active) > soon){   // 穩定出租中：空置率頁不列；出租率頁用來顯示「誰租、租到什麼時候」
+      rows.push({ id:l.id, name:l.label, area:l.area, status:"leased", seq, order:3, sortDate:"", tenants: actives.map(a => ({ client:a.client, end:a.end })) });
+      return;
+    }
     const bEnd = x => parseLocalDate(x.end) || new Date(9999, 11, 31);
     const bIn = !active ? bookings.find(x => has(x, l.id) && parseLocalDate(x.start) <= day && bEnd(x) >= day) : null;
     const bExpiring = !!(bIn && bEnd(bIn) <= soon);
-    const pend = [];
-    bookings.forEach(x => { if (has(x, l.id) && parseLocalDate(x.start) > day) pend.push({ start:x.start, client:x.client, kind:"預計" }); });
-    leases.forEach(r => { if (has(r, l.id) && parseLocalDate(r.start) > day) pend.push({ start:r.start, client:r.client, kind:"已簽約" }); });
-    pend.sort((a,c)=> String(a.start) < String(c.start) ? -1 : 1);
     const status = active ? "exp" : (bIn ? (bExpiring ? "exp" : "bin") : "free");
     const endDate = active ? active.end : (bExpiring ? bIn.end : "");
-    rows.push({ id:l.id, name:l.label, area:l.area, status, overdue: !!(bIn && parseLocalDate(bIn.start) <= startOfLocalDay(TODAY) && bEnd(bIn) >= startOfLocalDay(TODAY)), planned: !active && bExpiring,
-      end: endDate, client: active ? active.client : (bIn ? bIn.client : ""), next: pend[0] || null,
+    rows.push({ id:l.id, name:l.label, area:l.area, status, seq, until: active ? active.end : (bIn ? bIn.end : ""), overdue: !!(bIn && parseLocalDate(bIn.start) <= startOfLocalDay(TODAY) && bEnd(bIn) >= startOfLocalDay(TODAY)), planned: !active && bExpiring,
+      end: endDate, client: active ? active.client : (bIn ? bIn.client : ""),
       order: status === "free" ? 0 : (status === "bin" ? 1 : 2), sortDate: status === "exp" ? String(endDate || "9999") : "" });
   });
   rows.sort((a,c)=> a.order - c.order || String(a.sortDate).localeCompare(String(c.sortDate)) || String(a.name).localeCompare(String(c.name), "zh-Hant"));
@@ -4079,11 +4708,13 @@ function vacSpaces(b, leases, bookings, T){
   const loose = [];
   const noIds = it => !(Array.isArray(it.unitIds) && it.unitIds.length);
   let looseLeaseArea = 0, looseLeaseN = 0;
+  const looseAll = [];
   leases.filter(r => r.building === b.name && noIds(r)).forEach(r=>{
     const st = parseLocalDate(r.start), en = endOf(r);
-    if (st > day) loose.push({ kind:"later", date:r.start, text:`${dateText(r.start)} 起租（已簽約） · ${r.client} · ${fa(r.area)} 坪` });
-    else if (en >= day){
+    if (st > day) return;                                              // 還沒起租：不列
+    if (en >= day){
       looseLeaseArea += Number(r.area) || 0; looseLeaseN++;
+      looseAll.push({ kind: en <= soon ? "exp" : "leased", date:r.end || "9999", text:`${r.client} · 租期迄 ${r.end ? dateText(r.end) : "不定期"} · ${fa(r.area)} 坪` });
       if (en <= soon) loose.push({ kind:"exp", date:r.end, text:`${dateText(r.end)} 到期 · ${r.client} · ${fa(r.area)} 坪` });
     }
   });
@@ -4091,32 +4722,53 @@ function vacSpaces(b, leases, bookings, T){
     const xe = parseLocalDate(x.end) || new Date(9999, 11, 31);
     if (xe < day) return;                                              // 租期已結束，查看日期那天早就不在了
     if (parseLocalDate(x.start) <= day && xe <= soon){ loose.push({ kind:"exp", date:x.end, text:`${dateText(x.end)} 到期（預計進駐） · ${x.client} · ${fa(x.area)} 坪` }); return; }
+    if (parseLocalDate(x.start) > day) return;                         // 還沒到進駐日：不列
     const od = parseLocalDate(x.start) <= startOfLocalDay(TODAY) && xe >= startOfLocalDay(TODAY);
-    loose.push({ kind: parseLocalDate(x.start) > day ? "later" : "bin", date:x.start, warn:od, text:`${monthText(x.start)} 進駐（預計） · ${x.client} · ${fa(x.area)} 坪${od ? " ⚠ 進駐日已到，請轉成正式租約" : ""}` });
+    loose.push({ kind:"bin", date:x.start, warn:od, text:`${monthText(x.start)} 進駐（預計） · ${x.client} · ${fa(x.area)} 坪${od ? " ⚠ 進駐日已到，請轉成正式租約" : ""}` });
   });
   loose.sort((a,c)=> String(a.date) < String(c.date) ? -1 : 1);
+  looseAll.sort((a,c)=> String(a.date) < String(c.date) ? -1 : 1);
   const freeRows = rows.filter(r => r.status === "free");
   const freeArea = freeRows.reduce((t,r)=> t + r.area, 0);
-  const plannedArea = freeRows.filter(r => r.next).reduce((t,r)=> t + r.area, 0);
-  return { rows, loose, looseLeaseArea, looseLeaseN, freeArea, freeN:freeRows.length, plannedArea };
+  return { rows, loose, looseAll, looseLeaseArea, looseLeaseN, freeArea, freeN:freeRows.length };
 }
-function vacSpacesHtml(sp, pieVacant){
+// 出租率總覽：每一棟逐個空間列出「誰租、租到什麼時候」（空置、預計進駐也一起列）
+function vacOccSpacesHtml(sp){
+  const rows = [...sp.rows].sort((a,c)=> a.seq - c.seq);
+  let html = "";
+  if (rows.length){
+    html += `<div class="vac-tbl-wrap"><table class="vac-tbl"><thead><tr><th>空間</th><th class="num">坪數</th><th>狀態</th><th>客戶</th><th>租期迄</th></tr></thead><tbody>`
+      + rows.map(r=>{
+        let st, cl, en;
+        if (r.status === "leased"){ st = `<span class="vac-st leased">出租中</span>`; cl = r.tenants.map(t => escHtml(t.client)).join("<br>"); en = r.tenants.map(t => t.end ? dateText(t.end) : "不定期").join("<br>"); }
+        else if (r.status === "exp"){ st = `<span class="vac-st exp">即將到期</span>`; cl = escHtml(r.client) + (r.planned ? "（預計進駐）" : ""); en = r.end ? dateText(r.end) : "不定期"; }
+        else if (r.status === "bin"){ st = `<span class="vac-st bin">預計進駐</span>`; cl = escHtml(r.client); en = r.until ? dateText(r.until) : "—"; }
+        else { st = `<span class="vac-st free">空置中</span>`; cl = `<span class="vac-none">—</span>`; en = `<span class="vac-none">—</span>`; }
+        return `<tr><td>${escHtml(r.name)}</td><td class="num">${fa(r.area)}</td><td>${st}</td><td>${cl}</td><td>${en}</td></tr>`;
+      }).join("") + `</tbody></table></div>`;
+  } else {
+    if (!sp.looseAll.length) html += `<div class="vac-meta" style="padding:6px 0;">此棟沒有登記單元，或租約沒有勾選單元，所以列不出明細。到資料庫編輯租約、勾選單元即可。</div>`;
+  }
+  if (sp.looseLeaseN) html += `<div class="vac-note">⚠ 另有 ${sp.looseLeaseN} 筆租約（合計 ${fa(sp.looseLeaseArea)} 坪）沒有勾選單元，上表對不到空間。到資料庫編輯那些租約、勾選單元即可。</div>`;
+  if (sp.looseAll.length || sp.loose.length) html += `<div class="vac-sub">未指定單元的租約</div>` + vacChipsHtml([...sp.looseAll, ...sp.loose.filter(x => x.kind === "bin")]);
+  return html;
+}
+function vacSpacesHtml(sp0, pieVacant){
+  const sp = { ...sp0, rows: sp0.rows.filter(r => r.status !== "leased") };
   let html = "";
   if (sp.rows.length){
     html += `<div class="vac-sum">目前空置 <b>${fa(sp.freeArea)}</b> 坪（${sp.freeN} 個空間）`
-      + (sp.freeN ? `，其中 <b>${fa(sp.plannedArea)}</b> 坪已有進駐安排、<b>${fa(sp.freeArea - sp.plannedArea)}</b> 坪尚無安排` : "")
       + `；另有 ${sp.rows.filter(r => r.status === "exp").length} 個空間 ${VAC_SOON_DAYS} 天內到期。</div>`;
-    html += `<div class="vac-tbl-wrap"><table class="vac-tbl"><thead><tr><th>空間</th><th class="num">坪數</th><th>目前狀態</th><th>預計進駐</th></tr></thead><tbody>`
+    html += `<div class="vac-tbl-wrap"><table class="vac-tbl"><thead><tr><th>空間</th><th class="num">坪數</th><th>狀態</th><th>客戶</th><th>租期迄</th></tr></thead><tbody>`
       + sp.rows.map(r=>{
-        const st = r.status === "free" ? `<span class="vac-st free">空置中</span>`
-          : (r.status === "bin" ? `<span class="vac-st bin">已預訂進駐</span> ${escHtml(r.client)}${r.overdue ? ` <span class="vac-od">⚠ 進駐日已到，請轉成正式租約</span>` : ""}`
-            : `<span class="vac-st exp">${r.end ? dateText(r.end) + " 到期" : "即將到期"}</span> ${escHtml(r.client)}${r.planned ? "（預計進駐）" : ""}`);
-        const nx = r.next ? `<span class="vac-plan">${monthText(r.next.start)} ${escHtml(r.next.client)}</span>（${r.next.kind}）`
-          : (r.status === "bin" ? `<span class="vac-none">—</span>` : `<span class="vac-none">尚無安排</span>`);
-        return `<tr><td>${escHtml(r.name)}</td><td class="num">${fa(r.area)}</td><td>${st}</td><td>${nx}</td></tr>`;
+        let st, cl, en;
+        if (r.status === "free"){ st = `<span class="vac-st free">空置中</span>`; cl = en = `<span class="vac-none">—</span>`; }
+        else if (r.status === "bin"){ st = `<span class="vac-st bin">預計進駐</span>`; cl = escHtml(r.client) + (r.overdue ? ` <span class="vac-od">⚠ 進駐日已到，請轉成正式租約</span>` : ""); en = r.until ? dateText(r.until) : `<span class="vac-none">—</span>`; }
+        else { st = `<span class="vac-st exp">即將到期</span>`; cl = escHtml(r.client) + (r.planned ? "（預計進駐）" : ""); en = r.end ? dateText(r.end) : "不定期"; }
+        return `<tr><td>${escHtml(r.name)}</td><td class="num">${fa(r.area)}</td><td>${st}</td><td>${cl}</td><td>${en}</td></tr>`;
       }).join("") + `</tbody></table></div>`;
   } else {
-    html += `<div class="vac-meta" style="padding:6px 0;">這一棟目前沒有可對應到單元的空置或即將空出的空間。</div>`;
+    html += `<div class="vac-meta" style="padding:6px 0;">此棟目前沒有可對應到單元的空置或即將空出的空間。</div>`;
   }
   const diff = (Number(pieVacant) || 0) - sp.freeArea;
   if (diff > 0.5 && !sp.looseLeaseN) html += `<div class="vac-note">⚠ 圓餅圖的空置（${fa(pieVacant)} 坪）比上表多 ${fa(diff)} 坪：通常是某個單元只租了一部分（租約面積小於單元面積），這部分沒有對應到單一空間，所以上表列不出來。</div>`;
@@ -4153,11 +4805,15 @@ function vacCollect(opts){
   });
   if (all) return { T, zones };
   const sort = document.getElementById("vacSort").value;
-  zones.sort((a,b)=> sort === "vacant" ? ((b.v.base - b.v.occupied) - (a.v.base - a.v.occupied))
-    : (sort === "name" ? a.zone.localeCompare(b.zone, "zh-Hant") : a.v.rate - b.v.rate));
+  zones.sort((a,b)=> sort === "vacant" ? (b.v.vacant - a.v.vacant)
+    : (sort === "name" ? a.zone.localeCompare(b.zone, "zh-Hant") : (b.v.vacRate - a.v.vacRate) || (b.v.vacant - a.v.vacant)));
   return { T, zones };
 }
-function vacZonesHtml(zones, rateLabel, expanded){
+function vacZonesHtml(zones, rateLabel, expanded, mode){
+  const vm = mode === "vac";
+  const metaOf = v => vm
+    ? `登記 ${fa(v.base)} 坪 · 空置 ${fa(v.vacant)} 坪（${(v.vacRate*100).toFixed(1)}%）`
+    : `登記 ${fa(v.base)} 坪 · 空置 ${fa(v.base - v.occupied)} 坪`;
   return zones.map(z=>{
     const v = z.v, open = expanded.has(z.zone) && z.hasStructure;
     const vacant = v.base - v.occupied;
@@ -4165,22 +4821,22 @@ function vacZonesHtml(zones, rateLabel, expanded){
     if (open){
       kids = `<div class="vac-kids">` + (z.buildings.length ? z.buildings.map(b => `<div class="vac-kid">
           <div class="vac-head static"><span class="vac-name sm">${escHtml(b.name)}</span>
-            <span class="vac-meta">登記 ${fa(b.v.base)} 坪 · 空置 ${fa(b.v.base - b.v.occupied)} 坪${b.v.laterGross > 0.005 ? ` · 預計進駐 ${fa(b.v.laterGross)} 坪` : ""}</span></div>
+            <span class="vac-meta">${metaOf(b.v)}</span></div>
           <div class="vac-kid-main">
-            ${vacDonutHtml(b.v, 132, rateLabel, true)}
-            <div class="vac-kid-info">${vacNumsHtml(b.v)}${vacSpacesHtml(b.spaces, b.v.base - b.v.occupied)}</div>
+            ${vacDonutHtml(b.v, 132, rateLabel, true, mode)}
+            <div class="vac-kid-info">${vacNumsHtml(b.v, mode)}${vm ? vacSpacesHtml(b.spaces, b.v.base - b.v.occupied) : vacOccSpacesHtml(b.spaces)}</div>
           </div></div>`).join("") : `<div class="vac-meta" style="padding:4px 0;">底下各棟都已租滿。</div>`)
         + (z.fullBuildings > 0 && z.buildings.length ? `<div class="vac-meta" style="padding:6px 0 0;">另有 ${z.fullBuildings} 棟已租滿，不顯示。</div>` : "") + `</div>`;
     }
     return `<div class="vac-zone">
       <div class="vac-head ${z.hasStructure ? "clickable" : ""}" ${z.hasStructure ? `data-vac-toggle="${escHtml(z.zone)}" role="button" tabindex="0"` : ""}>
         <span class="vac-name">${z.hasStructure ? (open ? "▾ " : "▸ ") : ""}${escHtml(z.zone)}</span>
-        <span class="vac-meta">登記 ${fa(v.base)} 坪 · 空置 ${fa(vacant)} 坪${v.laterGross > 0.005 ? ` · 預計進駐 ${fa(v.laterGross)} 坪` : ""}</span>
+        <span class="vac-meta">${metaOf(v)}</span>
         ${z.hasStructure && !open ? `<span class="vac-meta" style="margin-left:auto;">點開看各棟的空置明細</span>` : ""}
       </div>
       <div class="vac-zone-main">
-        ${vacDonutHtml(v, 156, rateLabel, false)}
-        <div class="vac-zone-info">${vacNumsHtml(v)}${vacChipsHtml(v.chips)}</div>
+        ${vacDonutHtml(v, 156, rateLabel, false, mode)}
+        <div class="vac-zone-info">${vacNumsHtml(v, mode)}${vacChipsHtml(!vm && !z.hasStructure ? [...v.chips, ...v.leasedChips] : v.chips)}</div>
       </div>
       ${kids}
     </div>`;
@@ -4211,13 +4867,16 @@ function renderVacancy(){
     btn.classList.toggle("active", toDateInput(d) === toDateInput(T));
     btn.title = `查看日期：${dateText(toDateInput(d))}（月底）`;
   });
-  const tot = zones.reduce((o,z)=>{ o.vacant += z.v.base - z.v.occupied; o.later += z.v.laterGross; o.exp += z.v.E; return o; }, { vacant:0, later:0, exp:0 });
-  document.getElementById("vacSummary").textContent = zones.length
-    ? `${today ? "目前" : "截至 " + dateText(toDateInput(T))}共 ${zones.length} 個園區未租滿，空置合計 ${fa(tot.vacant)} 坪；${VAC_SOON_DAYS} 天內快到期 ${fa(tot.exp)} 坪；預計進駐(未到進駐日) ${fa(tot.later)} 坪`
-    : "所有園區都已租滿";
+  // 整體空置率用「所有園區」算（不受「只列有空置的園區」影響）
+  const allZ = vacCollect({ all:true, T }).zones;
+  const tot = allZ.reduce((o,z)=>{ o.base += z.v.base; o.vacant += z.v.vacant; o.exp += z.v.E; return o; }, { base:0, vacant:0, exp:0 });
+  const nVac = allZ.filter(z => z.v.vacant > 0.005).length;
+  document.getElementById("vacSummary").textContent = tot.base > 0
+    ? `${today ? "目前" : "截至 " + dateText(toDateInput(T))}整體空置率 ${(tot.vacant / tot.base * 100).toFixed(1)}%（空置 ${fa(tot.vacant)} 坪 ÷ 登記 ${fa(tot.base)} 坪），共 ${nVac} 個園區有空置；${VAC_SOON_DAYS} 天內即將到期 ${fa(tot.exp)} 坪（仍算已出租）`
+    : "還沒有園區資料";
   if (!zones.length){ chart.innerHTML = `<div class="vac-empty">${vacIsToday() ? "目前所有園區都已 100% 出租。" : (startOfLocalDay(vacAsOf()) < startOfLocalDay(TODAY) ? "這個日期所有園區都是 100% 出租。" : "這個日期所有園區預估都是 100% 出租。")}</div>`; return; }
-  const rateLabel = today ? "出租率" : (past ? "回溯出租率" : "預估出租率");
-  chart.innerHTML = vacZonesHtml(zones, rateLabel, vacExpanded);
+  const rateLabel = "空置率";   // 查看日期不是今天時，上方橫幅已說明是回顧／預估，圓餅圖字樣不再改
+  chart.innerHTML = vacZonesHtml(zones, rateLabel, vacExpanded, "vac");
 }
 function refreshVacancyIfVisible(){
   const p = document.getElementById("panel-vacancy");
@@ -4244,7 +4903,7 @@ document.getElementById("vacChart").addEventListener("keydown", (ev)=>{
   const h = ev.target.closest("[data-vac-toggle]"); if (!h) return;
   ev.preventDefault(); h.click();
 });
-// 出租率總覽、空置總覽上方的座數卡片：游標靠近時浮出名單
+// 出租率總覽、空置率總覽上方的座數卡片：游標靠近時浮出名單
 ["occStats", "vacStats"].forEach(boxId => (function(){
   const box = document.getElementById(boxId), tip = document.getElementById("occTip");
   if (!box || !tip) return;
@@ -4287,23 +4946,22 @@ async function exportVacancy(){
   const stamp = `${now.getFullYear()}${pad2(now.getMonth()+1)}${pad2(now.getDate())}`;
   const rows = [];
   zones.forEach(z=>{
-    const add = (name, bname, v) => rows.push([name, bname, v.base, v.Ls, v.E, v.Bin, v.later, v.free, Number(v.rate.toFixed(4)), dateText(toDateInput(T))]);
+    const add = (name, bname, v) => rows.push([name, bname, v.base, v.vacant, Number(v.vacRate.toFixed(4)), v.Ls, v.E, v.Bin, Number(v.rate.toFixed(4)), dateText(toDateInput(T))]);
     add(z.zone, "", z.v);
     z.buildings.forEach(b => add(z.zone, b.name, b.v));
   });
-  const sheet1 = { name:"空置總覽", header:["園區","棟別","登記坪數","已租(穩定)","快到期(90天內)","預計進駐(已到進駐日)","預計進駐(未到進駐日)","空置(無安排)","出租率","查看日期"], rows,
-    colFmt:{ 2:"auto", 3:"auto", 4:"auto", 5:"auto", 6:"auto", 7:"auto", 8:"pct" } };
+  const sheet1 = { name:"空置率總覽", header:["園區","棟別","登記坪數","空置坪數","空置率","已出租","即將到期(90天內)","預計進駐","出租率","查看日期"], rows,
+    colFmt:{ 2:"auto", 3:"auto", 4:"pct", 5:"auto", 6:"auto", 7:"auto", 8:"pct" } };
   const bkRows = getBookings().sort((a,b)=> String(a.start) < String(b.start) ? -1 : 1).map(b => [monthText(b.start), b.zone, b.building || "", ((b.floor ? b.floor + " " : "") + (b.unit || "")).trim(), b.client, b.area, b.note || ""]);
   const sheet2 = { name:"預計進駐", header:["預計進駐","園區","棟別","單元","客戶","坪數","備註"], rows:bkRows, colFmt:{ 5:"auto" } };
   const spRows = [];
-  zones.forEach(z => z.buildings.forEach(b => b.spaces.rows.forEach(r => spRows.push([z.zone, b.name, r.name, r.area,
-    r.status === "free" ? "空置中" : (r.status === "bin" ? "已預訂進駐" : "即將到期"), r.end ? dateText(r.end) : "", r.status === "free" ? "" : r.client,
-    r.next ? monthText(r.next.start) : "", r.next ? r.next.client : "", r.next ? r.next.kind : ""]))));
-  const sheet3 = { name:"空置明細", header:["園區","棟別","空間","坪數","目前狀態","到期日","目前客戶","預計進駐月份","預計進駐客戶","進駐狀態"], rows:spRows, colFmt:{ 3:"auto" } };
+  zones.forEach(z => z.buildings.forEach(b => b.spaces.rows.filter(r => r.status !== "leased").forEach(r => spRows.push([z.zone, b.name, r.name, r.area,
+    r.status === "free" ? "空置中" : (r.status === "bin" ? "預計進駐" : "即將到期"), r.end ? dateText(r.end) : "", r.status === "free" ? "" : r.client]))));
+  const sheet3 = { name:"空置明細", header:["園區","棟別","空間","坪數","目前狀態","到期日","目前客戶"], rows:spRows, colFmt:{ 3:"auto" } };
   const sheets = [sheet1]; if (bkRows.length) sheets.push(sheet2); if (spRows.length) sheets.push(sheet3);
   if (!rows.length){ await notify("目前沒有未租滿的園區可以下載。"); return; }
   if (USING_DOWNLOADS) await exportViaDownloads(sheets, stamp);
-  else exportViaXlsx(sheets, stamp, "空置總覽");
+  else exportViaXlsx(sheets, stamp, "空置率總覽");
 }
 document.getElementById("vacExportBtn").addEventListener("click", exportVacancy);
 
@@ -4531,7 +5189,7 @@ function renderUnitStatus(){
   ZONE_AREA.forEach(z=>{
     if (zoneSel.length && !zoneSel.includes(z.zone)) return;
     zoneBuildings(z).forEach(b=>{
-      if (!buildingFloors(b).length) return; // 這一棟還沒拆樓層，不屬於這張房態表的範圍
+      if (!buildingFloors(b).length) return; // 此棟還沒拆樓層，不屬於這張房態表的範圍
       collectBuildingLeaves(b).forEach(leaf=>{
         totalLeaves++;
         const occ = findOccupyingLease(leaf.id);
@@ -4741,6 +5399,9 @@ function leaseOverlapsMonth(rec, year, monthIndex){
 // 起租月、到期月依實際天數按日計算：月租金 ÷ 30 × 租賃天數（財務實務算法，不論該月 28／30／31 天一律除以 30）。
 // 整個月都在租期內＝1（不打折）；半個月以上也不會超過 1（天數上限 30，例如 31 天的月份從 2 號起租剛好 30 天＝整月）。
 // 租金與管理費（含手動覆蓋總月租金）都乘上同一個比例；調整仍以該月 1 日當天適用的單價為準。
+// 不足月的除數：預設 30；契約約定 31 就固定除以 31；約定「當月實際天數」就除以該月天數
+function prorateDivisor(rec, dim){ return rec.prorate === "actual" ? dim : (rec.prorate === "31" ? 31 : 30); }
+function prorateText(p){ return p === "actual" ? "當月實際天數" : (p === "31" ? "÷31" : "÷30"); }
 function monthProrationInfo(rec, year, monthIndex){
   const s = parseLocalDate(rec.start), e = parseLocalDate(rec.end);
   const dim = new Date(year, monthIndex + 1, 0).getDate();
@@ -4750,6 +5411,8 @@ function monthProrationInfo(rec, year, monthIndex){
   if (to < from) return { factor:0, days:0 };
   const days = Math.round((to - from) / 86400000) + 1;
   if (days >= dim) return { factor:1, days:dim };
+  if (rec.prorate === "actual") return { factor: days / dim, days };   // 契約約定「依當月實際天數」：月租金 ÷ 當月天數（31 天的月份就除以 31）
+  if (rec.prorate === "31") return { factor: days / 31, days };        // 契約約定固定 ÷31
   return { factor: Math.min(days, 30) / 30, days: Math.min(days, 30) };
 }
 function monthProrationFactor(rec, year, monthIndex){ return monthProrationInfo(rec, year, monthIndex).factor; }
@@ -4759,8 +5422,8 @@ function currentMonthProration(rec, asOf){
   const info = monthProrationInfo(rec, asOf.getFullYear(), asOf.getMonth());
   return (info.factor > 0 && info.factor < 1) ? info : { factor:1, days:0 };
 }
-function computeTotalRentNow(rec, asOf){ return Math.round(computeTotalRent(rec, asOf) * currentMonthProration(rec, asOf).factor); }
-function computeMgmtNow(rec, asOf){ return Math.round(computeMgmtTotal(rec, asOf) * currentMonthProration(rec, asOf).factor); }
+function computeTotalRentNow(rec, asOf){ return leaseFreeNow(rec, asOf) ? 0 : Math.round(computeTotalRent(rec, asOf) * currentMonthProration(rec, asOf).factor); }
+function computeMgmtNow(rec, asOf){ return (rec.freeMgmt && leaseFreeNow(rec, asOf)) ? 0 : Math.round(computeMgmtTotal(rec, asOf) * currentMonthProration(rec, asOf).factor); }
 // 這個月內如果有「調整租金」的生效日，就依天數把這個月切成幾段，每段用各自的價格（權重加起來＝1，再乘上整月的折算比例）。
 function monthSegments(rec, year, mi){
   const first = new Date(year, mi, 1);
@@ -4783,12 +5446,72 @@ function monthSegments(rec, year, mi){
   });
   return segs;
 }
+// 免租期（租出契約）：期間內租金算 0；管理費預設照收，勾了「免租期間管理費也免收」才一併免收。同樣用「付租天數 ÷ 30」折算（整月都付＝1，整月都免租＝0）。
+function leaseHasFree(rec){ return !!(rec && rec.freeStart && rec.freeEnd); }
+function leaseFreeNow(rec, asOf){
+  if (!leaseHasFree(rec)) return false;
+  const fs = parseLocalDate(rec.freeStart), fe = parseLocalDate(rec.freeEnd);
+  const d = new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate());
+  return !!(fs && fe && d >= fs && d <= fe);
+}
+function monthRentProration(rec, year, mi){
+  const info = monthProrationInfo(rec, year, mi);
+  if (!leaseHasFree(rec) || info.factor === 0) return info.factor;
+  const fs = parseLocalDate(rec.freeStart), fe = parseLocalDate(rec.freeEnd);
+  if (!fs || !fe) return info.factor;
+  const dim = new Date(year, mi + 1, 0).getDate();
+  const mStart = new Date(year, mi, 1), mEnd = new Date(year, mi, dim);
+  const s = parseLocalDate(rec.start), e = parseLocalDate(rec.end);
+  const from = (s && s > mStart) ? s : mStart, to = (e && e < mEnd) ? e : mEnd;
+  const occ = Math.round((to - from) / 86400000) + 1;
+  const a = fs > from ? fs : from, b = fe < to ? fe : to;
+  const free = b >= a ? Math.round((b - a) / 86400000) + 1 : 0;
+  if (!free) return info.factor;
+  const pay = occ - free;
+  if (pay <= 0) return 0;
+  if (pay >= dim) return 1;
+  return rec.prorate === "actual" ? pay / dim : (rec.prorate === "31" ? pay / 31 : Math.min(pay, 30) / 30);
+}
 function monthlyRentFor(rec, year, monthIndex){
-  const f = monthProrationFactor(rec, year, monthIndex);
+  const f = monthRentProration(rec, year, monthIndex);
   return Math.round(monthSegments(rec, year, monthIndex).reduce((s, g) => s + computeTotalRent(rec, g.date) * g.w, 0) * f);
 }
+// 租金／管理費的「每一段」明細（未四捨五入）：同一個月裡價格有調整時，分成舊價、新價兩段；k 標記這一段的起算日、占比、折算比例。
+function monthlyRentParts(rec, year, monthIndex){
+  const f = monthRentProration(rec, year, monthIndex);
+  return monthSegments(rec, year, monthIndex).map(g => ({ k: g.date.getTime() + "|" + g.w.toFixed(6) + "|" + f.toFixed(6), v: computeTotalRentExact(rec, g.date) * g.w * f }));
+}
+// 管理費的折算比例：預設不受免租期影響；契約勾了「免租期間管理費也免收」就跟租金一樣扣掉免租天數。
+function monthMgmtProration(rec, year, monthIndex){ return rec.freeMgmt ? monthRentProration(rec, year, monthIndex) : monthProrationFactor(rec, year, monthIndex); }
+function monthlyMgmtParts(rec, year, monthIndex){
+  const f = monthMgmtProration(rec, year, monthIndex);
+  return monthSegments(rec, year, monthIndex).map(g => ({ k: g.date.getTime() + "|" + g.w.toFixed(6) + "|" + f.toFixed(6), v: computeMgmtTotalExact(rec, g.date) * g.w * f }));
+}
+// 一群租約（同一個客戶）在某個月的租金（或管理費）合計：同一份契約底下、期間與折算天數都一樣的各單元，先加總成「這一期的契約總額」再四捨五入，
+// 各期再相加（跟財務「契約每期總額 × 天數 ÷ 當月天數」的算法一致）。不用逐個單元各自四捨五入，避免多單元時差個一兩塊錢。
+function monthlyPartsGroupTotal(recs, year, monthIndex, partsFn){
+  const byContract = new Map();
+  recs.forEach(r => {
+    const ck = contractGroupKey(r);
+    if (!byContract.has(ck)) byContract.set(ck, new Map());
+    const mp = byContract.get(ck);
+    partsFn(r, year, monthIndex).forEach(p => mp.set(p.k, (mp.get(p.k) || 0) + p.v));
+  });
+  let t = 0;
+  byContract.forEach(mp => mp.forEach(v => { t += Math.round(Math.round(v * 1e6) / 1e6); }));   // 先去掉浮點誤差再四捨五入
+  return t;
+}
+function monthlyRentGroupTotal(recs, year, monthIndex){ return monthlyPartsGroupTotal(recs, year, monthIndex, monthlyRentParts); }
+function monthlyMgmtGroupTotal(recs, year, monthIndex){ return monthlyPartsGroupTotal(recs, year, monthIndex, monthlyMgmtParts); }
+// 某個客戶（一群租約）在某個月的金額，依 kind："rent"／"mgmt"／"combined"（設備只算租金）。
+function monthlyGroupValue(recs, year, monthIndex, kind){
+  if (!recs.length) return 0;
+  if (kind === "rent") return monthlyRentGroupTotal(recs, year, monthIndex);
+  const mg = monthlyMgmtGroupTotal(kind === "combined" ? recs.filter(r => r.category !== "設備") : recs, year, monthIndex);
+  return kind === "mgmt" ? mg : monthlyRentGroupTotal(recs, year, monthIndex) + mg;
+}
 function monthlyMgmtFor(rec, year, monthIndex){
-  const f = monthProrationFactor(rec, year, monthIndex);
+  const f = monthMgmtProration(rec, year, monthIndex);
   return Math.round(monthSegments(rec, year, monthIndex).reduce((s, g) => s + computeMgmtTotal(rec, g.date) * g.w, 0) * f);
 }
 function monthlyValueFor(rec, year, monthIndex){
@@ -4803,6 +5526,37 @@ function monthlyValueFor(rec, year, monthIndex){
 // 依「園區＋客戶」分組算出每組逐月金額（同一份契約拆成多個租賃單元時會合併加總），
 // 再依園區彙總成小計列（預設畫面只會看到這一層）。
 // 抽成通用函式，讓「倉儲／停車位」主表跟「設備」表都能各自呼叫，彼此的資料跟展開狀態互不影響。
+// 某筆租約在某個月的計算明細（滑鼠移到月別金額上顯示）：完整月租金、租期內天數、免租天數、付租天數、折算方式、本月金額
+function monthCalcText(r, year, mi){
+  const dim = new Date(year, mi + 1, 0).getDate();
+  const mStart = new Date(year, mi, 1), mEnd = new Date(year, mi, dim);
+  const s = parseLocalDate(r.start), e = parseLocalDate(r.end);
+  const from = (s && s > mStart) ? s : mStart, to = (e && e < mEnd) ? e : mEnd;
+  if (to < from) return "";
+  const occ = Math.round((to - from) / 86400000) + 1;
+  let free = 0;
+  if (leaseHasFree(r)){
+    const fs = parseLocalDate(r.freeStart), fe = parseLocalDate(r.freeEnd);
+    const a = fs > from ? fs : from, b = fe < to ? fe : to;
+    if (b >= a) free = Math.round((b - a) / 86400000) + 1;
+  }
+  const base = prorateDivisor(r, dim);
+  const part = (label, full, pay, amount, hasFree) => {
+    let how;
+    const segs = label === "租金" ? monthSegments(r, year, mi) : [];
+    if (pay <= 0) how = "整個月都免租 → 0";
+    else if (pay >= dim) how = segs.length > 1 ? `月中調價：${segs.map(g => `${fmtInt(computeTotalRent(r, g.date))} × ${Math.round(g.w * occ)} 天`).join(" + ")} ÷ ${occ}` : "整月，不折算";
+    else how = `${fmtInt(full)} × ${r.prorate === "actual" || r.prorate === "31" ? Math.min(pay, dim) : Math.min(pay, 30)} 天 ÷ ${base}${r.prorate === "actual" ? "（當月實際天數）" : ""}${segs.length > 1 ? "（月中另有調價）" : ""}`;
+    return `${label}完整月租 ${fmtInt(full)}；租期內 ${occ} 天${hasFree && free ? `，免租 ${free} 天` : ""}，付租 ${Math.max(pay, 0)} 天 → ${how} = ${fmtInt(amount)}`;
+  };
+  const d1 = new Date(year, mi, 1);
+  const rentFull = computeTotalRent(r, d1), mgFull = computeMgmtTotal(r, d1);
+  const head = `${r.unit || ""}：`;
+  const mgPay = r.freeMgmt ? occ - free : occ;
+  if (monthlyMetric === "mgmt") return head + part("管理費", mgFull, mgPay, monthlyMgmtFor(r, year, mi), !!r.freeMgmt);
+  if (monthlyMetric === "combined" && r.category !== "設備") return head + part("租金", rentFull, occ - free, monthlyRentFor(r, year, mi), true) + "\n　" + part("管理費", mgFull, mgPay, monthlyMgmtFor(r, year, mi), !!r.freeMgmt);
+  return head + part("租金", rentFull, occ - free, monthlyRentFor(r, year, mi), true);
+}
 function computeMonthlyGroups(records, year){
   const groups = new Map();
   records.forEach(r=>{
@@ -4811,17 +5565,21 @@ function computeMonthlyGroups(records, year){
     groups.get(key).leases.push(r);
   });
   const clientRows = [...groups.values()].map(g=>{
-    const cells = new Array(12).fill(0);
+    const cells = new Array(12).fill(0), tips = new Array(12).fill("");
     let rowTotal = 0;
     for (let m=0; m<12; m++){
-      let val = 0;
+      const lines = [], act = [];
+      let each = 0;   // 逐個單元各自四捨五入後相加（只用來比對提示框要不要加註）
       g.leases.forEach(r=>{
-        if (leaseOverlapsMonth(r, year, m)) val += monthlyValueFor(r, year, m);
+        if (leaseOverlapsMonth(r, year, m)){ act.push(r); each += monthlyValueFor(r, year, m); const t = monthCalcText(r, year, m); if (t) lines.push(t); }
       });
+      const val = monthlyGroupValue(act, year, m, monthlyMetric);
+      if (val !== each && lines.length) lines.push(`※ 同一份契約各單元依期間合併後再四捨五入：合計 ${fmtInt(val)}（逐單元相加為 ${fmtInt(each)}）`);
       cells[m] = val;
+      tips[m] = lines.join("\n");
       rowTotal += val;
     }
-    return { zone:g.zone, client:g.client, cells, rowTotal };
+    return { zone:g.zone, client:g.client, cells, tips, rowTotal };
   });
 
   const zoneOrder = zoneNames();
@@ -4852,7 +5610,9 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
     return;
   }
 
-  const monthCellsHtml = arr => arr.map(v=>`<td class="num">${v ? fmtInt(v) : "—"}</td>`).join("");
+  const monthCellsHtml = (arr, tips) => arr.map((v, i)=>`<td class="num"${tips && tips[i] ? ` data-tip="${escHtml(tips[i])}" style="cursor:help;"` : ""}>${v ? fmtInt(v) : "-"}</td>`).join("");
+  // 園區那一列的明細＝底下各客戶的明細串起來（太長就只列前面幾筆）
+  const zoneTips = z => z.cells.map((_, m) => { const ls = []; z.clients.forEach(c => { if (c.tips[m]) ls.push(...String(c.tips[m]).split("\n").map((t, k) => (k === 0 ? `【${c.client}】` : "") + t)); }); return ls.length > 14 ? ls.slice(0, 14).join("\n") + `\n…（共 ${ls.length} 行，展開客戶列可看各客戶明細）` : ls.join("\n"); });
 
   const monthGrandTotals = new Array(12).fill(0);
   let grandTotal = 0;
@@ -4869,8 +5629,8 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
       <td colspan="2">
         <button type="button" class="btn-ghost" style="padding:2px 7px; font-size:11px; margin-right:8px;" data-toggle-zone="${zoneName}" title="展開／收合客戶明細">${expanded ? "▾" : "▸"}</button>${zoneName}
       </td>
-      ${monthCellsHtml(z.cells)}
-      <td class="num computed">${z.total ? fmtInt(z.total) : "—"}</td>
+      ${monthCellsHtml(z.cells, zoneTips(z))}
+      <td class="num computed">${z.total ? fmtInt(z.total) : "-"}</td>
     </tr>`;
 
     if (expanded){
@@ -4878,17 +5638,34 @@ function renderMonthlyTable(tbodyEl, countEl, records, year, expandedSet, emptyM
         html += `<tr class="subrow">
           <td></td>
           <td>　└ ${cr.client}</td>
-          ${monthCellsHtml(cr.cells)}
-          <td class="num computed">${cr.rowTotal ? fmtInt(cr.rowTotal) : "—"}</td>
+          ${monthCellsHtml(cr.cells, cr.tips)}
+          <td class="num computed">${cr.rowTotal ? fmtInt(cr.rowTotal) : "-"}</td>
         </tr>`;
       });
     }
   });
 
-  const totalCells = monthGrandTotals.map(v=>`<td class="num">${v ? fmtInt(v) : "—"}</td>`).join("");
-  const totalRow = `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td colspan="2">合計</td>${totalCells}<td class="num computed">${grandTotal ? fmtInt(grandTotal) : "—"}</td></tr>`;
+  const totalCells = monthGrandTotals.map(v=>`<td class="num">${v ? fmtInt(v) : "-"}</td>`).join("");
+  const totalRow = `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td colspan="2">合計</td>${totalCells}<td class="num computed">${grandTotal ? fmtInt(grandTotal) : "-"}</td></tr>`;
 
   tbodyEl.innerHTML = html + totalRow;
+  // 月份格子：游標一靠近就浮出計算明細（用頁面上同一個浮動提示框，不靠瀏覽器慢吞吞的 title）
+  if (!tbodyEl._tipBound){
+    tbodyEl._tipBound = true;
+    const tip = document.getElementById("occTip");
+    const hide = ()=>{ if (tip) tip.style.display = "none"; };
+    tbodyEl.addEventListener("mousemove", (ev)=>{
+      const c = ev.target.closest("[data-tip]");
+      if (!c || !tip){ hide(); return; }
+      tip.textContent = c.dataset.tip;
+      tip.style.display = "block";
+      let top = ev.clientY + 18;
+      if (top + tip.offsetHeight > window.innerHeight - 8) top = Math.max(8, ev.clientY - tip.offsetHeight - 12);
+      tip.style.left = Math.max(8, Math.min(window.innerWidth - tip.offsetWidth - 12, ev.clientX + 10)) + "px";
+      tip.style.top = top + "px";
+    });
+    tbodyEl.addEventListener("mouseleave", hide);
+  }
 
   tbodyEl.querySelectorAll("[data-toggle-zone]").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -4931,6 +5708,9 @@ function renderMonthly(){
   // 目前選的年度（如果那個年度仍然存在於新算出來的範圍內）。
   refreshMonthlyYearOptions();
   const year = Number(yearSel.value || TODAY.getFullYear());
+  { const ys = [...yearSel.options].map(o => Number(o.value));   // ◀ ▶：沒有上一年／下一年就反灰
+    document.getElementById("monthlyPrev").disabled = !ys.includes(year - 1);
+    document.getElementById("monthlyNext").disabled = !ys.includes(year + 1); }
   const isEquip = monthlyView === "equip";
   const isCombined = monthlyView === "combined";
   // 「設備」畫面固定看租金（示範資料的設備管理費多半是 0，暫不提供切換）；
@@ -4950,7 +5730,7 @@ function renderMonthly(){
     : isCombined
       ? "不分類別，把倉儲／停車位的租金＋管理費、加上設備的租金，合併成每個客戶每個月單一一個總金額，一次看完全部現金流入，不用再自己把「租金」「管理費」「設備」三張表加總。"
       : "依租約起訖判斷該月是否在租期內；租金會反映當年度的調整結果，管理費為固定單價，不受年度調整影響。預設只顯示各園區小計，點擊園區列可展開個別客戶的月租金明細。「設備」類租約不算在此處合計，可用上方切換鈕查看「設備」報表。";
-  document.getElementById("monthlyDesc").textContent += "　起租月、到期月不足整月時，依「月租金 ÷ 30 × 租賃天數」按日計算（租金與管理費相同）。";
+  document.getElementById("monthlyDesc").textContent += "　起租月、到期月不足整月時，依「月租金 ÷ 30 × 租賃天數」按日計算（租金與管理費相同）；契約設為「依當月實際天數」的，改除以當月天數。";
 
   renderMonthlyTable(
     document.getElementById("monthlyTbody"),
@@ -4963,6 +5743,11 @@ function renderMonthly(){
 }
 
 document.getElementById("monthlyYear").addEventListener("change", renderMonthly);
+// ◀ ▶：切到上一年／下一年（跟租賃成本總覽一樣）
+[["monthlyPrev", -1], ["monthlyNext", 1]].forEach(([id, step]) => document.getElementById(id).addEventListener("click", () => {
+  const sel = document.getElementById("monthlyYear"), y = Number(sel.value) + step;
+  if ([...sel.options].some(o => Number(o.value) === y)){ sel.value = String(y); renderMonthly(); }
+}));
 document.querySelectorAll("#monthlyViewToggle .seg-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll("#monthlyViewToggle .seg-btn").forEach(b=>b.classList.remove("active"));
@@ -4991,15 +5776,15 @@ function buildExportSheets(exportOpts){
   syncLeaseLabels();
   const dbHeader = ["園區","類型","棟別","樓層","單元","客戶","契約名稱","租期起","租期迄","面積／車位數","首年單位租金(元/坪或元/車位)",
     "調整方式","調整頻率(年)","調整百分比","調整金額","手動覆蓋總月租金","單位租金",
-    "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註","增補紀錄"];
+    "租金(元/月)","管理費單價","管理費(元/月)","狀態","BD承辦","SAP契約號碼","備註","增補紀錄","免租期起","免租期迄","不足月算法","免租期管理費"];
   const exportContractNameMap = buildContractNameMap(LEASE_DB);
-  const dbRows = LEASE_DB.map(r=>{
+  const dbRows = leaseSortedList(LEASE_DB).map(r=>{
     const contractName = exportContractNameMap.get(contractGroupKey(r)) || ((r.client || r.unit) ? `${r.client}-${r.unit}` : "");
     const tent = r.stage === "預計進駐";
     const T = leaseTermsAt(r, capToEnd(r, TODAY));
     return [
       r.zone, r.category === "停車位" ? "停車位" : (r.category === "設備" ? "設備" : "倉儲"), r.building || "", r.floor || "", r.unit, r.client, contractName, r.start, r.end || "", r.area, tent ? "" : r.baseUnit,
-      tent ? "" : T.adjustType, tent ? "" : (T.freq ?? 1),
+      tent ? "" : adjustLabelFor(r, T), tent ? "" : (T.freq ?? 1),
       T.adjustType === "固定百分比遞增" ? Number((T.pct/100).toFixed(4)) : "",
       T.adjustType === "固定金額遞增" ? T.amt : "",
       (T.override!==null && T.override!==undefined && T.override!=="") ? T.override : "",
@@ -5012,6 +5797,7 @@ function buildExportSheets(exportOpts){
       r.sap || "",
       r.remark || "",
       amendLogLines(r).join("\n"),
+      r.freeStart || "", r.freeEnd || "", prorateText(r.prorate), (r.freeStart && r.freeEnd) ? (r.freeMgmt ? "免收" : "照收") : "",
     ];
   });
 
@@ -5054,7 +5840,7 @@ function buildExportSheets(exportOpts){
   // 「園區坪數基準」「棟別明細」不匯出（那是很少異動的基準資料，不需要每次下載）。
   const sheets = [
     { name: "資料庫", header: dbHeader, rows: dbRows,
-      colFmt: { 7:"date", 8:"date", 9:"auto", 10:"auto", 13:"pct", 14:"auto", 15:"auto", 16:"dec2", 17:"int", 18:"auto", 19:"int" } },
+      colFmt: { 7:"date", 8:"date", 9:"auto", 10:"auto", 13:"pct", 14:"auto", 15:"auto", 16:"dec2", 17:"int", 18:"auto", 19:"int", 25:"date", 26:"date" } },
     { name: "出租率總覽", header: occHeader, rows: occRows,
       colFmt: { 1:"auto", 2:"auto", 3:"auto", 4:"pct", 5:"int" } },
   ];
@@ -5096,10 +5882,7 @@ function buildExportSheets(exportOpts){
       const cells = new Array(12).fill(0);
       let rowTotal = 0;
       for (let m=0; m<12; m++){
-        let val = 0;
-        g.leases.forEach(r=>{
-          if (monthInRange(year, m) && leaseOverlapsMonth(r, year, m)) val += valueFn(r, year, m);
-        });
+        const val = monthInRange(year, m) ? monthlyGroupValue(g.leases.filter(r => leaseOverlapsMonth(r, year, m)), year, m, valueFn) : 0;
         cells[m] = val;
         rowTotal += val;
       }
@@ -5150,10 +5933,10 @@ function buildExportSheets(exportOpts){
     main: signedLeases().filter(r => r.category !== "設備"),
     equip: signedLeases().filter(r => r.category === "設備"),
   };
-  const rentValueFn = (r, y, m) => monthlyRentFor(r, y, m);
-  const mgmtValueFn = (r, y, m) => monthlyMgmtFor(r, y, m);
+  const rentValueFn = "rent";
+  const mgmtValueFn = "mgmt";
   // 總覽＝倉儲／停車位的「租金＋管理費」，加上設備的「租金」（設備沒有管理費概念，固定記 0）。
-  const combinedValueFn = (r, y, m) => monthlyRentFor(r, y, m) + (r.category === "設備" ? 0 : monthlyMgmtFor(r, y, m));
+  const combinedValueFn = "combined";
   sheets.push({ name: `月別總表-租金(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.main, rentValueFn) });
   sheets.push({ name: `月別總表-管理費(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.main, mgmtValueFn) });
   sheets.push({ name: `月別總表-設備(${yearLabel})`, header: monthlyHeader, colFmt: monthlyColFmt, rows: buildMonthlyExportRows(rentEquipSplit.equip, rentValueFn) });
@@ -5584,6 +6367,33 @@ document.getElementById("resetDemoLink").addEventListener("click", async (e)=>{
   }
 });
 
+/* ---------------- 清空租出契約與操作紀錄（正式資料上線前用；保留園區坪數基準、租入契約、草稿） ---------------- */
+document.getElementById("wipeLeasesLink").addEventListener("click", async (e)=>{
+  e.preventDefault();
+  const n = LEASE_DB.length;
+  const scope = USING_DB ? "「所有人共用」的" : "這台電腦上的";
+  if (!(await askConfirm(`即將刪除${scope}全部租出契約（目前 ${n} 筆，含預計進駐與增補紀錄）和全部操作紀錄。\n\n園區坪數基準、租入契約、草稿不會動。此動作無法復原，建議先用「匯出」留一份備份。\n\n確定要繼續嗎？`, "清空租出契約"))) return;
+  if (!(await askConfirm("再確認一次：真的要永久刪除所有租出契約和操作紀錄嗎？", "最後確認"))) return;
+  try{
+    if (USING_DB){
+      for (const name of ["leases", "bookings", "audit_log"]){
+        const snap = await DB.collection(name).get();
+        for (let i = 0; i < snap.docs.length; i += 25)
+          await Promise.all(snap.docs.slice(i, i + 25).map(d => DB.collection(name).doc(d.id).delete()));
+      }
+    } else {
+      LEASE_DB = []; nextId = 1; persistState();
+      auditLocal = []; try{ localStorage.removeItem(AUDIT_LOCAL_KEY); }catch(err){}
+      refreshZoneDropdowns(); renderDb(); renderArea(); renderOcc(); renderMonthly();
+    }
+    await auditRecord({ action:"清空租約資料", entity:"system", label:"租出契約與操作紀錄", changes:[{ label:"說明", to:`清空 ${n} 筆租出契約與先前的全部操作紀錄（正式資料上線前）` }] });
+    showToast("已清空所有租出契約與操作紀錄");
+  }catch(err){
+    console.warn(err);
+    await notify("清空過程中出錯了，可能只清到一部分，請重新整理頁面確認後再執行一次。");
+  }
+});
+
 /* ---------------- 外部部署版本的進站密碼保護 ---------------- */
 // 只有「不是」在 Claude Artifact 環境裡開啟、而且有設定 ACCESS_PASSWORD 時才需要密碼；
 // 在 Claude 平台上的共用連結本身已經有 Claude 帳號的權限控管，不用再多一層密碼。
@@ -5646,10 +6456,16 @@ const IMPORT_COLS = [
   { key:"freq",       label:"調整頻率(年)",   aliases:["調整頻率","調整週期"] },
   { key:"pct",        label:"調整百分比",     aliases:["調整百分比","調整%","調幅"] },
   { key:"amt",        label:"調整金額",       aliases:["調整金額"] },
+  { key:"adjustUntil",label:"停止調整日",     aliases:["停止調整日","調整至","調整截止日","調漲至","漲到"] },
+  { key:"freeStart",  label:"免租期起",       aliases:["免租期起","免租起","免租期開始","免租起日"] },
+  { key:"freeEnd",    label:"免租期迄",       aliases:["免租期迄","免租迄","免租期結束","免租迄日"] },
+  { key:"freeMgmt",   label:"免租期管理費",   aliases:["免租期管理費","免租期間管理費","免租期管理費處理"] },
   { key:"override",   label:"手動覆蓋總月租金", aliases:["手動覆蓋總月租金","手動覆蓋","覆蓋總月租金"] },
   { key:"inputBy",    label:"BD承辦",         aliases:["BD承辦","承辦","承辦人","BD"] },
   { key:"sap",        label:"SAP契約號碼",    aliases:["SAP契約號碼","SAP","SAP契約號"] },
   { key:"group",      label:"契約編號",       aliases:["契約編號","契約分組","契約群組"] },
+  { key:"mgmtMode",   label:"管理費方式",     aliases:["管理費方式","管理費計算方式","管理費類型"] },
+  { key:"prorate",    label:"不足月算法",     aliases:["不足月算法","不足月計算方式","不滿月算法","不滿月計算"] },
   { key:"remark",     label:"備註",           aliases:["備註"] },
 ];
 const IMPORT_NOTE_COLS = ["出處／頁碼（不匯入）", "需確認事項（不匯入）"];
@@ -5774,7 +6590,7 @@ function impResolveLocation(z, raw, cat, out){
   let b = null;
   if (bText){
     b = bs.find(x => sameName(x.name, bText));
-    if (!b){ out.errors.push(`園區「${z.zone}」沒有「${bText}」這一棟（現有：${bs.map(x => x.name).join("、")}）`); return loc; }
+    if (!b){ out.errors.push(`園區「${z.zone}」沒有「${bText}」此棟（現有：${bs.map(x => x.name).join("、")}）`); return loc; }
   } else if (bs.length === 1){
     b = bs[0];   // 這個園區只有一棟：棟別可以留白，自動帶入
   } else if (cat === "倉儲"){
@@ -5783,7 +6599,7 @@ function impResolveLocation(z, raw, cat, out){
   loc.building = b.name;
   if (cat !== "倉儲") return loc;   // 停車位、設備不勾選單元
   const leaves = collectBuildingLeaves(b);
-  if (!leaves.length){ out.warnings.push("這一棟還沒有樓層／單元資料，單元只以文字記錄"); return loc; }
+  if (!leaves.length){ out.warnings.push("此棟還沒有樓層／單元資料，單元只以文字記錄"); return loc; }
 
   const floors = buildingFloors(b);
   const fWhole = fText && impIsWholeText(fText), uWhole = uText && impIsWholeText(uText);
@@ -5792,7 +6608,7 @@ function impResolveLocation(z, raw, cat, out){
     const toks = floors.some(f => sameFloor(f.name, fText)) ? [fText] : impTokens(fText);
     const picked = new Set(), miss = [];
     toks.forEach(t => { const hit = floors.filter(f => sameFloor(f.name, t)); if (!hit.length) miss.push(t); hit.forEach(f => picked.add(f.name)); });
-    if (miss.length){ out.errors.push(`找不到樓層「${miss.join("、")}」（這一棟有：${floors.map(f => f.name).join("、")}）`); return loc; }
+    if (miss.length){ out.errors.push(`找不到樓層「${miss.join("、")}」（此棟有：${floors.map(f => f.name).join("、")}）`); return loc; }
     cands = leaves.filter(l => picked.has(l.floorName));
   }
   let chosen;
@@ -5807,14 +6623,14 @@ function impResolveLocation(z, raw, cat, out){
     });
     if (miss.length){
       const pool = cands.map(l => l.label);
-      out.errors.push(`找不到單元「${miss.join("、")}」（${fText && !fWhole ? "指定樓層" : "這一棟"}可選：${pool.slice(0, 10).join("、")}${pool.length > 10 ? "…" : ""}）`);
+      out.errors.push(`找不到單元「${miss.join("、")}」（${fText && !fWhole ? "指定樓層" : "此棟"}可選：${pool.slice(0, 10).join("、")}${pool.length > 10 ? "…" : ""}）`);
       return loc;
     }
     if (amb.length){ out.errors.push(`單元名稱不明確：${amb.join("；")}，請在樓層欄指定`); return loc; }
     chosen = [...set.values()];
   } else {
     chosen = cands.slice();
-    if (!fText && !uText) out.warnings.push("樓層與單元都是空白，已視為整棟（勾選這一棟全部單元）");
+    if (!fText && !uText) out.warnings.push("樓層與單元都是空白，已視為整棟（勾選此棟全部單元）");
     else if (fText && !fWhole && !uText) out.infos.push(`單元空白，已勾選「${fText}」全部單元`);
   }
   const t = pickerTexts(chosen, leaves, b.name);
@@ -5900,14 +6716,21 @@ function impBuildItem(raw, rowNo, ctx){
   if (start && (start < "1990-01-01" || start > "2100-12-31")) it.warnings.push("租期起的年份看起來不合理");
 
   // 租金／調整（預計進駐不填，一律用預設值）
-  let baseUnit = 0, mgmt = 0, adjustType = "無調整", freq = 1, pct = 0, amt = 0, override = null, sap = "";
+  let baseUnit = 0, mgmt = 0, adjustType = "無調整", freq = 1, pct = 0, amt = 0, override = null, sap = "", adjustUntil = "", freeStart = "", freeEnd = "", mgmtMode = "", prorate = "", freeMgmt = false;
   if (!tent){
     const pb = impParseNum(raw.baseUnit);
     if (pb.ok && pb.val > 0) baseUnit = pb.val; else it.errors.push(pb.blank ? "首年單位租金必填" : `首年單位租金「${S("baseUnit")}」不是有效的正數`);
     const pm = impParseNum(raw.mgmt);
     if (pm.ok && pm.val >= 0) mgmt = pm.val; else if (!pm.blank) it.errors.push(`管理費單價「${S("mgmt")}」不是有效數字`);
     if (cat === "倉儲" && baseUnit && (baseUnit > 3000 || baseUnit < 100)) it.warnings.push(`首年單位租金 ${baseUnit} 元/坪看起來${baseUnit > 3000 ? "偏高" : "偏低"}，請對照契約`);
-    if (cat === "倉儲" && mgmt > 500) it.warnings.push(`管理費單價 ${mgmt} 元/坪看起來偏高，請對照契約`);
+    const prRaw = S("prorate");
+    if (prRaw && /實際|當月|天數/.test(prRaw)) prorate = "actual";
+    else if (prRaw && /31/.test(prRaw) && !/30/.test(prRaw)) prorate = "31";
+    else if (prRaw && !/30/.test(prRaw)) it.warnings.push(`不足月算法「${prRaw}」看不懂，已當作「÷30」；可填「÷30」「÷31」或「當月實際天數」`);
+    const mmRaw = S("mgmtMode");
+    if (mmRaw && /整包|總額|總價|固定|月/.test(mmRaw)) mgmtMode = "total";
+    else if (mmRaw && !/坪|面積|單價|依/.test(mmRaw)) it.warnings.push(`管理費方式「${mmRaw}」看不懂，已當作「依面積（元/坪）」；整包金額請填「整包」`);
+    if (cat === "倉儲" && mgmt > 500 && mgmtMode !== "total") it.warnings.push(`管理費單價 ${mgmt} 元/坪看起來偏高，請對照契約`);
     const at = impAdjustType(S("adjustType"));
     if (at === null) it.errors.push(`調整方式「${S("adjustType")}」無法辨識（請填 無調整／固定百分比遞增／固定金額遞增／逐年手動填寫）`);
     else adjustType = at;
@@ -5921,6 +6744,23 @@ function impBuildItem(raw, rowNo, ctx){
     if (at === "固定百分比遞增" && pct > 20) it.warnings.push(`調整百分比 ${pct}% 偏高，請確認是否為 ${pct}%（不是 ${pct / 100}）`);
     if (at === "固定金額遞增" && !(amt > 0)) it.errors.push("調整方式是固定金額遞增，需要填「調整金額」");
     if (at === "逐年手動填寫" && override === null) it.errors.push("調整方式是逐年手動填寫，需要填「手動覆蓋總月租金」");
+    const pu = impParseDate(raw.adjustUntil);
+    if (pu.ok){
+      adjustUntil = pu.iso;
+      if (at !== "固定百分比遞增" && at !== "固定金額遞增"){ it.warnings.push("填了「停止調整日」，但調整方式不是遞增，這個日期不會生效"); adjustUntil = ""; }
+      else if (start && adjustUntil < start){ it.errors.push("停止調整日早於租期起"); adjustUntil = ""; }
+      else if (end && adjustUntil >= end){ it.warnings.push("停止調整日在租期迄當天或之後，等於沒有停止"); adjustUntil = ""; }
+    } else if (!pu.blank) it.errors.push(`停止調整日「${S("adjustUntil")}」不是有效日期`);
+    {
+      const pfs = impParseDate(raw.freeStart), pfe = impParseDate(raw.freeEnd);
+      if (pfs.ok && pfe.ok){
+        if (pfe.iso < pfs.iso) it.errors.push("免租期迄早於免租期起");
+        else if ((start && pfs.iso < start) || (end && pfe.iso > end)) it.errors.push("免租期要落在租期內");
+        else { freeStart = pfs.iso; freeEnd = pfe.iso; }
+      } else if (pfs.ok || pfe.ok) it.errors.push("免租期要起、迄都填（或都留白）");
+      else if (!pfs.blank || !pfe.blank) it.errors.push("免租期日期格式看不懂");
+    }
+    { const fm = S("freeMgmt"); if (fm && /免收|免|是|y|yes|true|1/i.test(fm) && !/照收|否|不/.test(fm)) freeMgmt = true; }
     if (at === "無調整" && (pct || amt)) it.warnings.push("調整方式是「無調整」，但填了調整百分比／金額，這些數字不會生效");
     if (at !== "逐年手動填寫" && override !== null) it.warnings.push("有填「手動覆蓋總月租金」，系統會以這個金額為準，不再依單價試算");
     sap = S("sap");
@@ -5939,12 +6779,14 @@ function impBuildItem(raw, rowNo, ctx){
   }
 
   if (!it.errors.length){
-    const gkey = S("group");
+    let gkey = S("group");
+    // 契約編號空白：同客戶＋同 SAP契約號碼＋同租期的列，自動歸成同一份契約（預計進駐沒有契約，不歸組）
+    if (!gkey && !tent && sap && client){ gkey = `\u0001auto|${client}|${sap}|${start}|${end}`; it.infos.push("契約編號空白，依「客戶＋SAP契約號碼＋租期」自動歸組（相同的列會算同一份契約）"); }
     let contractId;
     if (gkey){ if (!ctx.groups.has(gkey)) ctx.groups.set(gkey, genNodeId()); contractId = ctx.groups.get(gkey); }
     else contractId = genNodeId();
     const rec = { zone:zone.zone, category:cat, building:loc.building, floor:loc.floor, unit:loc.unit, unitIds:loc.unitIds, client, start, end,
-      area, baseUnit, adjustType, freq, pct, amt, override, mgmt, inputBy, sap, remark:S("remark"), contractId };
+      area, baseUnit, adjustType, freq, pct, amt, override, mgmt, inputBy, sap, remark:S("remark"), contractId, ...(adjustUntil ? { adjustUntil } : {}), ...(freeStart ? { freeStart, freeEnd } : {}), ...(freeStart && freeMgmt ? { freeMgmt: true } : {}), ...(mgmtMode === "total" ? { mgmtMode } : {}), ...(prorate === "actual" || prorate === "31" ? { prorate } : {}) };
     if (tent) Object.assign(rec, { category:"倉儲", end:"", baseUnit:0, adjustType:"無調整", freq:1, pct:0, amt:0, override:null, mgmt:0, sap:"", stage:"預計進駐" });
     it.rec = rec;
   }
@@ -6042,7 +6884,7 @@ function impRenderPreview(){
     const cells = r ? `<td>${escHtml(r.zone)}<br><span class="imp-sub">${escHtml(r.building)}</span></td><td>${escHtml(r.floor)}</td><td>${escHtml(r.unit)}</td><td>${escHtml(r.client)}</td>
       <td>${escHtml(r.stage === "預計進駐" ? "預計進駐" : r.category)}</td><td class="num">${fmt2(r.area)}</td>
       <td>${dateText(r.start)}${r.end ? "<br>" + dateText(r.end) : (r.stage ? "<br><span class='imp-sub'>（預計進駐日）</span>" : "")}</td>
-      <td class="num">${r.stage ? "—" : fmt2(r.baseUnit)}</td><td>${escHtml(r.stage ? "—" : (r.adjustType === "固定百分比遞增" ? `每${r.freq}年 +${r.pct}%` : r.adjustType === "固定金額遞增" ? `每${r.freq}年 +${r.amt}元` : r.adjustType))}</td>`
+      <td class="num">${r.stage ? "—" : fmt2(r.baseUnit)}</td><td>${escHtml(r.stage ? "—" : (r.adjustType === "固定百分比遞增" ? `每${r.freq}年 +${r.pct}%` : r.adjustType === "固定金額遞增" ? `每${r.freq}年 +${r.amt}元` : r.adjustType) + (r.adjustUntil ? `（至 ${dateText(r.adjustUntil)} 止）` : ""))}</td>`
       : (() => { const w = it.raw || {}, g = k => escHtml(impStr(w[k])), gd = k => { const d = impParseDate(w[k]); return d.ok ? dateText(d.iso) : g(k); };
         return `<td>${g("zone")}<br><span class="imp-sub">${g("building")}</span></td><td>${g("floor")}</td><td>${g("unit")}</td><td>${g("client")}</td><td>${g("category")}</td><td class="num">${g("area")}</td><td>${gd("start")}<br>${gd("end")}</td><td class="num">${g("baseUnit")}</td><td>${g("adjustType")}</td>`; })();
     return `<tr class="${!it.rec ? "imp-row-err" : ""}"><td><input type="checkbox" data-imp="${idx}" ${it.checked ? "checked" : ""} ${it.rec ? "" : "disabled"}></td>
@@ -6155,7 +6997,7 @@ async function downloadImportTemplate(){
     exRow({ stage:"預計進駐", zone:z ? z.zone : "", building:b ? b.name : "", floor:l0 ? l0.floorName : "", unit:l0 ? (l0.unitName || l0.floorName) : "",
       client:"（範例）預計進駐", area:300, start:"2027-03-01" }),
   ];
-  const sheet1 = { name:"租約匯入", header, rows, colFmt:{ 8:"date", 9:"date" } };
+  const sheet1 = { name:"租約匯入", header, rows, colFmt:{ 8:"date", 9:"date", 16:"date", 17:"date", 18:"date" } };
   const req = { zone:"必填", client:"必填", unit:"必填（倉儲類請填園區坪數基準裡的名稱）", area:"必填", start:"必填（預計進駐填預計進駐日）", end:"已簽約必填", baseUnit:"已簽約必填", inputBy:"已簽約必填（空白會帶入目前的操作人）" };
   const desc = {
     stage:"空白或「已簽約」＝正式租約；「預計進駐」＝尚未簽約，只需填 園區／棟別／單元／客戶／面積／預計進駐日。",
@@ -6169,15 +7011,21 @@ async function downloadImportTemplate(){
     start:"可填 2024/1/1、2024-01-01、民國 113/1/1 或 Excel 日期。",
     end:"同上。",
     baseUnit:"首年單位租金（元/坪；設備、停車位為元/台、元/車位）。",
-    mgmt:"管理費單價，沒有就留白（視為 0）。",
+    mgmt:"管理費單價（元/坪），沒有就留白（視為 0）。管理費方式填「整包」時，這欄填每月固定總金額（元/月）。",
+    prorate:"選填。起租月、到期月不足整月的折算方式：空白或「÷30」＝月租金 ÷ 30 × 天數；填「÷31」＝固定月租金 ÷ 31 × 天數；填「當月實際天數」＝月租金 ÷ 當月天數 × 天數（3 月除以 31、4 月除以 30）。",
+    mgmtMode:"選填。空白＝依面積（單價 × 面積）；填「整包」＝每月固定總金額，不乘面積。",
     adjustType:"無調整／固定百分比遞增／固定金額遞增／逐年手動填寫；空白視為無調整。",
     freq:"每幾年調整一次，空白視為 1。",
     pct:"固定百分比遞增時填，例：3 代表每次調升 3%。",
     amt:"固定金額遞增時填（元/坪／每次）。",
+    freeStart:"選填。免租期開始日；沒有免租期就留白。起、迄要一起填。免租期間租金算 0；租金表的日期照合約填即可。",
+    freeMgmt:"選填。有免租期時，管理費要不要一起免收：填「免收」＝免租期間管理費也算 0；空白或「照收」＝管理費照常收。",
+    freeEnd:"選填。免租期結束日（含當天）。",
+    adjustUntil:"選填。「每年漲 0.5%，漲到某年之後就固定」時，填最後一次可以調漲的日期（例：2030/12/31），這天之後單價維持不變；留白＝一路調整到租期迄。",
     override:"逐年手動填寫時，填目前的總月租金。",
     inputBy:"BD承辦。",
     sap:"SAP契約號碼，沒有就留白。",
-    group:"同一份契約有多個單元時，這幾列填同一個編號（例如 A），匯入後會歸成同一份契約；留白＝各自獨立。",
+    group:"同一份契約有多個單元時，這幾列填同一個編號（例如 A），匯入後會歸成同一份契約。留白時，若有填 SAP契約號碼，系統會把「客戶、SAP契約號碼、租期都相同」的列自動歸成同一份；沒有 SAP契約號碼就各自獨立。",
     remark:"備註。",
   };
   const sheet2 = { name:"填寫說明", header:["欄位","是否必填","說明"],
@@ -6302,7 +7150,7 @@ function amBuildBody(){
       <div class="form-field"><label>新價格的生效日 <span class="req">*</span></label><input type="date" id="amPrEff"></div>
       <div class="form-field"><label>目前單價（元）</label><div class="am-ro">${amMoney(computeUnitRentDisplay(rec, TODAY))}</div></div>
       <div class="form-field"><label>新的首年單位租金（元） <span class="req">*</span></label><input type="number" id="amPrBase" step="0.01" min="0"></div>
-      <div class="form-field"><label>新的管理費單價（元）</label><input type="number" id="amPrMgmt" step="0.01" min="0" value="${T.mgmt || 0}"></div>
+      <div class="form-field"><label>${rec.mgmtMode === "total" ? "新的管理費（元/月，整包）" : "新的管理費單價（元）"}</label><input type="number" id="amPrMgmt" step="0.01" min="0" value="${T.mgmt || 0}"></div>
       ${amRuleHtml("amPr", T)}</div>
       <p class="sub" style="margin:6px 0 0;">同一筆租約從生效日起改用新價格，生效日之前維持舊價格；之後的調整方式、頻率從生效日起重新計算。「首年單位租金」填生效日當天起適用的單價。</p>
       ${amSibsHtml("amPrSibs", "同一份契約的其他單位要不要一起改價？", () => true)}`;
@@ -6315,7 +7163,7 @@ function amBuildBody(){
         : `<div class="form-field full"><label>要增加哪些單位？ <span class="req">*</span></label><div class="am-sibs" id="amAdLeafList"></div></div>`}
       <div class="form-field"><label>增加的${qty} <span class="req">*</span></label><input type="number" id="amAdArea" step="0.01" min="0"></div>
       <div class="form-field"><label>首年單位租金（元） <span class="req">*</span></label><input type="number" id="amAdBase" step="0.01" min="0" value="${amMoney(computeUnitRentDisplay(rec, TODAY)).replace(/,/g, "")}"></div>
-      <div class="form-field"><label>管理費單價（元）</label><input type="number" id="amAdMgmt" step="0.01" min="0" value="${T.mgmt || 0}"></div>
+      <div class="form-field"><label>${rec.mgmtMode === "total" ? "管理費（元/月，整包）" : "管理費單價（元）"}</label><input type="number" id="amAdMgmt" step="0.01" min="0" value="${T.mgmt || 0}"></div>
       ${amRuleHtml("amAd", T)}</div>
       <p class="sub" style="margin:6px 0 0;">單價預設帶入這筆租約目前的單價，可改成增補契約寫的價格。新增的單位歸在同一份契約底下。</p>`;
   const hasLeaves = leaves.length && rec.category === "倉儲" && Array.isArray(rec.unitIds) && rec.unitIds.length;
@@ -6347,7 +7195,7 @@ function amRefreshAdLeafList(keep){
     if (x) disabledMap.set(l.id, `「${x.client}」使用中（${dateText(x.start)}～${dateText(x.end)}）`);
   });
   const checkedIds = keep || new Set(amCheckedLeafIds("amAdLeafList"));
-  list.innerHTML = avail.length ? amLeafListHtml(avail, checkedIds, disabledMap) : `<span class="imp-sub">這一棟沒有其他單位可以增加（都已經在這筆租約裡）。</span>`;
+  list.innerHTML = avail.length ? amLeafListHtml(avail, checkedIds, disabledMap) : `<span class="imp-sub">此棟沒有其他單位可以增加（都已經在這筆租約裡）。</span>`;
 }
 
 /* ---- 計算這次增補會做什麼 ---- */
@@ -6452,9 +7300,13 @@ function amCompute(){
         if (rule.override === null && oldP > 0 && Math.abs(seg.baseUnit - oldP) / oldP > 0.3) R.warnings.push(`${who(w)}新單價與目前單價差距超過 30%，請確認`);
         if (E <= w.start){
           Object.assign(w, { baseUnit:seg.baseUnit, mgmt, adjustType:rule.adjustType, freq:rule.freq, pct:rule.pct, amt:rule.amt, override:rule.override, priceChanges:[] });
+          delete w.adjustUntil;
           R.warnings.push(`${who(w)}生效日不晚於起租日，直接改這一筆原本的價格（沒有留下調整前的價格）`);
         } else {
-          w.priceChanges = [...(w.priceChanges || []).filter(c => c.from !== E), seg].sort((a, b) => a.from < b.from ? -1 : 1);
+          // 新價格從生效日起取代原本的條款：生效日之後原本排好的租金（租金表的後幾列、舊的調價紀錄）一併作廢，否則會在之後的日期又蓋掉新價格
+          const superseded = (w.priceChanges || []).filter(c => c.from > E).length;
+          w.priceChanges = [...(w.priceChanges || []).filter(c => c.from < E), seg].sort((a, b) => a.from < b.from ? -1 : 1);
+          if (superseded) R.warnings.push(`${who(w)}生效日（${dateText(E)}）之後原本的 ${superseded} 筆租金調整已被新價格取代`);
         }
         R.lines.push(`${who(w)}${dateText(E)} 起：${priceTxt}`);
         addLog(w, "調整租金", E, `${dateText(E)} 起 ${priceTxt}`);
@@ -6764,13 +7616,31 @@ function hlStageAt(r, asOf){
   st.forEach(s => { const f = parseLocalDate(s.from); if (f && f <= d) cur = s; });
   return cur;
 }
+// 取整規則：金額一律是未稅，只有兩種——四捨五入至元（系統預設，所有金額本來就是整數元）、四捨五入至仟元。
+// r.round = { unit:1000 }（契約整體）；每個租金階段 s.round 可以覆寫：{ unit:0 }＝至元、{ unit:1000 }＝至仟元。
+// 取整到仟元時，每期月租金和每個月實付金額（含起租月、到期月、月中調價月的折算）都取整。
+// 舊資料的 roundK:true、含稅、只取整月租金、到元／百元等設定一律當作「至仟元」或「至元」處理。
+function hlRoundCfg(r){
+  if (!r) return null;
+  if (r.round && Number(r.round.unit) >= 1000) return { unit:1000, base:"ex", scope:"all" };
+  if (r.roundK && !r.round) return { unit:1000, base:"ex", scope:"all" };
+  return null;
+}
+function hlRoundWith(cfg, v){ return cfg ? Math.round(v / cfg.unit) * cfg.unit : v; }
+// 某一天適用的取整規則：該天所在的租金階段有自己的設定就用它，沒有就用契約整體設定
+function hlRoundCfgAt(r, day){
+  const st = hlStageAt(r, day);
+  if (st && st.manual) return null;   // 手動填入的金額：照填的算，不再取整
+  if (st && st.round) return Number(st.round.unit) >= 1000 ? { unit:1000, base:"ex", scope:"all" } : null;
+  return hlRoundCfg(r);
+}
 function hlRentRaw(r, asOf){
   const u = hlUnitRent(r, asOf), s = hlStageAt(r, asOf);
   if (hlHasRent(s)){
     const base = Number(s.baseUnit) || 0;
-    return base > 0 ? Number(s.rent) * u / base : Number(s.rent);
+    return hlRoundWith(hlRoundCfgAt(r, asOf), base > 0 ? Number(s.rent) * u / base : Number(s.rent));
   }
-  return u * (Number(r.area) || 0);
+  return hlRoundWith(hlRoundCfgAt(r, asOf), u * (Number(r.area) || 0));
 }
 function hlRentAmt(r, asOf){ return Math.round(hlRentRaw(r, asOf)); }
 function hlMonthlyRent(r, asOf){ return hlFreeNow(r, asOf) ? 0 : hlRentAmt(r, asOf); }
@@ -6963,7 +7833,7 @@ function renderHeadLeases(){
       <td>${escHtml(r.end)}</td>
       <td class="num">${fmt2(r.area)}</td>
       <td class="computed num"><span style="cursor:help;" title="${escHtml(stTitle)}">${fmt2(hlUnitRent(r, TODAY))}</span></td>
-      <td class="computed num"${freeNow ? ' title="目前在免租期內，月租金為 0"' : ""}>${fmtInt(hlMonthlyRent(r, TODAY))}</td>
+      <td class="computed num"${freeNow ? ' title="目前在免租期內，月租金為 0"' : ""}>${hlMonthlyRent(r, TODAY) ? fmtInt(hlMonthlyRent(r, TODAY)) : "-"}</td>
       <td class="computed">${next ? escHtml(dateText(next)) : "—"}</td>
       <td style="white-space:nowrap;">${freeCell}</td>
       <td class="computed"><span class="pill ${s.cls}"${s.remain ? ` title="距離到期還有 ${escHtml(s.remain)}"` : ""}>${s.text}</span>${s.remain && s.key !== "soon" ? `<div class="hl-remain">剩 ${escHtml(s.remain)}</div>` : ""}</td>
@@ -7076,19 +7946,32 @@ function hlSyncAreaDefault(force){
   hlEl("hl_areaHint").textContent = base ? `園區總坪數 ${fmt2(base)} 坪（整個園區承租就不用改）` : "";
 }
 /* ---- 租金表（逐期）：每一列＝從這天起的單坪／月租金；底層仍存成「無調整」階段，其他統計沿用同一套計算 ---- */
+// 每一期（租金表每一列）可以有自己的取整方式：同一份契約不同階段的條件可能不同（例如前期含稅取整、後期未稅取整）。
+const HL_RND_OPTS = [["", "沿用契約設定"], ["yuan", "至元（未稅）"], ["1000", "至仟元（未稅）"], ["manual", "手動填入金額"]];
+function hlRndToRound(code){
+  if (code === "yuan") return { unit:0 };
+  if (code === "1000") return { unit:1000, base:"ex", scope:"all" };
+  return null;
+}
+function hlRoundToRnd(rd, manual){
+  if (manual) return "manual";
+  if (!rd) return "";
+  return Number(rd.unit) >= 1000 ? "1000" : "yuan";
+}
 let hlRidSeq = 0;   // 每一列的暫時編號：重新排序後才找得回使用者原本點的那一格
 function hlRowHtml(r, i){
-  return `<div class="hl-row" data-i="${i}" data-rid="${escHtml(r._id || ("r" + (++hlRidSeq)))}">
+  return `<div class="hl-row${String(r.rnd || "") === "manual" ? " manual" : ""}" data-i="${i}" data-rid="${escHtml(r._id || ("r" + (++hlRidSeq)))}">
     <input type="date" data-k="from" value="${escHtml(hlNv(r.from))}">
     <input type="number" data-k="unit" min="0" step="0.01" value="${escHtml(hlNv(r.unit))}" placeholder="元/坪/月">
     <input type="number" data-k="rent" min="0" step="1" value="${escHtml(hlNv(r.rent))}" placeholder="元/月">
+    <select data-k="rnd" title="這一期月租金的取整方式；「沿用契約設定」＝照上方『月租金取整』的設定；「手動填入金額」＝月租金照你填的金額，不取整（換成其他選項會清掉已填的月租金）">${HL_RND_OPTS.map(([v, t]) => `<option value="${v}"${String(r.rnd || "") === v ? " selected" : ""}>${t}</option>`).join("")}</select>
     <button type="button" class="btn-link-inline" data-hlrm="${i}" style="color:var(--status-critical);">移除</button>
     <div class="hl-row-warn" data-warn="${i}"></div>
   </div>`;
 }
 function hlRenderRows(rows){
   if (!rows || !rows.length) rows = [{ from:"", unit:"", rent:"" }];
-  hlEl("hl_stages").innerHTML = `<div class="hl-row hl-row-head"><span>租金生效日（從這天起）</span><span>單坪月租（元）</span><span>月租金（元）</span><span><button type="button" class="btn-link-inline" id="hl_clearRows" style="color:var(--status-critical);" title="一次清空整個租金表">全部清空</button></span></div>` +
+  hlEl("hl_stages").innerHTML = `<div class="hl-row hl-row-head"><span>租金生效日（從這天起）</span><span>單坪月租（元）</span><span>月租金（元）</span><span>取整方式</span><span><button type="button" class="btn-link-inline" id="hl_clearRows" style="color:var(--status-critical);" title="一次清空整個租金表">全部清空</button></span></div>` +
     rows.map(hlRowHtml).join("");
   hlSyncRowHints();
 }
@@ -7096,11 +7979,13 @@ function hlReadRows(){
   const out = [];
   hlEl("hl_stages").querySelectorAll(".hl-row[data-i]").forEach(row => {
     const g = k => row.querySelector(`[data-k="${k}"]`).value;
-    out.push({ from:g("from"), unit: g("unit") === "" ? "" : Number(g("unit")), rent: g("rent") === "" ? "" : Number(g("rent")), _id: row.dataset.rid });
+    out.push({ from:g("from"), unit: g("unit") === "" ? "" : Number(g("unit")), rent: g("rent") === "" ? "" : Number(g("rent")), rnd: g("rnd"), _id: row.dataset.rid });
   });
   return out;
 }
 // 單坪、月租金只填一邊時，另一格顯示自動換算的結果當提示
+function hlFormRound(){ return Number(hlEl("hl_roundUnit").value) >= 1000 ? { unit:1000 } : null; }
+function hlSetFormRound(rec){ hlEl("hl_roundUnit").value = hlRoundCfg(rec) ? "1000" : "0"; }
 function hlSyncRowHints(){
   const area = Number(hlEl("hl_area").value) || 0;
   const fs = hlEl("hl_freeStart").value, fe = hlEl("hl_freeEnd").value, hasFree = !!(fs && fe);
@@ -7115,7 +8000,10 @@ function hlSyncRowHints(){
     warnEl.textContent = bad ? `注意:租金生效日在免租期內（${dateText(fs)} ～ ${dateText(fe)}），請修改!` : "";
     const u = row.querySelector('[data-k="unit"]'), r = row.querySelector('[data-k="rent"]');
     u.placeholder = (u.value === "" && r.value !== "" && area > 0) ? "自動 " + fmt2(Number(r.value) / area) : "元/坪/月";
-    r.placeholder = (r.value === "" && u.value !== "" && area > 0) ? "自動 " + fmtInt(Math.round(Number(u.value) * area)) : "元/月";
+    row.classList.toggle("manual", row.querySelector('[data-k="rnd"]').value === "manual");
+    const rowRd = hlRndToRound(row.querySelector('[data-k="rnd"]').value);
+    const rc = rowRd ? (rowRd.unit >= 1000 ? rowRd : null) : hlFormRound();
+    r.placeholder = (r.value === "" && u.value !== "" && area > 0) ? "自動 " + fmtInt(Math.round(hlRoundWith(rc, Number(u.value) * area))) : "元/月";
   });
 }
 // 表單的各列轉成階段（底層格式）：只填月租金時，單坪用月租金÷坪數換算（僅顯示用，月租金以填的為準）
@@ -7124,7 +8012,10 @@ function hlReadStages(){
   return hlReadRows().map((r, i) => {
     let unit = r.unit;
     if (unit === "" && r.rent !== "" && area > 0) unit = Math.round(r.rent / area * 100) / 100;
-    return { from: i === 0 ? (r.from || hlEl("hl_start").value) : r.from, baseUnit: unit, adjustType:"無調整", freq:1, pct:0, amt:0, rent: r.rent === "" ? null : r.rent };
+    const st = { from: i === 0 ? (r.from || hlEl("hl_start").value) : r.from, baseUnit: unit, adjustType:"無調整", freq:1, pct:0, amt:0, rent: r.rent === "" ? null : r.rent };
+    const rd = hlRndToRound(r.rnd); if (rd) st.round = rd;
+    if (r.rnd === "manual") st.manual = true;
+    return st;
   });
 }
 // 把既有契約展開成逐期租金表：有公式的階段（每隔幾年漲…）一期一期算出來，編輯時就直接看到每一期的實際金額。
@@ -7134,7 +8025,7 @@ function hlRowsFromRec(rec){
     const from = parseLocalDate(s.from); if (!from) return;
     const next = st[i + 1] ? parseLocalDate(st[i + 1].from) : null;
     if ((s.adjustType || "無調整") === "無調整"){
-      rows.push({ from:toDateInput(from), unit:Number(s.baseUnit) || 0, rent: hlHasRent(s) ? Math.round(Number(s.rent)) : "" });
+      rows.push({ from:toDateInput(from), unit:Number(s.baseUnit) || 0, rent: hlHasRent(s) ? Math.round(Number(s.rent)) : "", rnd: hlRoundToRnd(s.round, s.manual) });
       return;
     }
     const freq = Math.max(1, Number(s.freq) || 1), dates = [from];
@@ -7143,7 +8034,7 @@ function hlRowsFromRec(rec){
       if ((next && d >= next) || (end && d > end)) break;
       dates.push(d);
     }
-    dates.forEach(d => rows.push({ from:toDateInput(d), unit:Number(hlUnitRent(rec, d).toFixed(2)), rent:hlRentAmt(rec, d) }));
+    dates.forEach(d => rows.push({ from:toDateInput(d), unit:Number(hlUnitRent(rec, d).toFixed(2)), rent:hlRentAmt(rec, d), rnd: hlRoundToRnd(s.round) }));
   });
   return rows;
 }
@@ -7165,7 +8056,8 @@ function hlParsePaste(text, area){
     const isRent = n => area > 0 ? n >= area * 10 : n >= 50000;
     if (nums.length >= 2){ const mx = Math.max(...nums), mn = Math.min(...nums); rent = mx; unit = mn; }
     else if (isRent(nums[0])) rent = nums[0]; else unit = nums[0];
-    out.push({ from:date, unit, rent });
+    const auto = hlAutoRent(unit, area, "");
+    out.push({ from:date, unit, rent, rnd: (rent !== "" && !(auto !== null && Number(rent) === auto)) ? "manual" : "" });   // 從 Excel 貼上、帶月租金的列＝手動填入
   });
   out.sort((a, b) => a.from < b.from ? -1 : (a.from > b.from ? 1 : 0));
   return { rows:out, bad };
@@ -7206,13 +8098,15 @@ function hlCollect(){
       seen.add(s.from);
     }
     if (!amountOk(s.baseUnit) && !amountOk(s.rent)) errors.push(`${no}：請填單坪月租或月租金`);
+    if (s.manual && !amountOk(s.rent)) errors.push(`${no}：取整方式選了「手動填入金額」，請填月租金（或改選其他取整方式）`);
   });
   const sorted = [...stages].sort((a, b) => String(a.from) < String(b.from) ? -1 : (String(a.from) > String(b.from) ? 1 : 0));
   const rec = {
     zone, lessor, contractName: hlEl("hl_name").value.trim(), contractNo: hlEl("hl_no").value.trim(), start, end, area,
-    stages: sorted.map(s => ({ from:s.from, baseUnit:Number(s.baseUnit) || 0, adjustType:"無調整", freq:1, pct:0, amt:0, rent:(s.rent === null || s.rent === undefined || s.rent === "") ? null : Number(s.rent) })),
+    stages: sorted.map(s => ({ from:s.from, baseUnit:Number(s.baseUnit) || 0, adjustType:"無調整", freq:1, pct:0, amt:0, rent:(s.rent === null || s.rent === undefined || s.rent === "") ? null : Number(s.rent), ...(s.round ? { round:s.round } : {}), ...(s.manual ? { manual:true } : {}) })),
     freeStart: hlEl("hl_freeStart").value, freeEnd: hlEl("hl_freeEnd").value, remark: hlEl("hl_remark").value.trim(),
     roundInt: false,
+    round: hlFormRound(),
     renewOf: hlRenewOf || "",
     inputBy: OPERATOR_NAME || "",
   };
@@ -7278,6 +8172,7 @@ function openHlModal(rec, renewFrom, draft){
   hlEl("hl_freeStart").value = rec ? (rec.freeStart || "") : "";
   hlEl("hl_freeEnd").value = rec ? (rec.freeEnd || "") : "";
   hlEl("hl_remark").value = rec ? (rec.remark || "") : "";
+  hlSetFormRound(rec);
   hlRenderRows(rec ? hlRowsFromRec(rec) : [{ from:"", unit:"", rent:"" }]);
   hlHideTools();
   hlEl("hl_genFrom").value = ""; hlEl("hl_genFrom").dataset.touched = "";
@@ -7292,7 +8187,7 @@ function openHlModal(rec, renewFrom, draft){
     const lastRent = hlRentAmt(renewFrom, e || TODAY);
     hlFillZones(renewFrom.zone); hlEl("hl_lessor").value = renewFrom.lessor || ""; hlEl("hl_name").value = renewFrom.contractName || "";
     hlEl("hl_no").value = ""; hlEl("hl_start").value = ns; hlEl("hl_end").value = "";
-    hlEl("hl_freeStart").value = ""; hlEl("hl_freeEnd").value = ""; hlEl("hl_remark").value = "";
+    hlEl("hl_freeStart").value = ""; hlEl("hl_freeEnd").value = ""; hlEl("hl_remark").value = ""; hlSetFormRound(renewFrom);
     hlEl("hl_area").dataset.touched = "1"; hlEl("hl_area").value = renewFrom.area; hlEl("hl_areaHint").textContent = "";
     hlRenderRows([{ from:ns, unit:lastUnit, rent: lastRent !== Math.round(lastUnit * (Number(renewFrom.area) || 0)) ? lastRent : "" }]);
     note.textContent = `續約自「${hlLabel(renewFrom)}」（${renewFrom.start} ～ ${renewFrom.end}）。已帶入舊契約最後的單坪月租 ${fmt2(lastUnit)} 元當新租金表的第一列，請貼上或填入新契約的各期租金（也可以用公式產生）。`;
@@ -7312,7 +8207,7 @@ function openHlModal(rec, renewFrom, draft){
     hlEl("hl_lessor").value = d.lessor || ""; hlEl("hl_name").value = d.contractName || ""; hlEl("hl_no").value = d.contractNo || "";
     hlEl("hl_start").value = d.start || ""; hlEl("hl_end").value = d.end || "";
     hlEl("hl_area").value = d.area ?? ""; hlEl("hl_area").dataset.touched = (d.area === "" || d.area === undefined) ? "" : "1"; hlEl("hl_areaHint").textContent = "";
-    hlEl("hl_freeStart").value = d.freeStart || ""; hlEl("hl_freeEnd").value = d.freeEnd || ""; hlEl("hl_remark").value = d.remark || "";
+    hlEl("hl_freeStart").value = d.freeStart || ""; hlEl("hl_freeEnd").value = d.freeEnd || ""; hlEl("hl_remark").value = d.remark || ""; hlSetFormRound({ round:d.round, roundK:d.roundK });
     hlRenderRows(Array.isArray(d.rows) && d.rows.length ? d.rows : (Array.isArray(d.stages) && d.stages.length ? d.stages.map(x => ({ from:x.from || "", unit:x.baseUnit ?? "", rent:x.rent ?? "" })) : []));
     hlEl("hl_start").dataset.prev = hlEl("hl_start").value;
     const pv = hlRenewOf ? hlPrevOf({ renewOf:hlRenewOf }) : null;
@@ -7328,7 +8223,7 @@ hlEl("hlDraftBtn").addEventListener("click", async () => {
   const g = id => hlEl(id).value;
   const data = { zone:g("hl_zone"), lessor:g("hl_lessor").trim(), contractName:g("hl_name").trim(), contractNo:g("hl_no").trim(), start:g("hl_start"), end:g("hl_end"),
     area:g("hl_area"), freeStart:g("hl_freeStart"), freeEnd:g("hl_freeEnd"), remark:g("hl_remark").trim(),
-    rows:hlReadRows(), renewOf:hlRenewOf || "" };
+    rows:hlReadRows(), round:hlFormRound(), renewOf:hlRenewOf || "" };
   const hasStage = data.rows.some(s => s.unit !== "" || s.rent !== "" || s.from);
   if (!data.lessor && !data.contractName && !data.contractNo && !data.start && !data.end && !data.area && !data.remark && !hasStage){
     await notify("還沒填任何內容，至少填一點（例如租入對象、契約名稱或租期）再暫存。"); return;
@@ -7341,7 +8236,32 @@ hlEl("hlDraftBtn").addEventListener("click", async () => {
 });
 hlEl("hlAddBtn").addEventListener("click", () => openHlModal(null));
 hlEl("hl_zone").addEventListener("change", () => { hlSyncAreaDefault(false); hlRefreshPreview(); });
-hlEl("hl_area").addEventListener("input", () => { hlEl("hl_area").dataset.touched = "1"; });
+// 承租坪數改了：租金表裡「等於舊單坪×舊坪數（依該列取整方式）」的月租金（系統自動換算出來的，不是手動填的）用新坪數重算，免得忘記改
+function hlRecalcDerivedRents(oldArea, oldRc, newArea, newRc, onlyInherit){
+  if (!(oldArea > 0) || !(newArea > 0)) return;
+  hlEl("hl_stages").querySelectorAll(".hl-row[data-i]").forEach(row => {
+    const u = row.querySelector('[data-k="unit"]'), r = row.querySelector('[data-k="rent"]'), code = row.querySelector('[data-k="rnd"]').value;
+    if (code === "manual" || u.value === "" || r.value === "" || (onlyInherit && code !== "")) return;
+    const rowRd = (code === "yuan" || code === "1000") ? hlRndToRound(code) : null;
+    const rcOld = rowRd ? (rowRd.unit >= 1000 ? rowRd : null) : oldRc, rcNew = rowRd ? (rowRd.unit >= 1000 ? rowRd : null) : newRc;
+    const wasAuto = Math.round(hlRoundWith(rcOld, Number(u.value) * oldArea)) === Number(r.value) || (!rcOld && Math.abs(Number(r.value) / oldArea - Number(u.value)) <= 0.0051);
+    if (wasAuto) r.value = String(Math.round(hlRoundWith(rcNew, Number(u.value) * newArea)));
+  });
+}
+hlEl("hl_area").addEventListener("focus", () => { hlEl("hl_area").dataset.prevArea = hlEl("hl_area").value; });
+hlEl("hl_area").addEventListener("input", () => {
+  hlEl("hl_area").dataset.touched = "1";
+  const old = Number(hlEl("hl_area").dataset.prevArea) || 0, nw = Number(hlEl("hl_area").value) || 0;
+  hlRecalcDerivedRents(old, hlFormRound(), nw, hlFormRound(), false);
+  hlEl("hl_area").dataset.prevArea = String(nw);
+});
+hlEl("hl_roundUnit").addEventListener("focus", () => { hlEl("hl_roundUnit").dataset.prev = hlEl("hl_roundUnit").value; });
+hlEl("hl_roundUnit").addEventListener("change", () => {
+  const prev = hlEl("hl_roundUnit").dataset.prev, area = Number(hlEl("hl_area").value) || 0;
+  const rcOf = v => Number(v) >= 1000 ? { unit:1000 } : null;
+  if (prev !== undefined) hlRecalcDerivedRents(area, rcOf(prev), area, rcOf(hlEl("hl_roundUnit").value), true);
+  hlEl("hl_roundUnit").dataset.prev = hlEl("hl_roundUnit").value;
+});
 hlEl("hl_addStage").addEventListener("click", () => {
   const rows = hlReadRows(); rows.push({ from:"", unit:"", rent:"" });
   hlRenderRows(rows); hlRefreshPreview();
@@ -7355,6 +8275,48 @@ hlEl("hl_stages").addEventListener("click", async (e) => {
   const rm = e.target.closest("[data-hlrm]"); if (!rm) return;
   const rows = hlReadRows(); rows.splice(Number(rm.dataset.hlrm), 1);
   hlRenderRows(rows); hlRefreshPreview();
+});
+// 單坪 × 坪數、依取整方式算出來的「自動金額」（單坪或坪數缺就回傳 null）；rndCode＝這一列選的取整方式，空字串／manual 都用契約整體設定
+function hlAutoRent(unit, area, rndCode){
+  if (unit === "" || unit === null || unit === undefined || !(Number(area) > 0)) return null;
+  const rd = (rndCode === "yuan" || rndCode === "1000") ? hlRndToRound(rndCode) : null;
+  const rc = rd ? (rd.unit >= 1000 ? rd : null) : hlFormRound();
+  return Math.round(hlRoundWith(rc, Number(unit) * Number(area)));
+}
+// 「手動填入金額」：在月租金格直接打字＝這一列自動改成手動；取整方式換成別的＝清掉手動填的金額；金額清空＝回到沿用契約設定
+hlEl("hl_stages").addEventListener("input", (e) => {
+  const t = e.target;
+  // 改了單坪月租：這一列如果已經有月租金（不是手動填的），馬上用新的單坪 × 坪數重算，免得忘記改月租金
+  if (t.matches && t.matches('[data-k="unit"]')){
+    const row = t.closest(".hl-row"), rent = row.querySelector('[data-k="rent"]'), sel = row.querySelector('[data-k="rnd"]'), area = Number(hlEl("hl_area").value) || 0;
+    if (sel.value !== "manual" && rent.value !== "" && t.value !== "" && area > 0){
+      const rd = hlRndToRound(sel.value), rc = rd ? (rd.unit >= 1000 ? rd : null) : hlFormRound();
+      rent.value = String(Math.round(hlRoundWith(rc, Number(t.value) * area)));
+    }
+    return;
+  }
+  if (!t.matches || !t.matches('[data-k="rent"]')) return;
+  const row = t.closest(".hl-row"), sel = row.querySelector('[data-k="rnd"]');
+  // 打的金額剛好等於系統算出來的，就不算手動（不小心刪掉重打也不會變手動）
+  const auto = hlAutoRent(row.querySelector('[data-k="unit"]').value, hlEl("hl_area").value, sel.value);
+  const same = auto !== null && t.value !== "" && Number(t.value) === auto;
+  if (t.value !== "" && !same && sel.value !== "manual") sel.value = "manual";
+  else if ((t.value === "" || same) && sel.value === "manual") sel.value = "";
+});
+hlEl("hl_stages").addEventListener("change", (e) => {
+  const t = e.target; if (!t.matches || !t.matches('[data-k="rnd"]')) return;
+  const row = t.closest(".hl-row"), rent = row.querySelector('[data-k="rent"]'), unit = row.querySelector('[data-k="unit"]');
+  const area = Number(hlEl("hl_area").value) || 0;
+  if (t.value === "manual"){
+    if (rent.value === ""){
+      if (unit.value !== "" && area > 0) rent.value = String(Math.round(hlRoundWith(hlFormRound(), Number(unit.value) * area)));
+      rent.focus(); rent.select();
+    }
+  } else if (rent.value !== ""){
+    if (unit.value === "" && area > 0) unit.value = String(Math.round(Number(rent.value) / area * 100) / 100);   // 單坪空著時先換算保留，免得整列變空
+    rent.value = "";
+  }
+  hlRefreshPreview();
 });
 // 租金表依租金生效日由早到晚自動排序：離開那一列（不是移到同一列的下一格）時，如果順序亂了就重新排。
 // 還有沒填日期的列時先不排（還在輸入中）。排完會把游標放回使用者原本點的那一格。
@@ -7374,9 +8336,9 @@ hlEl("hl_stages").addEventListener("focusout", (e) => {
   const rtRow = rt && rt.closest ? rt.closest(".hl-row[data-rid]") : null;
   setTimeout(() => hlSortRowsIfNeeded(rtRow ? rtRow.dataset.rid : null, rtRow && rt.dataset ? rt.dataset.k : null), 0);
 });
-// 三個小工具面板：貼上 Excel／用公式產生／核對合約金額（一次只開一個）
-const HL_PANELS = { paste:"hl_panelPaste", gen:"hl_panelGen", check:"hl_panelCheck" };
-function hlHideTools(){ Object.values(HL_PANELS).forEach(id => hlEl(id).classList.add("hidden")); hlEl("hl_pasteMsg").textContent = ""; hlEl("hl_genMsg").textContent = ""; hlEl("hl_checkResult").innerHTML = ""; }
+// 兩個小工具面板：貼上 Excel／用公式產生（一次只開一個）
+const HL_PANELS = { paste:"hl_panelPaste", gen:"hl_panelGen" };
+function hlHideTools(){ Object.values(HL_PANELS).forEach(id => hlEl(id).classList.add("hidden")); hlEl("hl_pasteMsg").textContent = ""; hlEl("hl_genMsg").textContent = ""; }
 function hlToggleTool(name){
   const el = hlEl(HL_PANELS[name]), wasHidden = el.classList.contains("hidden");
   Object.values(HL_PANELS).forEach(id => hlEl(id).classList.add("hidden"));
@@ -7388,12 +8350,12 @@ function hlToggleTool(name){
       // 起算日（漲租的起算點＝調價週年日）預設直接用「租期起」，改過就尊重使用者；免租期內的部分由「產生租金表」自動處理
       if (!hlEl("hl_genFrom").dataset.touched) hlEl("hl_genFrom").value = hlEl("hl_start").value || r0.from || "";
       if (!hlEl("hl_genUnit").value && r0.unit !== "" && r0.unit !== undefined) hlEl("hl_genUnit").value = r0.unit;
+      hlGenPreview();
     }
   }
 }
 hlEl("hl_toolPaste").addEventListener("click", () => hlToggleTool("paste"));
 hlEl("hl_toolGen").addEventListener("click", () => hlToggleTool("gen"));
-hlEl("hl_toolCheck").addEventListener("click", () => hlToggleTool("check"));
 const hlTableHasData = () => hlReadRows().some(r => r.unit !== "" || r.rent !== "");
 hlEl("hl_pasteApply").addEventListener("click", async () => {
   const area = Number(hlEl("hl_area").value) || 0;
@@ -7411,20 +8373,25 @@ hlEl("hl_pasteApply").addEventListener("click", async () => {
   hlEl("hl_pasteMsg").textContent = `已套用 ${rows.length} 期` + (bad.length ? `；略過 ${bad.length} 行：${bad.slice(0, 2).join("；")}` : "") + "。請檢查日期與金額是否正確。" + warn;
 });
 hlEl("hl_genMode").addEventListener("change", () => { hlEl("hl_genValLabel").textContent = hlEl("hl_genMode").value === "pct" ? "漲幅（%）" : "每次加（元/坪）"; });
-hlEl("hl_genApply").addEventListener("click", async () => {
-  const msg = hlEl("hl_genMsg"), from = hlEl("hl_genFrom").value || hlEl("hl_start").value, unit0 = Number(hlEl("hl_genUnit").value);
+// 依「用公式產生」面板的條件算出每一期；回傳 { rows, freeNote } 或 { err }（預覽跟按「產生租金表」共用同一套算法）
+function hlGenBuild(){
+  const from = hlEl("hl_genFrom").value || hlEl("hl_start").value, unit0 = Number(hlEl("hl_genUnit").value);
   const freq = Math.max(1, Math.floor(Number(hlEl("hl_genFreq").value) || 1)), mode = hlEl("hl_genMode").value, val = Number(hlEl("hl_genVal").value) || 0;
   const round = hlEl("hl_genRound").checked, end = parseLocalDate(hlEl("hl_end").value), area = Number(hlEl("hl_area").value) || 0;
-  if (!from || !(unit0 > 0)){ msg.textContent = "請填起算日與起始單坪月租。"; return; }
-  if (!end){ msg.textContent = "請先在上方填好「租期迄」，系統才知道要展開到哪一年。"; return; }
+  if (!from || !(unit0 > 0)) return { err:"請填起算日與起始單坪月租。" };
+  if (!end) return { err:"請先在上方填好「租期迄」，系統才知道要展開到哪一年。" };
+  const until = hlEl("hl_genUntil").value;
+  if (until && until < from) return { err:"「調漲到這天為止」不能早於起算日。" };
   const f0 = parseLocalDate(from), rows = [];
   let u = unit0;
   for (let k = 0; k < 60; k++){
     const d = new Date(f0.getFullYear() + k * freq, f0.getMonth(), f0.getDate());
     if (d > end) break;
+    if (k > 0 && until && toDateInput(d) > until) break;   // 超過停止調整日：不再產生新的一期，單價維持最後一期
     if (k > 0) u = mode === "pct" ? (round ? Math.round(u * (1 + val / 100)) : unit0 * Math.pow(1 + val / 100, k)) : (round ? Math.round(unit0 + val * k) : unit0 + val * k);
     const u2 = Math.round(u * 100) / 100;
-    rows.push({ from:toDateInput(d), unit:u2, rent: (Math.abs(u - u2) > 1e-9 && area > 0) ? Math.round(u * area) : "" });
+    const rc = hlFormRound();
+    rows.push({ from:toDateInput(d), unit:u2, rent: rc && area > 0 ? Math.round(hlRoundWith(rc, u * area)) : ((Math.abs(u - u2) > 1e-9 && area > 0) ? Math.round(u * area) : "") });
   }
   // 起算日落在免租期內（例如 8/15 起租、免租到 12/31）：免租期間不收租金，租金表的第一列改成免租期結束後的第一天，
   // 之後每期仍照起算日的週年（8/15）調價，所以不需要為了避開免租期而改起算日。
@@ -7440,30 +8407,29 @@ hlEl("hl_genApply").addEventListener("click", async () => {
       freeNote = `第一列已自動改成免租期結束後的第一天（${dateText(first)}）。`;
     }
   }
-  if (hlTableHasData() && !(await askConfirm(`目前的租金表會被取代為展開的 ${rows.length} 期，確定嗎？`, "取代租金表"))) return;
-  hlRenderRows(rows); hlRefreshPreview();
-  msg.textContent = `已展開 ${rows.length} 期（${dateText(rows[0].from)} ～ ${dateText(rows[rows.length - 1].from)}）。${freeNote}可直接在上面的租金表修改個別期數。`;
+  return { rows, freeNote, from };
+}
+// 公式條件一改（含勾選「每期四捨五入」）就在面板裡即時列出結果；還沒按「產生租金表」不會動到上面的租金表
+function hlGenPreview(){
+  const box = hlEl("hl_genPreview"); if (!box || hlEl("hl_panelGen").classList.contains("hidden")) return;
+  const g = hlGenBuild(), area = Number(hlEl("hl_area").value) || 0;
+  if (g.err){ box.innerHTML = `<span style="color:var(--text-soft);">${escHtml(g.err)}</span>`; return; }
+  box.innerHTML = `<div style="color:var(--text-soft);margin-bottom:3px;">預覽（共 ${g.rows.length} 期${hlEl("hl_genUntil").value ? `，${dateText(hlEl("hl_genUntil").value)} 之後單價固定` : ""}；按「產生租金表」才會套用）</div><div class="hl-genprev-scroll"><table class="hl-check-tbl"><thead><tr><th>租金生效日</th><th>單坪月租（元）</th><th>月租金（元）</th></tr></thead><tbody>` +
+    g.rows.map(r => `<tr><td>${escHtml(dateText(r.from))}</td><td style="text-align:right;">${fmt2(r.unit)}</td><td style="text-align:right;">${r.rent !== "" ? fmtInt(r.rent) : (area > 0 ? fmtInt(Math.round(r.unit * area)) : "—")}</td></tr>`).join("") + `</tbody></table></div>`;
+}
+["hl_genFrom", "hl_genUnit", "hl_genFreq", "hl_genMode", "hl_genVal", "hl_genUntil", "hl_genRound"].forEach(id => { hlEl(id).addEventListener("input", hlGenPreview); hlEl(id).addEventListener("change", hlGenPreview); });
+hlEl("hl_genApply").addEventListener("click", async () => {
+  const msg = hlEl("hl_genMsg"), g = hlGenBuild();
+  if (g.err){ msg.textContent = g.err; return; }
+  const rows = g.rows, freeNote = g.freeNote;
+  // 起算日之前已經填好的列保留（例如前幾年固定不調），起算日（含）之後的列換成產生出來的
+  const cur = hlReadRows(), isData = r => r.unit !== "" || r.rent !== "";
+  const keep = cur.filter(r => r.from && r.from < g.from && isData(r)), replaced = cur.filter(r => !(r.from && r.from < g.from) && isData(r));
+  if (replaced.length && !(await askConfirm(`起算日（${dateText(g.from)}）之後的租金表會被取代為展開的 ${rows.length} 期` + (keep.length ? `，起算日之前的 ${keep.length} 列會保留` : "") + "，確定嗎？", "取代租金表"))) return;
+  hlRenderRows([...keep, ...rows]); hlRefreshPreview();
+  msg.textContent = `已展開 ${rows.length} 期（${dateText(rows[0].from)} ～ ${dateText(rows[rows.length - 1].from)}）` + (keep.length ? `，保留起算日之前 ${keep.length} 列` : "") + `。${freeNote}可直接在上面的租金表修改個別期數。`;
 });
-hlEl("hl_checkApply").addEventListener("click", () => {
-  const box = hlEl("hl_checkResult"), area = Number(hlEl("hl_area").value) || 0;
-  const { rows, bad } = hlParsePaste(hlEl("hl_checkText").value, area);
-  if (!rows.length){ box.innerHTML = `<div style="margin-top:6px;color:var(--status-critical);">${escHtml(bad.length ? bad.slice(0, 3).join("；") : "沒有讀到資料，請貼上含日期與金額的幾欄。")}</div>`; return; }
-  const { rec, errors } = hlCollect();
-  if (!rec.stages.length || errors.some(m => m.startsWith("租金表"))){ box.innerHTML = `<div style="margin-top:6px;color:var(--status-critical);">租金表還沒填好，請先補完再核對。</div>`; return; }
-  let nBad = 0;
-  const lines = rows.map(r => {
-    const d = parseLocalDate(r.from), sysRent = hlRentAmt(rec, d), sysUnit = hlUnitRent(rec, d);
-    let cls = "hl-check-ok", mark = "✓ 相符", diffTxt = "";
-    if (r.rent !== ""){
-      const diff = sysRent - r.rent;
-      if (diff !== 0){ diffTxt = (diff > 0 ? "+" : "") + fmtInt(diff); if (Math.abs(diff) <= 1) mark = "✓ 差 1 元"; else { cls = "hl-check-bad"; mark = "✗ 不符"; nBad++; } }
-    } else if (Math.abs(sysUnit - r.unit) >= 0.5){ cls = "hl-check-bad"; mark = "✗ 不符"; nBad++; diffTxt = (sysUnit - r.unit > 0 ? "+" : "") + fmt2(sysUnit - r.unit) + " 元/坪"; }
-    return `<tr><td>${escHtml(dateText(r.from))}</td><td>${r.rent !== "" ? fmtInt(r.rent) : "—"}</td><td>${r.unit !== "" ? fmt2(r.unit) : "—"}</td><td>${fmtInt(sysRent)}</td><td>${fmt2(sysUnit)}</td><td class="${cls}">${mark}${diffTxt ? "（" + diffTxt + "）" : ""}</td></tr>`;
-  }).join("");
-  box.innerHTML = `<div style="margin-top:8px;font-weight:700;" class="${nBad ? "hl-check-bad" : "hl-check-ok"}">${nBad ? `共 ${rows.length} 期，${nBad} 期對不上` : `共 ${rows.length} 期，全部相符`}</div>
-    <table class="hl-check-tbl"><thead><tr><th>日期</th><th>合約月租金</th><th>合約單坪</th><th>系統月租金</th><th>系統單坪</th><th>結果</th></tr></thead><tbody>${lines}</tbody></table>`;
-});
-["hl_pasteText", "hl_checkText"].forEach(id => hlEl(id).addEventListener("keydown", e => e.stopPropagation()));
+["hl_pasteText"].forEach(id => hlEl(id).addEventListener("keydown", e => e.stopPropagation()));
 hlEl("hl_genFrom").addEventListener("input", () => { hlEl("hl_genFrom").dataset.touched = "1"; });
 ["hl_genFrom", "hl_genUnit", "hl_genFreq", "hl_genVal"].forEach(id => hlEl(id).addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); hlEl("hl_genApply").click(); } }));
 hlForm.addEventListener("input", (e) => {
@@ -7476,6 +8442,7 @@ hlForm.addEventListener("input", (e) => {
     if (!hlEl("hl_genFrom").dataset.touched) hlEl("hl_genFrom").value = e.target.value;   // 漲租起算日還沒自己改過，就跟著租期起走
   }
   hlRefreshPreview();
+  hlGenPreview();
 });
 hlForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -7542,6 +8509,8 @@ const HL_IMPORT_COLS = [
   { key:"remark", label:"備註", aliases:[] },
   { key:"stageRent", label:"階段月租金", aliases:["起算月租金","階段起算月租金","契約月租金"] },
   { key:"roundInt", label:"單價取整數元", aliases:["取整數元","四捨五入到整數元","單價取整"] },
+  { key:"roundK", label:"月租金取整至千元", aliases:["月租金四捨五入至千元","四捨五入至仟元","月租金取整仟元","月租金取整千元"] },
+  { key:"roundUnit", label:"月租金取整單位", aliases:["取整單位"] },
 ];
 let HL_IMPORT = null;
 function hlFindHeader(matrix){
@@ -7665,7 +8634,16 @@ function hlAnalyze(parsed){
     } else if (fsP.ok || fePP.ok) errors.push("免租期要起、迄都填（或都留白）");
     else if (!fsP.blank || !fePP.blank) errors.push("免租期日期格式看不懂");
     const rec = { zone: z ? z.zone : zoneRaw, lessor, contractName:text("contractName"), contractNo:g.contractNo, start: ds.ok ? ds.iso : "", end: de.ok ? de.iso : "", area,
-      stages, freeStart, freeEnd, remark:text("remark"), roundInt: /^(是|y|yes|true|1|v|✓|✔|o|○)$/i.test(impStr(get(first, "roundInt")).trim()), inputBy: OPERATOR_NAME || "" };
+      stages, freeStart, freeEnd, remark:text("remark"), roundInt: /^(是|y|yes|true|1|v|✓|✔|o|○)$/i.test(impStr(get(first, "roundInt")).trim()), round: (() => {
+        const yes = /^(是|y|yes|true|1|v|✓|✔|o|○)$/i.test(impStr(get(first, "roundK")).trim());
+        return (/千|1000|仟/.test(impStr(get(first, "roundUnit"))) || yes) ? { unit:1000 } : null;
+      })(), inputBy: OPERATOR_NAME || "" };
+    // 匯入檔裡填的月租金如果跟「單坪×坪數（依契約取整設定）」算出來的不一樣，就是特地指定的金額：標成「手動填入金額」，不再被取整改掉
+    rec.stages.forEach(st => {
+      if (st.rent === null || st.rent === undefined || st.adjustType !== "無調整" || !(Number(st.baseUnit) > 0) || !(Number(rec.area) > 0)) return;
+      const auto = Math.round(hlRoundWith(hlRoundCfg(rec), Number(st.baseUnit) * Number(rec.area)));
+      if (Number(st.rent) !== auto) st.manual = true;
+    });
     if (!errors.length){
       hlFreeHits(rec).forEach(h => errors.push(`租金表第 ${h.no} 列：注意:租金生效日 ${dateText(h.from)} 在免租期內（${dateText(rec.freeStart)} ～ ${dateText(rec.freeEnd)}），請修改!`));
       if (!errors.length) hlCheckWarnings(rec).forEach(m => warnings.push(m));
@@ -7784,6 +8762,8 @@ async function downloadHlTemplate(){
     freeEnd:["選填", "免租期結束日（含當天）。免租期間月租金算 0。"],
     remark:["選填", "備註。"],
     stageRent:["選填", "這個階段起算時的月租金（元）；留白＝單坪月租 × 承租坪數自動計算。合約有實際金額時填，之後調漲仍依單價比例續算。"],
+    roundUnit:["選填", "月租金四捨五入到哪一位（金額一律未稅）：填「仟元」＝四捨五入至仟元（例如合約寫「並四捨五入計算至仟元為止」）；留白或填「元」＝至元（系統預設）。同一份契約以第一列為準。"],
+    roundK:["選填", "（簡易填法）填「是」＝合約約定月租金四捨五入至千元（例如「並四捨五入計算至仟元為止」），每期月租金會先取整到千元再計算。留白＝不取整。同一份契約以第一列為準。"],
     roundInt:["選填", "填「是」＝每次調整後單價四捨五入到整數元（合約租金表以整數元列示時使用）；留白＝不取整。同一份契約以第一列為準。"],
   };
   const sheet2 = { name:"填寫說明", header:["欄位","是否必填","說明"], rows:[
@@ -7836,7 +8816,8 @@ function hlMonthCost(r, year, mi){
   // 整月都付＝剛好一個完整月租金；起租月、到期月、免租期前後、月中換價（例如 8/15 調價的 8 月）都按實際天數折算。
   let sum = 0;
   paid.forEach(day => { sum += hlRentAmt(r, day) / dim; });
-  return { amt: Math.round(sum), active:true, free:false };
+  const cfg = hlRoundCfgAt(r, paid[paid.length - 1]);      // 這個月的取整規則：以該月最後一個付租日所在的階段為準
+  return { amt: Math.round(cfg && cfg.scope === "all" ? hlRoundWith(cfg, sum) : sum), active:true, free:false };
 }
 // 一份契約一列（同一個園區有好幾份契約，就各自一列）；該年度完全不在租期內的契約不列出。
 function computeCostRows(year){
@@ -7870,6 +8851,8 @@ function renderCost(){
   sel.innerHTML = years.map(y => `<option value="${y}">${y} 年</option>`).join("");
   sel.value = years.includes(keep) ? String(keep) : String(TODAY.getFullYear());
   const year = Number(sel.value);
+  document.getElementById("costPrev").disabled = !years.includes(year - 1);
+  document.getElementById("costNext").disabled = !years.includes(year + 1);
   document.getElementById("costTitle").textContent = `租賃成本總覽 — ${year} 年各月租金成本（元/月）`;
   document.getElementById("costDesc").textContent = "依「租入契約」的租期、租金階段與調價規則，按月算出公司每月應付給業主的租金（租入契約沒有管理費），一份契約一列。起租月、到期月不足整月，依「月租金 ÷ 當月天數 × 付租天數」按日計算；免租期間不計租金（整月免租顯示「免租」）；租金階段或調價日落在月中時，從當天起改用新單價。";
   const tbody = document.getElementById("costTbody");
@@ -7879,14 +8862,14 @@ function renderCost(){
     tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; color:var(--text-soft); padding:24px;">${HEAD_LEASES.length ? `${year} 年沒有在租期內的租入契約` : "目前沒有租入契約資料（到「資料庫」的「租入契約」新增）"}</td></tr>`;
     return;
   }
-  const cellsHtml = (arr, free) => arr.map((v, m) => `<td class="num">${v ? fmtInt(v) : (free && free[m] ? '<span class="cost-free">免租</span>' : "—")}</td>`).join("");
+  const cellsHtml = (arr, free) => arr.map((v, m) => `<td class="num">${v ? fmtInt(v) : (free && free[m] ? '<span class="cost-free">免租</span>' : "-")}</td>`).join("");
   const grand = new Array(12).fill(0); let grandTotal = 0;
   let html = rows.map(x => {
     for (let m = 0; m < 12; m++) grand[m] += x.cells[m];
     grandTotal += x.total;
-    return `<tr><td title="${escHtml(x.zone)}">${escHtml(x.name)}</td>${cellsHtml(x.cells, x.free)}<td class="num computed">${x.total ? fmtInt(x.total) : "—"}</td></tr>`;
+    return `<tr><td title="${escHtml(x.zone)}">${escHtml(x.name)}</td>${cellsHtml(x.cells, x.free)}<td class="num computed">${x.total ? fmtInt(x.total) : "-"}</td></tr>`;
   }).join("");
-  html += `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td>合計</td>${cellsHtml(grand, null)}<td class="num computed">${grandTotal ? fmtInt(grandTotal) : "—"}</td></tr>`;
+  html += `<tr style="font-weight:700; background:var(--gray-fill-strong);"><td>合計</td>${cellsHtml(grand, null)}<td class="num computed">${grandTotal ? fmtInt(grandTotal) : "-"}</td></tr>`;
   tbody.innerHTML = html;
 }
 function refreshCostIfVisible(){
@@ -7894,12 +8877,17 @@ function refreshCostIfVisible(){
   if (p && p.classList.contains("active")) renderCost();
 }
 document.getElementById("costYear").addEventListener("change", renderCost);
+// ◀ ▶：切到上一年／下一年
+[["costPrev", -1], ["costNext", 1]].forEach(([id, step]) => document.getElementById(id).addEventListener("click", () => {
+  const sel = document.getElementById("costYear"), y = Number(sel.value) + step;
+  if ([...sel.options].some(o => Number(o.value) === y)){ sel.value = String(y); renderCost(); }
+}));
 
 // 匯出（下載報表）用：租入契約一覽
 function buildHeadLeaseSheet(){
-  const header = ["園區","契約名稱","租入對象","契約編號","租期起","租期迄","承租坪數","目前單坪月租","目前月租金","租金階段","下次調價日","免租期起","免租期迄","狀態","備註","續約自","單價取整數元"];
+  const header = ["園區","契約名稱","租入對象","契約編號","租期起","租期迄","承租坪數","目前單坪月租","目前月租金","租金階段","下次調價日","免租期起","免租期迄","狀態","備註","續約自","單價取整數元","月租金取整至千元"];
   const rows = hlSorted(HEAD_LEASES).map(r => [r.zone, r.contractName || "", r.lessor, r.contractNo || "", r.start, r.end, Number(r.area) || 0,
-    Number(hlUnitRent(r, TODAY).toFixed(2)), hlMonthlyRent(r, TODAY), hlStagesText(r), hlNextAdjust(r, TODAY), r.freeStart || "", r.freeEnd || "", hlIsSuperseded(r) ? "已續約" : hlStatus(r, TODAY).text, r.remark || "", (hlPrevOf(r) ? `${hlLabel(hlPrevOf(r))}（${hlPrevOf(r).start}～${hlPrevOf(r).end}）` : ""), r.roundInt ? "是" : ""]);
+    Number(hlUnitRent(r, TODAY).toFixed(2)), hlMonthlyRent(r, TODAY), hlStagesText(r), hlNextAdjust(r, TODAY), r.freeStart || "", r.freeEnd || "", hlIsSuperseded(r) ? "已續約" : hlStatus(r, TODAY).text, r.remark || "", (hlPrevOf(r) ? `${hlLabel(hlPrevOf(r))}（${hlPrevOf(r).start}～${hlPrevOf(r).end}）` : ""), r.roundInt ? "是" : "", hlRoundCfg(r) ? "四捨五入至仟元" : ""]);
   return { name:"租入契約", header, rows, colFmt:{ 4:"date", 5:"date", 6:"dec2", 7:"dec2", 8:"int", 10:"date", 11:"date", 12:"date" } };
 }
 
